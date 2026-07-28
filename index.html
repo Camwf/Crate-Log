@@ -248,32 +248,36 @@
 <div id="dashboardView">
   <div class="panel" id="searchPanel">
     <div class="panel-header" onclick="this.closest('.panel').classList.toggle('collapsed')">
-      <h3 id="discogsSearchHeading">🔍 Add New Record (Search Discogs)</h3>
+      <h3 id="discogsSearchHeading">🔍 Search</h3>
       <div style="display: flex; align-items: center; gap: 12px;">
-        <button class="secondary" id="clearSearchBtn" style="display:none; padding:4px 10px; font-size:11px; margin:0;" onclick="event.stopPropagation(); document.getElementById('discogsResultsList').style.display = 'none'; document.getElementById('discogsSearchInput').value = ''; this.style.display = 'none';">Clear</button>
+        <button class="secondary" id="clearSearchBtn" style="display:none; padding:4px 10px; font-size:11px; margin:0;" onclick="event.stopPropagation(); clearUnifiedSearch();">Clear</button>
         <span class="toggle-icon">▼</span>
       </div>
     </div>
     <div class="panel-body">
       <div class="row2">
-        <input type="text" id="discogsSearchInput" placeholder="Artist, Title, or Barcode...">
-        <button class="primary" id="discogsSearchBtn">Lookup Release</button>
+        <input type="text" id="unifiedSearchInput" placeholder="Artist, Title, Barcode, Label...">
+        <button class="primary" id="discogsSearchBtn" style="display:none;">Search Discogs</button>
       </div>
+      <label style="display:flex; align-items:center; gap:8px; margin-top:12px; margin-bottom:4px; font-size:13px; color:var(--dim); cursor:pointer; user-select:none;">
+        <input type="checkbox" id="alsoSearchDiscogsToggle" style="width:16px;height:16px;accent-color:var(--amber);">
+        Also search Discogs <span style="color:rgba(255,255,255,0.4);">— to find and add new records</span>
+      </label>
       <div id="loadingPanel" style="display:none; text-align: center; padding: 30px 20px;">
         <div class="spinner"></div>
         <div style="color: var(--dim); font-size: 14px;">Searching Discogs Database...</div>
       </div>
-      <div id="discogsResultsList" style="margin-top:24px; display:none;"></div>
+      <div id="discogsResultsWrap" style="display:none;">
+        <h3 style="font-size:14px; color:var(--amber); text-transform:uppercase; letter-spacing:0.05em; margin:20px 0 12px;">On Discogs</h3>
+        <div id="discogsResultsList"></div>
+      </div>
     </div>
   </div>
   <div class="panel" id="collectionPanel">
     <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 16px;">
-      <h3 style="margin: 0; font-size: 20px; color: var(--text); font-weight: 600;">📚 My Collection</h3>
+      <h3 style="margin: 0; font-size: 20px; color: var(--text); font-weight: 600;">📚 In Your Collection</h3>
     </div>
     <div class="chiprow" id="collectionFilterChips" style="margin-bottom: 12px;"></div>
-    <div style="display:flex; gap:12px; align-items:center; margin-bottom: 16px;">
-      <input type="text" id="collectionFilterInput" placeholder="Filter library by artist, title, label..." style="flex:1;">
-    </div>
     <div class="browse-summary" id="browseSummary"></div>
     <div id="collectionResultsList"></div>
   </div>
@@ -408,6 +412,7 @@
 <div class="fab-container" id="fabContainer">
   <div class="fab-inner">
     <button class="secondary" id="discardBtn">Discard</button>
+    <button class="secondary" id="removeBtn" style="display:none; border-color:var(--red); color:var(--red);">Remove from Collection</button>
     <button class="secondary" id="duplicateBtn" style="display:none;">Duplicate</button>
     <button class="primary" id="saveBtn">Save Record</button>
   </div>
@@ -485,14 +490,14 @@ let lastBrowseResults = [];
 const DEFAULT_APPS_SCRIPT_URL = "https://crate-log-proxy.cameron-w-franklyn.workers.dev/";
 
 const DEFAULT_COLLECTIONS = [
+  {id:"wishlist", name:"Wishlist", color:"#8E7CC3"},
   {id:"pete", name:"Pete", color:"#3E7D75"},
   {id:"cam", name:"Cam", color:"#E3A857"},
   {id:"lily", name:"Lily", color:"#B8607A"},
-  {id:"tyson", name:"Tyson", color:"#9B8C3F"},
-  {id:"wishlist", name:"Wishlist", color:"#8E7CC3"}
+  {id:"tyson", name:"Tyson", color:"#9B8C3F"}
 ];
 let collections = DEFAULT_COLLECTIONS.slice();
-let activeCollectionId = "pete";
+let activeCollectionId = "wishlist";
 let appsScriptUrl = "";
 
 const $ = id => document.getElementById(id);
@@ -614,13 +619,35 @@ function syncCollectionUI(){
 function renderCollEditList(){
   const wrap = $('collEditList');
   wrap.innerHTML = '';
-  collections.forEach(c=>{
+  collections.forEach((c, idx)=>{
     const row = document.createElement('div');
     row.className = 'collrow';
-    row.innerHTML = `<input type="color" value="${c.color}" data-id="${c.id}" class="colorEdit">
+    row.innerHTML = `<span class="reorder-btns" style="display:flex; flex-direction:column; gap:2px; flex:0 0 auto;">
+                        <button type="button" class="moveupbtn" data-id="${c.id}" ${idx===0 ? 'disabled style="opacity:0.25;"' : ''} style="background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer;line-height:1;padding:2px;">▲</button>
+                        <button type="button" class="movedownbtn" data-id="${c.id}" ${idx===collections.length-1 ? 'disabled style="opacity:0.25;"' : ''} style="background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer;line-height:1;padding:2px;">▼</button>
+                      </span>
+                      <input type="color" value="${c.color}" data-id="${c.id}" class="colorEdit">
                       <input type="text" value="${c.name}" data-id="${c.id}" class="nameEdit">
                       <button class="delbtn" data-id="${c.id}">✕</button>`;
     wrap.appendChild(row);
+  });
+  wrap.querySelectorAll('.moveupbtn').forEach(btn=>{
+    btn.onclick = ()=>{
+      const idx = collections.findIndex(x=>x.id===btn.dataset.id);
+      if(idx > 0){
+        [collections[idx-1], collections[idx]] = [collections[idx], collections[idx-1]];
+        persistCollections(); renderCollEditList(); syncCollectionUI();
+      }
+    };
+  });
+  wrap.querySelectorAll('.movedownbtn').forEach(btn=>{
+    btn.onclick = ()=>{
+      const idx = collections.findIndex(x=>x.id===btn.dataset.id);
+      if(idx < collections.length-1){
+        [collections[idx+1], collections[idx]] = [collections[idx], collections[idx+1]];
+        persistCollections(); renderCollEditList(); syncCollectionUI();
+      }
+    };
   });
   wrap.querySelectorAll('.nameEdit').forEach(inp=>{
     inp.onchange = ()=>{
@@ -667,6 +694,7 @@ function refreshSaveButtonMode(){
   dup.style.display = isUpdate ? 'block' : 'none';
   dup.style.borderColor = c.color;
   dup.style.color = c.color;
+  $('removeBtn').style.display = isUpdate ? 'block' : 'none';
 }
 
 function toast(msg, isErr, undoFn){
@@ -744,14 +772,20 @@ $('testConnBtn').onclick = async ()=>{
   }catch(e){ toast('Connection failed', true); }
 };
 
+function clearUnifiedSearch(){
+  $('discogsResultsWrap').style.display = 'none';
+  $('discogsResultsList').innerHTML = '';
+  $('unifiedSearchInput').value = '';
+  $('clearSearchBtn').style.display = 'none';
+  runBrowse('');
+}
+
 function showDashboard(clearSearch = true) {
   $('editorView').style.display = 'none';
   $('dashboardView').style.display = 'block';
   $('fabContainer').classList.remove('visible');
   if (clearSearch) {
-    $('discogsResultsList').style.display = 'none';
-    $('discogsSearchInput').value = '';
-    $('clearSearchBtn').style.display = 'none';
+    clearUnifiedSearch();
   }
   clearDraft();
   setAppBg(null);
@@ -770,11 +804,7 @@ function showEditor() {
 
 $('backToDashboardBtn').onclick = () => {
   showDashboard(false);
-  if (lastOpenedFrom === 'discogs') {
-    $('searchPanel').scrollIntoView({behavior: 'smooth'});
-  } else {
-    $('collectionPanel').scrollIntoView({behavior: 'smooth'});
-  }
+  $('searchPanel').scrollIntoView({behavior: 'smooth'});
 };
 
 $('discardBtn').onclick = () => {
@@ -782,28 +812,47 @@ $('discardBtn').onclick = () => {
   window.scrollTo({top: 0, behavior: 'smooth'});
 };
 
-$('discogsSearchBtn').onclick = ()=>{
-  isUpdatingExistingCard = false;
-  const q = $('discogsSearchInput').value.trim();
-  if(!q){ toast('Type something to search', true); return; }
-  runSearch({query: q});
-};
-$('discogsSearchInput').addEventListener('keydown', e=>{
-  if(e.key === 'Enter') {
-    isUpdatingExistingCard = false;
-    runSearch({query: $('discogsSearchInput').value.trim()});
+// Load/persist the "also search Discogs" toggle preference
+try{ $('alsoSearchDiscogsToggle').checked = localStorage.getItem('crate-log-also-discogs') === '1'; }catch(e){}
+$('discogsSearchBtn').style.display = $('alsoSearchDiscogsToggle').checked ? 'block' : 'none';
+
+$('alsoSearchDiscogsToggle').addEventListener('change', ()=>{
+  const on = $('alsoSearchDiscogsToggle').checked;
+  $('discogsSearchBtn').style.display = on ? 'block' : 'none';
+  try{ localStorage.setItem('crate-log-also-discogs', on ? '1' : '0'); }catch(e){}
+  if(!on){
+    $('discogsResultsWrap').style.display = 'none';
+    $('discogsResultsList').innerHTML = '';
+  } else {
+    const q = $('unifiedSearchInput').value.trim();
+    if(q){ isUpdatingExistingCard = false; runSearch({query: q}); }
   }
 });
 
-$('collectionFilterInput').addEventListener('input', ()=>{
+$('discogsSearchBtn').onclick = ()=>{
+  isUpdatingExistingCard = false;
+  const q = $('unifiedSearchInput').value.trim();
+  if(!q){ toast('Type something to search', true); return; }
+  runSearch({query: q});
+};
+
+$('unifiedSearchInput').addEventListener('input', ()=>{
   clearTimeout(searchDebounce);
-  const q = $('collectionFilterInput').value.trim();
+  const q = $('unifiedSearchInput').value.trim();
+  $('clearSearchBtn').style.display = q ? 'inline-block' : 'none';
   searchDebounce = setTimeout(()=> runBrowse(q), 300);
+});
+$('unifiedSearchInput').addEventListener('keydown', e=>{
+  if(e.key === 'Enter' && $('alsoSearchDiscogsToggle').checked) {
+    isUpdatingExistingCard = false;
+    runSearch({query: $('unifiedSearchInput').value.trim()});
+  }
 });
 
 async function runSearch(payload){
   if(!appsScriptUrl){ toast('Set up your Apps Script URL in Settings first', true); $('settingsModal').classList.add('show'); return; }
-  $('discogsResultsList').style.display='none';
+  if(!payload.query){ toast('Type something to search', true); return; }
+  $('discogsResultsWrap').style.display='none';
   $('loadingPanel').style.display='block';
   try{
     const data = await callScript({action:'search', ...payload});
@@ -812,13 +861,14 @@ async function runSearch(payload){
       $('discogsSearchHeading').textContent = '⚠️ Select Pressing to Fill Blanks for: ' + payload.query;
       $('discogsSearchHeading').style.color = 'var(--amber)';
     } else {
-      $('discogsSearchHeading').textContent = '🔍 Add New Record (Search Discogs)';
+      $('discogsSearchHeading').textContent = '🔍 Search';
       $('discogsSearchHeading').style.color = 'var(--amber)';
     }
     $('clearSearchBtn').style.display = 'inline-block';
     renderSearchResults(data.results || []);
+    $('discogsResultsWrap').style.display = 'block';
     if(!data.results || !data.results.length){
-      toast('No matches found', true);
+      toast('No matches found on Discogs', true);
     }
   }catch(e){
     $('loadingPanel').style.display='none';
@@ -833,7 +883,9 @@ function startUpdateFromDiscogs(e, idx) {
   showDashboard(false);
   isUpdatingExistingCard = true;
   const q = (r.barcode || (r.artist + ' ' + r.title)).trim();
-  $('discogsSearchInput').value = q;
+  $('unifiedSearchInput').value = q;
+  $('alsoSearchDiscogsToggle').checked = true;
+  $('discogsSearchBtn').style.display = 'block';
   $('searchPanel').classList.remove('collapsed');
   window.scrollTo({top:0, behavior:'smooth'});
   runSearch({query: q});
@@ -842,7 +894,7 @@ function startUpdateFromDiscogs(e, idx) {
 
 async function applyDiscogsUpdate(r, artist, title) {
   isUpdatingExistingCard = false;
-  $('discogsSearchHeading').textContent = '🔍 Add New Record (Search Discogs)';
+  $('discogsSearchHeading').textContent = '🔍 Search';
   $('discogsSearchHeading').style.color = 'var(--amber)';
   lastOpenedFrom = 'discogs';
   showEditor();
@@ -1706,6 +1758,33 @@ async function undoRestore(rowIndex, values){
     }
   }catch(e){ toast('Undo failed — check connection', true); }
 }
+
+$('removeBtn').onclick = async ()=>{
+  if(!currentRowIndex) return;
+  const who = ($('fArtist').value || 'this record') + (($('fTitle').value) ? ' — ' + $('fTitle').value : '');
+  if(!confirm('Remove "' + who + '" from your collection?')) return;
+  $('removeBtn').disabled = true;
+  try{
+    let previousValues = null;
+    try{
+      const rj = await callScript({action:'getRow', rowIndex: currentRowIndex});
+      if(rj.status === 'ok') previousValues = rj.values;
+    }catch(e){}
+    const j = await callScript({action:'deleteRow', rowIndex: currentRowIndex});
+    if(j.status === 'ok'){
+      removeFromLogByRowIndex(currentRowIndex);
+      clearDraft();
+      showDashboard(true);
+      window.scrollTo({top:0, behavior:'smooth'});
+      collectionCache = null;
+      runBrowse('');
+      toast('Removed from collection', false, previousValues ? (()=> undoRestore(currentRowIndex, previousValues)) : null);
+    } else {
+      toast(j.message || 'Could not remove', true);
+    }
+  }catch(e){ toast('Remove failed — check connection', true); }
+  $('removeBtn').disabled = false;
+};
 
 async function addToLog(record){
   let log = [];
