@@ -1,0 +1,1919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Crate Log</title>
+<meta name="theme-color" content="#0D0B09">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Crate Log">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0D0B09;
+    --surface: rgba(24, 21, 18, 0.85);
+    --surface-hover: rgba(34, 30, 25, 0.9);
+    --surface2: rgba(37, 33, 28, 0.6);
+    --line: rgba(255, 255, 255, 0.08);
+    --text: #F4EFE6;
+    --dim: #A89D8D;
+    --amber: #E8AA55;
+    --amber-dim: rgba(232, 170, 85, 0.15);
+    --red: #D25E4A;
+    --red-dim: rgba(210, 94, 74, 0.15);
+    --ok: #79B596;
+    --ok-dim: rgba(121, 181, 150, 0.15);
+    --purple: #8E7CC3;
+    --purple-dim: rgba(142, 124, 195, 0.15);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --app-max-w: 1200px;
+    --c-mint: #10B981;
+    --c-nm: #79B596;
+    --c-vg: #FACC15;
+    --c-g: #F97316;
+    --c-poor: #D25E4A;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; background-color: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; padding-bottom: 100px; -webkit-font-smoothing: antialiased; position: relative; }
+  #appBg { position: fixed; inset: -60px; background-size: cover; background-position: center; filter: blur(12px) brightness(0.35); z-index: -1; opacity: 0; transition: opacity 0.8s ease, background-image 0.5s ease; pointer-events: none; }
+  #appBg.show { opacity: 1; }
+  h1, h2, h3, .label, .oswald { font-family: 'Oswald', sans-serif; letter-spacing: 0.02em; }
+  header { display: flex; align-items: center; justify-content: space-between; padding: 24px 16px 16px; max-width: var(--app-max-w); margin: 0 auto; position: relative; z-index: 1;}
+  header h1 { font-size: 26px; margin: 0; font-weight: 600; display: flex; align-items: center; gap: 10px;}
+  header h1 span.highlight { color: var(--amber); transition: color 0.3s; }
+  .disc { width: 18px; height: 18px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #555 0 2px, var(--amber) 2px 4px, #111 4px 100%); display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.5); animation: spin-slow 9s linear infinite; }
+  @keyframes spin-slow { to { transform: rotate(360deg); } }
+  .icon-btn { background: var(--surface2); border: 1px solid var(--line); color: var(--text); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; transition: all 0.2s ease; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  .icon-btn:hover { border-color: var(--amber); color: var(--amber); transform: translateY(-2px); }
+  .panel { background: var(--surface); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; margin: 0 auto 24px; max-width: var(--app-max-w); box-shadow: 0 12px 40px rgba(0,0,0,0.4); position: relative; z-index: 1;}
+  .panel.full-width { max-width: none; border-radius: 0; border-left: none; border-right: none; }
+  .panel-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-bottom: 20px; user-select: none; }
+  .panel-header h3 { margin: 0; font-size: 16px; color: var(--amber); font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;}
+  .panel-header .toggle-icon { display: inline-block; color: var(--dim); transition: transform 0.3s ease; font-size: 12px; }
+  .panel.collapsed .panel-body { display: none; }
+  .panel.collapsed .panel-header { margin-bottom: 0; }
+  .panel.collapsed .panel-header .toggle-icon { transform: rotate(-90deg); }
+  .crate-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
+  .crate-tabs::-webkit-scrollbar { display: none; }
+  .tab { flex: 0 0 auto; padding: 10px 20px; border-radius: 30px; border: 1px solid var(--line); background: rgba(0,0,0,0.3); color: var(--dim); font-family: 'Oswald', sans-serif; font-size: 14px; cursor: pointer; white-space: nowrap; transition: all 0.3s ease; }
+  .tab.active { font-weight: 600; color: #111; border-color: transparent; }
+  .tab.addtab { background: transparent; border-style: dashed; color: var(--dim); }
+  .tab.addtab:hover { color: var(--amber); border-color: var(--amber); }
+  .chiprow { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+  .chip { background: var(--surface2); border: 1px solid transparent; color: var(--dim); border-radius: 20px; padding: 6px 14px; font-size: 13px; cursor: pointer; transition: 0.2s; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);}
+  .chip:hover { background: rgba(255,255,255,0.1); color: var(--text); border-color: var(--line); }
+  .chip.active { background: var(--amber); color: #111; border-color: transparent; font-weight: 600; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--dim); margin-bottom: 8px; font-weight: 600; }
+  .row2 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media(min-width: 768px) {
+    .row2 { grid-template-columns: 3fr 1fr; }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  }
+  input[type=text], textarea { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); color: var(--text); border-radius: var(--radius-sm); padding: 14px 16px; font-size: 15px; font-family: 'Inter', sans-serif; transition: all 0.2s ease; }
+  input[type=text]:focus, textarea:focus { border-color: var(--amber); outline: none; background: rgba(0,0,0,0.5); box-shadow: 0 0 0 3px var(--amber-dim); }
+  input[type=text]::placeholder, textarea::placeholder { color: rgba(255,255,255,0.3); }
+  textarea { resize: vertical; min-height: 80px; }
+  .input-with-prefix { position: relative; display: flex; align-items: center; }
+  .input-with-prefix span { position: absolute; left: 16px; color: var(--text); font-size: 15px; font-weight: 500;}
+  .input-with-prefix input { padding-left: 32px; font-weight: 600; color: var(--ok); }
+  .field.missing label { color: var(--red); }
+  .field.missing input[type=text] { border-color: var(--red); background: var(--red-dim); }
+  .field.missing .pillrow { border-radius: var(--radius-sm); outline: 1px solid var(--red); outline-offset: 4px; }
+  .scanhint { text-align: left; color: var(--dim); font-size: 13px; margin-top: 6px; }
+  .discwarn { text-align: left; color: var(--red); font-size: 13px; margin-top: 8px; font-weight: 600; }
+  .steplabel { font-family: 'Oswald', sans-serif; font-size: 11px; color: var(--dim); text-align: center; text-transform: uppercase; letter-spacing: 0.05em; }
+  .field-warn { color: var(--red); font-size: 13px; margin: -8px 0 12px; display: none; font-weight: 600; }
+  .field-warn.show { display: block; }
+  .disclink { color: var(--amber); font-size: 13px; text-decoration: underline; cursor: pointer; }
+  .stepper { display: flex; align-items: center; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); padding: 4px; width: fit-content; margin: 0 auto;}
+  .stepper button { width: 36px; height: 36px; border-radius: 6px; border: none; background: transparent; color: var(--text); font-size: 18px; cursor: pointer; transition: 0.2s; }
+  .stepper button:hover { background: rgba(255,255,255,0.1); }
+  .stepper .stepval { font-family: 'Oswald', sans-serif; font-size: 16px; text-align: center; padding: 0 20px; font-weight: 600;}
+  button.primary { background: var(--amber); color: #111; border: none; border-radius: var(--radius-sm); padding: 14px 20px; font-family: 'Oswald', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.02em; }
+  button.primary:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 8px 16px rgba(232, 170, 85, 0.2); }
+  button.primary:active { transform: translateY(0); }
+  button.primary:disabled { opacity: 0.6; cursor: default; transform: none; box-shadow: none; }
+  button.secondary { background: rgba(255,255,255,0.03); border: 1px solid var(--line); color: var(--text); border-radius: var(--radius-sm); padding: 12px 16px; font-family: 'Oswald', sans-serif; font-size: 14px; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.02em; }
+  button.secondary:hover { background: rgba(255,255,255,0.08); border-color: var(--dim); }
+  .fav-btn { width: 100%; background: transparent; border: 1px dashed var(--dim); color: var(--dim); border-radius: var(--radius-sm); padding: 14px; font-family: 'Oswald', sans-serif; font-size: 15px; cursor: pointer; transition: 0.2s; margin-top: 8px;}
+  .fav-btn.active { background: var(--amber-dim); border: 1px solid var(--amber); color: var(--amber); }
+  .pillrow { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pill { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); color: var(--dim); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 12px; cursor: pointer; font-family: 'Oswald', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2; flex: 1; min-width: 44px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;}
+  .pill b { font-size: 14px; z-index: 2; position: relative;}
+  .pill small { font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.7; z-index: 2; position: relative; margin-top: 3px;}
+  .pill[data-tier="mint"].selected { color: #fff; border-color: var(--c-mint); background: var(--c-mint); box-shadow: 0 0 12px rgba(16, 185, 129, 0.4); text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
+  .pill[data-tier="nm"].selected { color: #111; border-color: var(--c-nm); background: var(--c-nm); }
+  .pill[data-tier="vg"].selected { color: #111; border-color: var(--c-vg); background: var(--c-vg); }
+  .pill[data-tier="g"].selected { color: #111; border-color: var(--c-g); background: var(--c-g); }
+  .pill[data-tier="poor"].selected { color: #fff; border-color: var(--c-poor); background: var(--c-poor); }
+  .pill[data-tier="original"].selected { color: #fff; border-color: var(--purple); background: var(--purple); }
+  .pill[data-tier="poly"].selected { color: #111; border-color: #fff; background: #fff; }
+  .pill.selected:not([data-tier]) { background: var(--text); color: #111; border-color: transparent;}
+  .pill:hover:not(.selected) { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+  .pillrow.collpicker .pill { min-width: 0; padding: 12px; flex: auto;}
+  .pillrow.collpicker .pill b { font-size: 13px; letter-spacing: 0.02em; }
+  .editor-layout { display: flex; flex-direction: column; gap: 32px; margin-top: 20px;}
+  @media(min-width: 860px) {
+    .editor-layout { flex-direction: row; align-items: flex-start; }
+    .editor-sidebar { flex: 0 0 340px; position: sticky; top: 20px; background: rgba(0,0,0,0.2); padding: 24px; border-radius: 12px; border: 1px solid var(--line); }
+    .editor-main { flex: 1; min-width: 0; }
+  }
+  .coverwrap { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 16px; position: relative; }
+  .card .cover { width: 100%; max-width: 320px; border-radius: 8px; display: block; background: #000; cursor: pointer; box-shadow: 0 12px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  .card .cover:hover { transform: scale(1.03); outline: 2px solid var(--amber); outline-offset: 4px; }
+  .cover-hint { margin-top: 10px; font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  .action-links { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
+  .ext-btn { background: rgba(255,255,255,0.04); border: 1px solid var(--line); color: var(--text); border-radius: 16px; padding: 6px 12px; font-size: 12px; font-weight: 500; text-decoration: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+  .ext-btn:hover { background: rgba(255,255,255,0.08); border-color: var(--amber); color: var(--text); }
+  .ext-btn.primary-ext { background: var(--surface2); color: var(--text); border-color: rgba(255,255,255,0.2); }
+  .ext-btn.primary-ext:hover { background: rgba(255,255,255,0.1); border-color: var(--text); }
+  .alert { padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 14px; font-weight: 500; align-items: flex-start; gap: 10px; line-height: 1.4; display: none; }
+  .alert.show { display: flex; }
+  .alert-icon { font-size: 16px; }
+  .alert-dup { background: var(--amber-dim); border: 1px solid rgba(232, 170, 85, 0.3); color: var(--amber); }
+  .alert-rare { background: var(--ok-dim); border: 1px solid rgba(121, 181, 150, 0.3); color: var(--ok); }
+  .alert-artist { background: var(--purple-dim); border: 1px solid rgba(142, 124, 195, 0.3); color: var(--purple); }
+  .infolink { color: var(--dim); font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin-bottom: 12px; transition: 0.2s; }
+  .infolink:hover { color: var(--text); }
+  .infobox { background: rgba(0,0,0,0.3); border-left: 3px solid var(--amber); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 14px 16px; font-size: 13px; color: var(--dim); line-height: 1.5; margin-bottom: 20px; display: none; transition: border-color 0.3s;}
+  .infobox.show { display: block; }
+  .infobox b { color: var(--text); }
+  .moreby { margin-bottom: 16px; }
+  .moreby-toggle { background: rgba(255,255,255,0.03); border: 1px solid var(--line); color: var(--text); border-radius: var(--radius-sm); padding: 12px 16px; font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.02em; width: 100%; text-align: center; }
+  .moreby-toggle:hover { background: rgba(255,255,255,0.08); border-color: var(--amber); color: var(--amber); }
+  .mb-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--dim); }
+  .mb-item img { width: 34px; height: 34px; border-radius: 4px; object-fit: cover; background: #000; flex: 0 0 auto; }
+  .info-fact { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--dim); line-height: 1.5; }
+  .info-fact b { color: var(--text); }
+  .info-fact button { background: none; border: 1px solid var(--line); border-radius: 8px; color: var(--amber); font-size: 11px; padding: 4px 8px; cursor: pointer; white-space: nowrap; flex: 0 0 auto; font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.03em; transition: 0.2s; }
+  .info-fact button:hover { background: rgba(255,255,255,0.08); }
+  .info-fact button.added { color: var(--ok); border-color: var(--ok); }
+  .fab-container { position: fixed; bottom: 0; left: 0; right: 0; padding: 16px; background: rgba(13, 11, 9, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.08); z-index: 100; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+  .fab-container.visible { transform: translateY(0); }
+  .fab-inner { max-width: var(--app-max-w); margin: 0 auto; display: flex; gap: 16px; }
+  .fab-inner .primary { flex: 2; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+  .fab-inner .secondary { flex: 1; }
+  .spinner { width: 40px; height: 40px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--amber); margin: 30px auto; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); background: var(--ok); color: #111; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 600; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 1000; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast.err { background: var(--red); color: #fff; }
+  .table-wrapper { overflow-x: auto; width: 100%; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2); }
+  .browse-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: auto; }
+  .browse-table thead th { position: sticky; top: 0; z-index: 10; background: rgba(24, 21, 18, 0.98); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); text-align: left; padding: 10px 12px; font-family: 'Oswald', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--dim); border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .browse-table th.sortable { cursor: pointer; user-select: none; transition: color 0.2s; }
+  .browse-table th.sortable:hover { color: var(--text); }
+  .browse-table th.sortable::after { content: ' ↕'; opacity: 0.3; font-size: 10px; }
+  .browse-table th.sort-active { color: var(--amber); }
+  .browse-table th.sort-active::after { content: ' ▾'; opacity: 1; color: var(--amber); }
+  .browse-table th.col-art { width: 72px; text-align: center; }
+  .browse-table th.col-fav { width: 24px; }
+  .browse-table th.col-price { width: 80px; text-align: right; }
+  .browse-table th.col-action { width: 80px; text-align: right; padding-right: 16px; }
+  .browse-table td { padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; color: var(--text); white-space: normal; word-break: break-word; }
+  .browse-table td.col-title { min-width: 180px; font-weight: 500; }
+  .browse-table td.col-artist { min-width: 140px; color: var(--dim); }
+  .browse-table td.col-art { width: 72px; padding: 6px; text-align: center; }
+  .browse-table td.col-price { text-align: right; font-weight: 600; color: var(--amber); white-space: nowrap; }
+  .browse-table td.col-action { text-align: right; color: rgba(255,255,255,0.2); font-size: 16px; font-weight: bold; padding-right: 16px; white-space: nowrap;}
+  .browse-table img.table-thumb { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; background: #000; display: inline-block; cursor: zoom-in; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+  @media(min-width: 768px) {
+    .browse-table img.table-thumb:hover { transform: scale(2.5); z-index: 50; position: relative; box-shadow: 0 8px 24px rgba(0,0,0,0.8); border: 2px solid var(--amber); }
+  }
+  .browse-table tbody tr { cursor: pointer; transition: background 0.12s; }
+  .browse-table tbody tr:hover { background: rgba(255,255,255,0.05); }
+  .browse-table tbody tr:hover td.col-action { color: var(--amber); }
+  .browse-table tbody tr.selected { background: var(--amber-dim); outline: 1px solid var(--amber); outline-offset: -1px; }
+  .browse-sentinel { height: 1px; }
+  .fix-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--line); color: var(--amber); border-radius: 12px; padding: 6px 12px; font-size: 11px; font-weight: 600; cursor: pointer; transition: 0.2s; font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .fix-btn:hover { background: var(--amber); color: #111; border-color: var(--amber); }
+  .add-btn { background: rgba(232, 170, 85, 0.1); border: 1px solid var(--amber); color: var(--amber); border-radius: 12px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; }
+  .browse-table tbody tr:hover .add-btn { background: var(--amber); color: #111; }
+  .grade-badge { display: inline-block; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; font-family: 'Oswald', sans-serif; letter-spacing: 0.03em; white-space: nowrap; }
+  .grade-badge.tier-mint { background: var(--c-mint); color: #fff; }
+  .grade-badge.tier-nm { background: var(--c-nm); color: #111; }
+  .grade-badge.tier-vg { background: var(--c-vg); color: #111; }
+  .grade-badge.tier-g { background: var(--c-g); color: #111; }
+  .grade-badge.tier-poor { background: var(--c-poor); color: #fff; }
+  .browse-fav { color: var(--amber); font-size: 13px; }
+  .browse-summary { color: var(--dim); font-size: 12px; margin: -6px 0 12px; }
+  #logList { display: block; border-radius: var(--radius-sm); background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); }
+  .logitem { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.12s; cursor: pointer; font-size: 14px; overflow: hidden; }
+  .logitem:last-child { border-bottom: none; }
+  .logitem:hover { background: rgba(255,255,255,0.05); }
+  .logitem .log-dot { font-size: 14px; flex: 0 0 auto; line-height: 1; }
+  .logitem .li-t { display: flex; gap: 16px; flex: 1; align-items: center; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .logitem .li-t b { color: var(--text); font-weight: 600; flex: 0 0 40%; min-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+  .logitem .li-t span { color: var(--dim); flex: 1; overflow: hidden; text-overflow: ellipsis; font-size: 13px; }
+  .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; opacity: 0; transition: opacity 0.2s; }
+  .modal.show { display: flex; opacity: 1; }
+  .modalbox { background: rgba(24, 21, 18, 0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius); padding: 24px; max-width: 400px; width: 100%; box-shadow: 0 24px 48px rgba(0,0,0,0.8); transform: translateY(20px); transition: transform 0.3s; max-height: 88vh; overflow-y: auto; }
+  .modal.show .modalbox { transform: translateY(0); }
+  .closebtn { float: right; background: none; border: none; color: var(--dim); font-size: 24px; cursor: pointer; line-height: 1; margin-bottom: 10px; padding: 0;}
+  .closebtn:hover { color: var(--text); }
+  .collrow { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .collrow input[type=color] { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--line); background: none; padding: 0; cursor: pointer; flex: 0 0 auto; }
+  .collrow input[type=text] { flex: 1; padding: 10px 12px; }
+  .collrow .delbtn { background: none; border: none; color: var(--dim); font-size: 16px; cursor: pointer; padding: 6px 10px; flex: 0 0 auto; }
+  .collrow .delbtn:hover { color: var(--red); }
+  .addcollrow { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
+  .addcollrow input[type=text] { flex: 1; padding: 10px 12px; }
+  .addcollrow input[type=color] { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--line); background: none; padding: 0; cursor: pointer; flex: 0 0 auto; }
+</style>
+</head>
+<body>
+<div id="appBg"></div>
+<header>
+  <h1><span class="disc" id="logoDisc"></span>Crate <span class="highlight" id="logoText">Log</span></h1>
+  <button class="icon-btn" id="settingsBtn" title="Settings">⚙</button>
+</header>
+<div class="panel" id="draftBanner" style="display:none; align-items:center; justify-content:space-between; gap:12px; border-color:var(--amber);">
+  <span id="draftBannerText" style="font-size:14px; flex:1;"></span>
+  <div style="display:flex; gap:8px; flex:0 0 auto;">
+    <button class="secondary" id="draftDiscardBtn" style="padding:10px 14px; width:auto;">Discard</button>
+    <button class="primary" id="draftResumeBtn" style="padding:10px 14px; width:auto;">Resume</button>
+  </div>
+</div>
+<div id="dashboardView">
+  <div class="panel" id="searchPanel">
+    <div class="panel-header" onclick="this.closest('.panel').classList.toggle('collapsed')">
+      <h3 id="discogsSearchHeading">🔍 Add New Record (Search Discogs)</h3>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <button class="secondary" id="clearSearchBtn" style="display:none; padding:4px 10px; font-size:11px; margin:0;" onclick="event.stopPropagation(); document.getElementById('discogsResultsList').style.display = 'none'; document.getElementById('discogsSearchInput').value = ''; this.style.display = 'none';">Clear</button>
+        <span class="toggle-icon">▼</span>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="row2">
+        <input type="text" id="discogsSearchInput" placeholder="Artist, Title, or Barcode...">
+        <button class="primary" id="discogsSearchBtn">Lookup Release</button>
+      </div>
+      <div id="loadingPanel" style="display:none; text-align: center; padding: 30px 20px;">
+        <div class="spinner"></div>
+        <div style="color: var(--dim); font-size: 14px;">Searching Discogs Database...</div>
+      </div>
+      <div id="discogsResultsList" style="margin-top:24px; display:none;"></div>
+    </div>
+  </div>
+  <div class="panel" id="collectionPanel">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 16px;">
+      <h3 style="margin: 0; font-size: 20px; color: var(--text); font-weight: 600;">📚 My Collection</h3>
+    </div>
+    <div class="chiprow" id="collectionFilterChips" style="margin-bottom: 12px;"></div>
+    <div style="display:flex; gap:12px; align-items:center; margin-bottom: 16px;">
+      <input type="text" id="collectionFilterInput" placeholder="Filter library by artist, title, label..." style="flex:1;">
+    </div>
+    <div class="browse-summary" id="browseSummary"></div>
+    <div id="collectionResultsList"></div>
+  </div>
+  <div class="panel collapsed" id="logPanel">
+    <div class="panel-header" onclick="this.closest('.panel').classList.toggle('collapsed')">
+      <h3>Session Log</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="panel-body" id="logList"></div>
+  </div>
+</div>
+<div id="editorView" style="display:none;">
+  <div style="max-width: var(--app-max-w); margin: 0 auto 16px; display:flex; justify-content:flex-start;">
+    <button id="backToDashboardBtn" class="secondary" style="font-size: 13px; font-weight: 600;">← Back</button>
+  </div>
+  <div class="panel card" id="cardPanel">
+    <div class="alert alert-dup" id="dupWarning"><span class="alert-icon">📀</span><span></span></div>
+    <div class="alert alert-artist" id="artistWarning"><span class="alert-icon">🎤</span><span></span></div>
+    <div class="alert alert-rare" id="rareWarning"><span class="alert-icon">⭐</span><span></span></div>
+    <div class="editor-layout">
+      <div class="editor-sidebar">
+        <div class="coverwrap">
+          <img class="cover" id="cardCover" src="" title="Tap to view full" onerror="this.style.visibility='hidden'">
+          <div class="cover-hint">Tap to zoom</div>
+        </div>
+        <div class="action-links" id="externalLinks" style="display:none;"></div>
+        <div class="field"><label>🗂️ Cover Present</label>
+          <div class="pillrow" id="coverPills">
+            <button class="pill" data-v="Yes" data-tier="original"><b>Original</b></button>
+            <button class="pill" data-v="Repro"><b>Replacement</b></button>
+            <button class="pill" data-v="No" data-tier="poor"><b>Missing</b></button>
+          </div>
+        </div>
+        <div class="field"><label>🗂️ Cover Condition</label>
+          <div class="pillrow" id="sleeveCondPills"></div>
+        </div>
+        <div class="field"><label>Outer Plastic Sleeve</label>
+          <div class="pillrow" id="outerSleevePills">
+            <button class="pill" data-v="Yes"><b>Yes</b></button>
+            <button class="pill" data-v="No"><b>No</b></button>
+          </div>
+        </div>
+        <span class="infolink" id="gradeToggle" style="display: block; text-align: center; margin: 12px 0;">ⓘ Grading Reference Guide</span>
+        <div class="infobox" id="gradeBox">
+          <b>M (Mint):</b> Unplayed, flawless.<br>
+          <b>NM (Near Mint):</b> Barely played, 1-2 faint marks.<br>
+          <b>VG+ (Very Good+):</b> Light scuffs, plays great.<br>
+          <b>VG (Very Good):</b> Visible scratches, some noise, still plays through.<br>
+          <b>G (Good):</b> Heavy wear, noise throughout, may skip.<br>
+          <b>P (Poor):</b> Warped/cracked, skips badly.<br><br>
+          <b>Cover — check spine first</b>, then corners, seams, and surface (ring wear, writing, stickers).
+        </div>
+        <button class="fav-btn" type="button" id="favBtn">☆ Listen Later / Favourite</button>
+      </div>
+      <div class="editor-main">
+        <div class="grid-2">
+          <div class="field"><label>Artist</label><input type="text" id="fArtist"></div>
+          <div class="field"><label>Title</label><input type="text" id="fTitle"></div>
+        </div>
+        <div class="grid-4">
+          <div class="field"><label>Year</label><input type="text" id="fYear"></div>
+          <div class="field"><label>Format</label><input type="text" id="fFormat"></div>
+          <div class="field"><label>Label</label><input type="text" id="fLabel"></div>
+          <div class="field"><label>Catalog #</label><input type="text" id="fCatno"></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Barcode</label><input type="text" id="fBarcode" inputmode="numeric"></div>
+          <div class="field"><label>Estimated Value</label>
+            <div class="input-with-prefix">
+              <span>$</span>
+              <input type="text" id="fValue" placeholder="0.00" inputmode="decimal">
+            </div>
+            <div class="scanhint" id="valueHint" style="display:none;"></div>
+          </div>
+        </div>
+        <div class="field"><label>Genre / Style</label><input type="text" id="fGenre"></div>
+        <div class="field" id="discStepperWrap" style="display:none; margin-bottom: 20px;">
+          <label>Discs in this Set</label>
+          <div class="grid-2" style="background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px;">
+            <div>
+              <div class="stepper" style="margin: 0;">
+                <button type="button" id="discsTotalMinus">−</button>
+                <span class="stepval" id="discsTotalVal">1</span>
+                <button type="button" id="discsTotalPlus">+</button>
+              </div>
+              <div class="steplabel" style="margin-top:6px; text-align: left; padding-left: 8px;">Expected</div>
+            </div>
+            <div>
+              <div class="stepper" style="margin: 0;">
+                <button type="button" id="discsPresentMinus">−</button>
+                <span class="stepval" id="discsPresentVal">1</span>
+                <button type="button" id="discsPresentPlus">+</button>
+              </div>
+              <div class="steplabel" style="margin-top:6px; text-align: left; padding-left: 8px;">Present</div>
+            </div>
+          </div>
+          <div class="discwarn" id="discsWarn" style="display:none;"></div>
+          <div class="scanhint" id="discsCheck" style="display:none;">Checking Discogs for exact disc count…</div>
+        </div>
+        <span class="infolink" id="multiDiscToggle" style="display:none;">＋ This is actually a multi-disc set</span>
+        <div id="discConditionRows" style="margin-top: 16px;"></div>
+        <div class="field" style="margin-top: 24px;"><label>Tracklist <span style="color:var(--dim); text-transform:none; letter-spacing:0;">(auto-filled from Discogs, editable)</span></label>
+          <textarea id="fTracklist" placeholder="Fills in automatically once a release is selected" style="min-height: 120px; font-family: monospace; font-size: 13px;"></textarea>
+        </div>
+        <div class="field"><label>Notes</label><textarea id="fNotes" placeholder="Story, quirks, deadwax matrix numbers, etc"></textarea></div>
+        <div class="moreby" id="discogsInfoWrap" style="display:none; margin-bottom:16px;">
+          <button class="moreby-toggle" id="discogsInfoToggle">More info from Discogs ▾</button>
+          <div class="scanhint" style="margin:4px 0 8px;">Pulled from Discogs, not stored unless you add it below.</div>
+          <div id="discogsInfoList" style="display:none; margin-top:6px;"></div>
+        </div>
+        <div class="moreby" id="pressingsWrap" style="display:none; margin-top:20px;">
+          <button class="moreby-toggle" id="pressingsToggle">Other pressings ▾</button>
+          <div id="pressingsList" style="display:none; margin-top:10px;"></div>
+        </div>
+        <div class="moreby" id="morebyWrap" style="display:none">
+          <button class="moreby-toggle" id="morebyToggle">More by this artist ▾</button>
+          <div id="morebyList" style="display:none; margin-top:10px;"></div>
+        </div>
+        <hr style="border:0; border-bottom:1px solid rgba(255, 255, 255, 0.05); margin: 30px 0;">
+        <div class="alert alert-dup" id="dupWarningBottom"><span class="alert-icon">📀</span><span></span></div>
+        <div class="alert alert-artist" id="artistWarningBottom"><span class="alert-icon">🎤</span><span></span></div>
+        <div class="alert alert-rare" id="rareWarningBottom"><span class="alert-icon">⭐</span><span></span></div>
+        <div class="field"><label>Save To Collection</label>
+          <div class="pillrow collpicker" id="saveCollPills"></div>
+        </div>
+        <div class="field-warn" id="saveWarn"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="fab-container" id="fabContainer">
+  <div class="fab-inner">
+    <button class="secondary" id="discardBtn">Discard</button>
+    <button class="secondary" id="duplicateBtn" style="display:none;">Duplicate</button>
+    <button class="primary" id="saveBtn">Save Record</button>
+  </div>
+</div>
+<div class="modal" id="settingsModal">
+  <div class="modalbox">
+    <button class="closebtn" id="closeSettings">✕</button>
+    <h3>Settings</h3>
+    <div class="field">
+      <label>Google Apps Script Web App URL</label>
+      <input type="text" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/.../exec">
+      <small style="display:block;color:var(--dim);margin-top:6px;">Paste the URL from your Apps Script deployment.</small>
+    </div>
+    <div class="field">
+      <label>Access Key <span style="color:var(--dim); text-transform:none; letter-spacing:0;">(only if your host set one)</span></label>
+      <input type="text" id="accessKey" placeholder="Leave blank unless you were given one">
+    </div>
+    <div class="row2">
+      <div class="field"><label>Flag as expensive if over</label>
+        <input type="text" id="expensiveThreshold" inputmode="decimal" placeholder="50">
+      </div>
+      <div class="field"><label>Flag as rare if fewer than</label>
+        <input type="text" id="rareThreshold" inputmode="numeric" placeholder="100">
+      </div>
+    </div>
+    <small style="display:block;color:var(--dim);margin:-6px 0 16px;">"Rare" is based on how many Discogs users own a copy.</small>
+    <button class="primary" id="saveSettingsBtn">Save Settings</button>
+    <button class="secondary" style="width:100%;margin-top:8px" id="testConnBtn">Test Connection</button>
+    <h3 style="margin-top:24px;">Collections</h3>
+    <div id="collEditList"></div>
+    <div class="addcollrow">
+      <input type="text" id="newCollName" placeholder="New collection name">
+      <input type="color" id="newCollColor" value="#7C8FA6">
+      <button class="secondary" id="addCollBtn">Add</button>
+    </div>
+    <small style="display:block;color:var(--dim);margin-top:10px">Adding/Renaming only relabels the chips — records already saved keep the name they were saved under.</small>
+  </div>
+</div>
+<div class="modal" id="zoomModal">
+  <div class="modalbox" style="max-width:min(96vw,860px); padding:10px;">
+    <button class="closebtn" id="closeZoom">✕</button>
+    <img id="zoomImg" src="" style="width:100%; border-radius:10px; display:block; background:#000;">
+  </div>
+</div>
+<script>
+let isUpdatingExistingCard = false;
+let lastReleaseData = null;
+let discsTotal = 1;
+let discsPresent = 1;
+let currentFavourite = false;
+let toastTimer = null;
+let currentRowIndex = null;
+let searchDebounce = null;
+let browseFavOnly = false;
+let browseSortMode = '';
+let browseRenderList = [];
+let browseRenderedCount = 0;
+let browseSelectedIndex = -1;
+let browseChunkObserver = null;
+let draftSaveTimer = null;
+let lastRenderedDiscsTotal = 0;
+let collectionCache = null;
+let browseFilters = [];
+let currentSelection = null;
+let currentDiscogsUrl = "";
+let lastOpenedFrom = 'collection';
+let expensiveThreshold = 50;
+let rareThreshold = 100;
+let accessKey = "";
+let lastBrowseResults = [];
+
+// Points at the Cloudflare Worker proxy, NOT the Apps Script URL directly.
+// The Worker injects the access key server-side, so nothing secret lives here.
+// Replace with your Worker URL after deploying it (see README).
+const DEFAULT_APPS_SCRIPT_URL = "https://crate-log-proxy.cameron-w-franklyn.workers.dev/";
+
+const DEFAULT_COLLECTIONS = [
+  {id:"pete", name:"Pete", color:"#3E7D75"},
+  {id:"cam", name:"Cam", color:"#E3A857"},
+  {id:"lily", name:"Lily", color:"#B8607A"},
+  {id:"tyson", name:"Tyson", color:"#9B8C3F"},
+  {id:"wishlist", name:"Wishlist", color:"#8E7CC3"}
+];
+let collections = DEFAULT_COLLECTIONS.slice();
+let activeCollectionId = "pete";
+let appsScriptUrl = "";
+
+const $ = id => document.getElementById(id);
+const getActiveCollection = () => collections.find(c => c.id === activeCollectionId) || collections[0];
+const escHtml = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function uid(){ return 'c' + Date.now() + Math.floor(Math.random()*1000); }
+
+function setAppBg(url){
+  const bg = $('appBg');
+  if(url){ bg.style.backgroundImage = "url('" + url + "')"; bg.classList.add('show'); }
+  else { bg.classList.remove('show'); }
+}
+
+function updateExternalLinks(artist, title, explicitUrl) {
+  const wrap = $('externalLinks');
+  const a = (artist || '').trim();
+  const t = (title || '').trim();
+  if (!a && !t) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'flex';
+  const query = encodeURIComponent(a + ' ' + t);
+  const urlDiscogs = explicitUrl || `https://www.discogs.com/search/?q=${query}&type=all`;
+  const urlSpotify = `https://open.spotify.com/search/${query}`;
+  wrap.innerHTML = `
+    <a href="${urlDiscogs}" target="_blank" rel="noopener" class="ext-btn primary-ext" title="View Release on Discogs">💿 View on Discogs</a>
+    <a href="${urlSpotify}" target="_blank" rel="noopener" class="ext-btn" title="Search Artist/Album on Spotify">🎧 Spotify Search</a>
+  `;
+}
+
+['fArtist','fTitle'].forEach(id=>{
+  $(id).addEventListener('input', ()=>{
+    const field = $(id).closest('.field');
+    if(field) field.classList.remove('missing');
+    updateExternalLinks($('fArtist').value, $('fTitle').value, currentDiscogsUrl);
+  });
+});
+
+async function loadCollections(){
+  try{
+    const v = localStorage.getItem('crate-log-collections');
+    if(v){
+      const saved = JSON.parse(v);
+      if(Array.isArray(saved) && saved.length) collections = saved;
+    }
+  }catch(e){}
+  if(!collections.find(c => c.id === activeCollectionId)) activeCollectionId = collections[0].id;
+  syncCollectionUI();
+  renderCollEditList();
+}
+async function persistCollections(){
+  try{ localStorage.setItem('crate-log-collections', JSON.stringify(collections)); }catch(e){}
+}
+
+function renderBrowseFilters(){
+  const wrap = $('collectionFilterChips');
+  if(!wrap) return;
+  let html = `<button class="chip ${browseFilters.length===0 ? 'active' : ''}" onclick="toggleBrowseFilter('all')">All Collections</button>`;
+  collections.forEach(c=>{
+    const isActive = browseFilters.includes(c.id);
+    const style = isActive ? `background:${c.color}; color:${pickTextColor(c.color)}; border-color:transparent;` : '';
+    html += `<button class="chip ${isActive ? 'active' : ''}" style="${style}" onclick="toggleBrowseFilter('${c.id}')">${escHtml(c.name)}</button>`;
+  });
+  html += `<button class="chip ${browseFavOnly ? 'active' : ''}" onclick="toggleFavFilter()">★ Favourites</button>`;
+  wrap.innerHTML = html;
+}
+
+window.toggleFavFilter = function(){
+  browseFavOnly = !browseFavOnly;
+  renderBrowseFilters();
+  applyBrowseSortAndFilter();
+};
+
+window.toggleBrowseFilter = function(id) {
+  if(id === 'all') {
+    browseFilters = [];
+  } else {
+    if(browseFilters.includes(id)) {
+      browseFilters = browseFilters.filter(x => x !== id);
+    } else {
+      browseFilters.push(id);
+    }
+  }
+  renderBrowseFilters();
+  applyBrowseSortAndFilter();
+};
+
+function renderSaveCollPills(){
+  const wrap = $('saveCollPills');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  collections.forEach(c=>{
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pill' + (c.id === activeCollectionId ? ' selected' : '');
+    btn.innerHTML = '<b>' + c.name + '</b>';
+    if(c.id === activeCollectionId){
+      btn.style.background = c.color; btn.style.borderColor = c.color; btn.style.color = pickTextColor(c.color);
+    }
+    btn.onclick = ()=>{ activeCollectionId = c.id; syncCollectionUI(); };
+    wrap.appendChild(btn);
+  });
+}
+
+function pickTextColor(hex){
+  try{
+    const c = (hex||'').replace('#','');
+    const r = parseInt(c.substr(0,2),16), g = parseInt(c.substr(2,2),16), b = parseInt(c.substr(4,2),16);
+    const lum = (0.299*r + 0.587*g + 0.114*b)/255;
+    return lum > 0.6 ? '#14120F' : '#F2EDE4';
+  }catch(e){ return '#14120F'; }
+}
+
+function syncCollectionUI(){
+  renderBrowseFilters();
+  renderSaveCollPills();
+  refreshSaveButtonMode();
+}
+
+function renderCollEditList(){
+  const wrap = $('collEditList');
+  wrap.innerHTML = '';
+  collections.forEach(c=>{
+    const row = document.createElement('div');
+    row.className = 'collrow';
+    row.innerHTML = `<input type="color" value="${c.color}" data-id="${c.id}" class="colorEdit">
+                      <input type="text" value="${c.name}" data-id="${c.id}" class="nameEdit">
+                      <button class="delbtn" data-id="${c.id}">✕</button>`;
+    wrap.appendChild(row);
+  });
+  wrap.querySelectorAll('.nameEdit').forEach(inp=>{
+    inp.onchange = ()=>{
+      const c = collections.find(x=>x.id===inp.dataset.id);
+      if(c){ c.name = inp.value.trim() || c.name; persistCollections(); syncCollectionUI(); }
+    };
+  });
+  wrap.querySelectorAll('.colorEdit').forEach(inp=>{
+    inp.onchange = ()=>{
+      const c = collections.find(x=>x.id===inp.dataset.id);
+      if(c){ c.color = inp.value; persistCollections(); syncCollectionUI(); }
+    };
+  });
+  wrap.querySelectorAll('.delbtn').forEach(btn=>{
+    btn.onclick = ()=>{
+      if(collections.length <= 1){ toast('Keep at least one collection', true); return; }
+      collections = collections.filter(x=>x.id!==btn.dataset.id);
+      if(activeCollectionId === btn.dataset.id) activeCollectionId = collections[0].id;
+      persistCollections(); renderCollEditList(); syncCollectionUI();
+    };
+  });
+}
+
+$('addCollBtn').onclick = ()=>{
+  const name = $('newCollName').value.trim();
+  if(!name){ toast('Enter a name first', true); return; }
+  const color = $('newCollColor').value || '#7C8FA6';
+  collections.push({id: uid(), name, color});
+  $('newCollName').value = '';
+  persistCollections(); renderCollEditList(); syncCollectionUI();
+  toast('Added ' + name);
+};
+
+function refreshSaveButtonMode(){
+  const c = getActiveCollection();
+  const save = $('saveBtn');
+  const isUpdate = !!currentRowIndex;
+  save.textContent = isUpdate ? 'Update Info' : ("Save Record");
+  save.style.background = c.color;
+  save.style.color = pickTextColor(c.color);
+  save.style.boxShadow = '0 4px 20px ' + c.color + '66';
+  $('fabContainer').style.borderTopColor = c.color;
+  const dup = $('duplicateBtn');
+  dup.style.display = isUpdate ? 'block' : 'none';
+  dup.style.borderColor = c.color;
+  dup.style.color = c.color;
+}
+
+function toast(msg, isErr, undoFn){
+  const t = $('toast');
+  clearTimeout(toastTimer);
+  if(undoFn){
+    t.innerHTML = msg + ' <button id="toastUndoBtn" style="margin-left:10px;background:none;border:1px solid currentColor;border-radius:20px;padding:2px 12px;color:inherit;cursor:pointer;font-weight:700;font-family:\'Oswald\',sans-serif;">Undo</button>';
+    t.className = 'toast show' + (isErr ? ' err' : '');
+    $('toastUndoBtn').onclick = async ()=>{
+      t.className = 'toast';
+      await undoFn();
+    };
+    toastTimer = setTimeout(()=> t.className='toast', 6000);
+  } else {
+    t.textContent = msg;
+    t.className = 'toast show' + (isErr ? ' err' : '');
+    toastTimer = setTimeout(()=> t.className='toast', 2200);
+  }
+}
+
+async function loadSettings(){
+  appsScriptUrl = DEFAULT_APPS_SCRIPT_URL || "";
+  try{
+    const v = localStorage.getItem('crate-log-settings');
+    if(v){
+      const s = JSON.parse(v);
+      appsScriptUrl = s.appsScriptUrl || DEFAULT_APPS_SCRIPT_URL || "";
+      expensiveThreshold = s.expensiveThreshold != null ? s.expensiveThreshold : 50;
+      rareThreshold = s.rareThreshold != null ? s.rareThreshold : 100;
+      accessKey = s.accessKey || "";
+    }
+  }catch(e){}
+  $('appsScriptUrl').value = appsScriptUrl;
+  $('expensiveThreshold').value = expensiveThreshold;
+  $('rareThreshold').value = rareThreshold;
+  $('accessKey').value = accessKey;
+  if(!appsScriptUrl || appsScriptUrl.indexOf('REPLACE_WITH') === 0){
+    setTimeout(()=> $('settingsModal').classList.add('show'), 400);
+  }
+}
+async function saveSettings(){
+  appsScriptUrl = $('appsScriptUrl').value.trim();
+  expensiveThreshold = parseFloat($('expensiveThreshold').value) || 50;
+  rareThreshold = parseInt($('rareThreshold').value, 10) || 100;
+  accessKey = $('accessKey').value.trim();
+  try{
+    localStorage.setItem('crate-log-settings', JSON.stringify({appsScriptUrl, expensiveThreshold, rareThreshold, accessKey}));
+    toast('Settings saved');
+    $('settingsModal').classList.remove('show');
+  }catch(e){ toast('Could not save settings', true); }
+}
+
+function callScript(payload){
+  const body = accessKey ? {...payload, accessKey} : payload;
+  return fetch(appsScriptUrl, {method:'POST', body: JSON.stringify(body)}).then(res => res.json());
+}
+
+$('settingsBtn').onclick = ()=> $('settingsModal').classList.add('show');
+$('closeSettings').onclick = ()=> $('settingsModal').classList.remove('show');
+
+function openZoomModal(src) {
+  if(!src) return;
+  $('zoomImg').src = src;
+  $('zoomModal').classList.add('show');
+}
+$('cardCover').onclick = ()=> openZoomModal($('cardCover').src);
+$('closeZoom').onclick = ()=> $('zoomModal').classList.remove('show');
+$('zoomModal').onclick = (e)=>{ if(e.target.id === 'zoomModal') $('zoomModal').classList.remove('show'); };
+$('saveSettingsBtn').onclick = saveSettings;
+$('testConnBtn').onclick = async ()=>{
+  if(!appsScriptUrl){ toast('Enter a valid URL first', true); return; }
+  try{
+    const j = await callScript({action:'ping'});
+    toast(j.status === 'ok' ? 'Connected ✓' : 'Unexpected response');
+  }catch(e){ toast('Connection failed', true); }
+};
+
+function showDashboard(clearSearch = true) {
+  $('editorView').style.display = 'none';
+  $('dashboardView').style.display = 'block';
+  $('fabContainer').classList.remove('visible');
+  if (clearSearch) {
+    $('discogsResultsList').style.display = 'none';
+    $('discogsSearchInput').value = '';
+    $('clearSearchBtn').style.display = 'none';
+  }
+  clearDraft();
+  setAppBg(null);
+}
+
+function showEditor() {
+  $('dashboardView').style.display = 'none';
+  $('editorView').style.display = 'block';
+  $('fabContainer').classList.add('visible');
+  if (lastOpenedFrom === 'discogs') {
+    $('backToDashboardBtn').textContent = '← Back to Search Results';
+  } else {
+    $('backToDashboardBtn').textContent = '← Back to Collection';
+  }
+}
+
+$('backToDashboardBtn').onclick = () => {
+  showDashboard(false);
+  if (lastOpenedFrom === 'discogs') {
+    $('searchPanel').scrollIntoView({behavior: 'smooth'});
+  } else {
+    $('collectionPanel').scrollIntoView({behavior: 'smooth'});
+  }
+};
+
+$('discardBtn').onclick = () => {
+  showDashboard(true);
+  window.scrollTo({top: 0, behavior: 'smooth'});
+};
+
+$('discogsSearchBtn').onclick = ()=>{
+  isUpdatingExistingCard = false;
+  const q = $('discogsSearchInput').value.trim();
+  if(!q){ toast('Type something to search', true); return; }
+  runSearch({query: q});
+};
+$('discogsSearchInput').addEventListener('keydown', e=>{
+  if(e.key === 'Enter') {
+    isUpdatingExistingCard = false;
+    runSearch({query: $('discogsSearchInput').value.trim()});
+  }
+});
+
+$('collectionFilterInput').addEventListener('input', ()=>{
+  clearTimeout(searchDebounce);
+  const q = $('collectionFilterInput').value.trim();
+  searchDebounce = setTimeout(()=> runBrowse(q), 300);
+});
+
+async function runSearch(payload){
+  if(!appsScriptUrl){ toast('Set up your Apps Script URL in Settings first', true); $('settingsModal').classList.add('show'); return; }
+  $('discogsResultsList').style.display='none';
+  $('loadingPanel').style.display='block';
+  try{
+    const data = await callScript({action:'search', ...payload});
+    $('loadingPanel').style.display='none';
+    if (isUpdatingExistingCard) {
+      $('discogsSearchHeading').textContent = '⚠️ Select Pressing to Fill Blanks for: ' + payload.query;
+      $('discogsSearchHeading').style.color = 'var(--amber)';
+    } else {
+      $('discogsSearchHeading').textContent = '🔍 Add New Record (Search Discogs)';
+      $('discogsSearchHeading').style.color = 'var(--amber)';
+    }
+    $('clearSearchBtn').style.display = 'inline-block';
+    renderSearchResults(data.results || []);
+    if(!data.results || !data.results.length){
+      toast('No matches found', true);
+    }
+  }catch(e){
+    $('loadingPanel').style.display='none';
+    toast('Lookup failed', true);
+  }
+}
+
+function startUpdateFromDiscogs(e, idx) {
+  if(e) e.stopPropagation();
+  const r = browseRenderList[idx];
+  loadFromLogRecord(r);
+  showDashboard(false);
+  isUpdatingExistingCard = true;
+  const q = (r.barcode || (r.artist + ' ' + r.title)).trim();
+  $('discogsSearchInput').value = q;
+  $('searchPanel').classList.remove('collapsed');
+  window.scrollTo({top:0, behavior:'smooth'});
+  runSearch({query: q});
+  toast('Select a Discogs pressing below to fill missing data', false);
+}
+
+async function applyDiscogsUpdate(r, artist, title) {
+  isUpdatingExistingCard = false;
+  $('discogsSearchHeading').textContent = '🔍 Add New Record (Search Discogs)';
+  $('discogsSearchHeading').style.color = 'var(--amber)';
+  lastOpenedFrom = 'discogs';
+  showEditor();
+  window.scrollTo({top:0, behavior:'smooth'});
+  toast('Fetching details...');
+
+  if (!$('fYear').value.trim() && r.year) $('fYear').value = r.year;
+  if (!$('fFormat').value.trim() && r.format) $('fFormat').value = (r.format||[]).join(', ');
+  const labelStr = r.label ? (Array.isArray(r.label) ? r.label[0] : r.label) : '';
+  if (!$('fLabel').value.trim() && labelStr) $('fLabel').value = labelStr;
+  if (!$('fCatno').value.trim() && r.catno) $('fCatno').value = r.catno;
+  if (!$('fBarcode').value.trim() && r.barcode) $('fBarcode').value = r.barcode;
+  if (!$('fGenre').value.trim() && (r.genre || r.style)) $('fGenre').value = [...(r.genre||[]), ...(r.style||[])].join(', ');
+
+  const thumb = r.cover_image || r.thumb || '';
+  if (thumb && (!$('cardCover').src || $('cardCover').src.endsWith('null'))) {
+     $('cardCover').src = thumb;
+     $('cardCover').style.visibility = 'visible';
+     setAppBg(thumb);
+  }
+
+  currentDiscogsUrl = r.uri ? (r.uri.startsWith('http') ? r.uri : ('https://www.discogs.com' + r.uri)) : '';
+  updateExternalLinks(artist, title, currentDiscogsUrl);
+
+  try {
+    $('discsCheck').textContent = 'Checking missing data...';
+    $('discsCheck').style.display = 'block';
+    const data = await callScript({action:'release', id: r.id});
+    lastReleaseData = data;
+    if(!$('fTracklist').value.trim() && data.tracklist) {
+      $('fTracklist').value = formatTracklist(data.tracklist);
+    }
+    if(!$('fValue').value.trim() && data.lowestPrice) {
+      $('fValue').value = data.lowestPrice.toFixed(2);
+    }
+    renderDiscogsInfo(data);
+    scheduleDraftSave();
+    $('discsCheck').style.display = 'none';
+    toast('Fields updated! Review and click Save Record.', false);
+  } catch(e) {
+    $('discsCheck').style.display = 'none';
+    toast('Could not fetch full release details', true);
+  }
+}
+
+function renderSearchResults(results){
+  const list = $('discogsResultsList');
+  if(!results.length){
+    list.innerHTML = '<div class="scanhint">No matches — try fewer words.</div>';
+    list.style.display='block';
+    return;
+  }
+  let html = `
+    <div class="table-wrapper">
+    <table class="browse-table">
+      <thead>
+        <tr>
+          <th class="col-art"></th>
+          <th>Artist</th>
+          <th>Title</th>
+          <th>Year</th>
+          <th>Format</th>
+          <th>Label</th>
+          <th>Cat #</th>
+          <th class="col-action"></th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+  results.slice(0,12).forEach((r, i)=>{
+    const parts = (r.title||'').split(' - ');
+    const artist = parts.length>1 ? parts[0] : (r.artist || '');
+    const title = parts.length>1 ? parts.slice(1).join(' - ') : (r.title||'');
+    const thumb = r.cover_image || r.thumb || '';
+    const labelStr = r.label ? (Array.isArray(r.label) ? r.label[0] : r.label) : '';
+    const catnoStr = r.catno || '';
+    html += `
+      <tr data-search-idx="${i}">
+        <td class="col-art">${thumb ? `<img class="table-thumb" loading="lazy" src="${escHtml(thumb)}" alt="" onclick="event.stopPropagation(); openZoomModal('${escHtml(thumb)}')">` : ''}</td>
+        <td class="col-artist">${escHtml(artist)}</td>
+        <td class="col-title">${escHtml(title)}</td>
+        <td>${escHtml(r.year||'')}</td>
+        <td>${escHtml((r.format||[]).join(', '))}</td>
+        <td>${escHtml(labelStr)}</td>
+        <td>${escHtml(catnoStr)}</td>
+        <td class="col-action"><button class="add-btn">${isUpdatingExistingCard ? 'Select' : 'Add +'}</button></td>
+      </tr>
+    `;
+  });
+  html += `</tbody></table></div>`;
+  list.innerHTML = html;
+  list.querySelectorAll('tbody tr').forEach((tr, i) => {
+    tr.onclick = () => {
+      const r = results[i];
+      const parts = (r.title||'').split(' - ');
+      const artist = parts.length>1 ? parts[0] : (r.artist || '');
+      const title = parts.length>1 ? parts.slice(1).join(' - ') : (r.title||'');
+      if (isUpdatingExistingCard) {
+         applyDiscogsUpdate(r, artist, title);
+      } else {
+         lastOpenedFrom = 'discogs';
+         selectCandidate(r, artist, title);
+      }
+    };
+  });
+  list.style.display='block';
+}
+
+async function runBrowse(query){
+  if(!appsScriptUrl){ toast('Set up your Apps Script URL in Settings first', true); $('settingsModal').classList.add('show'); return; }
+  if(collectionCache === null){
+    $('collectionResultsList').innerHTML = '<div class="scanhint">Loading library...</div>';
+    try{
+      const data = await callScript({action:'browse', query:''});
+      collectionCache = data.results || [];
+    }catch(e){
+      $('collectionResultsList').innerHTML = '<div class="scanhint">Failed to load library.</div>';
+      toast('Could not load your collection', true);
+      return;
+    }
+  }
+  let list = collectionCache;
+  const q = (query||'').trim().toLowerCase();
+  if(q){
+    list = list.filter(r => (
+      (r.artist||'') + ' ' + (r.title||'') + ' ' + (r.label||'') + ' ' + (r.genre||'') + ' ' + (r.catno||'')
+    ).toLowerCase().includes(q));
+  }
+  lastBrowseResults = list;
+  applyBrowseSortAndFilter();
+}
+
+function applyBrowseSortAndFilter(){
+  let list = lastBrowseResults.slice();
+  if(browseFilters.length > 0) {
+    const activeNames = browseFilters.map(id => {
+        const c = collections.find(x => x.id === id);
+        return c ? c.name : '';
+    });
+    list = list.filter(r => activeNames.includes(String(r.collection||'').trim()));
+  }
+  if(browseFavOnly) list = list.filter(r=> r.favourite === 'Yes');
+  if(browseSortMode === 'artist') list.sort((a,b)=> (a.artist||'').localeCompare(b.artist||''));
+  else if(browseSortMode === 'title') list.sort((a,b)=> (a.title||'').localeCompare(b.title||''));
+  else if(browseSortMode === 'year') list.sort((a,b)=> (parseInt(a.year,10)||0) - (parseInt(b.year,10)||0));
+  else if(browseSortMode === 'price') list.sort((a,b)=> (parseFloat(b.estimatedValue)||0) - (parseFloat(a.estimatedValue)||0));
+  renderBrowseResults(list);
+}
+
+function setBrowseSort(mode){
+  browseSortMode = mode;
+  document.querySelectorAll('#browseTable th.sortable').forEach(x=> {
+    x.classList.toggle('sort-active', x.dataset.sort === mode);
+  });
+  applyBrowseSortAndFilter();
+}
+
+const BROWSE_CHUNK = 100;
+
+function renderBrowseResults(results){
+  browseRenderList = results;
+  browseRenderedCount = 0;
+  browseSelectedIndex = -1;
+  if(browseChunkObserver){ browseChunkObserver.disconnect(); browseChunkObserver = null; }
+  const list = $('collectionResultsList');
+  const summary = $('browseSummary');
+  if(!results.length){
+    list.innerHTML = '<div class="scanhint">Nothing found here.</div>';
+    if(summary) summary.textContent = '';
+    return;
+  }
+  if(summary){
+    let total = 0, priced = 0;
+    results.forEach(r=>{ const v = parseFloat(r.estimatedValue); if(!isNaN(v)){ total += v; priced++; } });
+    summary.textContent = results.length + (results.length === 1 ? ' record' : ' records') +
+      (priced ? (' · est. $' + total.toFixed(2) + (priced < results.length ? (' (' + priced + ' priced)') : '')) : '');
+  }
+  list.innerHTML =
+    '<div class="table-wrapper">' +
+    '<table class="browse-table" id="browseTable">' +
+      '<thead><tr>' +
+        '<th class="col-art"></th>' +
+        '<th class="col-fav"></th>' +
+        '<th class="sortable" data-sort="artist">Artist</th>' +
+        '<th class="sortable" data-sort="title">Title</th>' +
+        '<th class="sortable" data-sort="year">Year</th>' +
+        '<th>Format</th>' +
+        '<th>Collection</th>' +
+        '<th>Grade</th>' +
+        '<th class="sortable col-price" data-sort="price">Price</th>' +
+        '<th class="col-action"></th>' +
+      '</tr></thead>' +
+      '<tbody id="browseTbody"></tbody>' +
+    '</table></div>' +
+    '<div id="browseLoadSentinel" class="browse-sentinel"></div>';
+  document.querySelectorAll('#browseTable th.sortable').forEach(th=>{
+    th.classList.toggle('sort-active', th.dataset.sort === browseSortMode);
+    th.onclick = ()=> setBrowseSort(th.dataset.sort);
+  });
+  appendBrowseChunk();
+  browseChunkObserver = new IntersectionObserver(entries=>{
+    entries.forEach(en=>{
+      if(en.isIntersecting && browseRenderedCount < browseRenderList.length) appendBrowseChunk();
+    });
+  }, { rootMargin: '400px' });
+  browseChunkObserver.observe($('browseLoadSentinel'));
+}
+
+function gradeBadgeHtml(v){
+  if(!v) return '';
+  const tier = (GRADE_TIERS.find(t=> t.v === v) || {}).tier || '';
+  return '<span class="grade-badge tier-' + tier + '">' + escHtml(v) + '</span>';
+}
+function appendBrowseChunk(){
+  const tbody = $('browseTbody');
+  if(!tbody) return;
+  const next = browseRenderList.slice(browseRenderedCount, browseRenderedCount + BROWSE_CHUNK);
+  const frag = document.createDocumentFragment();
+  next.forEach((r, i)=>{
+    const idx = browseRenderedCount + i;
+    const tr = document.createElement('tr');
+    tr.dataset.idx = idx;
+    const priceVal = parseFloat(r.estimatedValue);
+    const hasPrice = !isNaN(priceVal) && priceVal > 0;
+    const priceStr = hasPrice ? ('$' + priceVal.toFixed(2)) : `<button class="fix-btn" onclick="startUpdateFromDiscogs(event, ${idx})">🔍 Fix</button>`;
+    const thumb = r.coverImage || '';
+    tr.innerHTML =
+      '<td class="col-art">' + (thumb ? `<img class="table-thumb" loading="lazy" src="${escHtml(thumb)}" alt="" onclick="event.stopPropagation(); openZoomModal('${escHtml(thumb)}')">` : '') + '</td>' +
+      '<td class="col-fav">' + (r.favourite === 'Yes' ? '<span class="browse-fav">★</span>' : '') + '</td>' +
+      '<td class="col-artist">' + escHtml(r.artist||'') + '</td>' +
+      '<td class="col-title">' + escHtml(r.title||'Untitled') + '</td>' +
+      '<td>' + escHtml(r.year||'') + '</td>' +
+      '<td>' + escHtml(r.format||'') + '</td>' +
+      '<td>' + escHtml(r.collection||'') + '</td>' +
+      '<td>' + gradeBadgeHtml(r.mediaCondition) + '</td>' +
+      '<td class="col-price">' + priceStr + '</td>' +
+      '<td class="col-action">›</td>';
+    tr.onclick = ()=>{
+      browseSelectedIndex = idx;
+      highlightBrowseRow(idx);
+      lastOpenedFrom = 'collection';
+      loadFromLogRecord(r);
+    };
+    frag.appendChild(tr);
+  });
+  tbody.appendChild(frag);
+  browseRenderedCount += next.length;
+}
+function highlightBrowseRow(idx){
+  const tbody = $('browseTbody');
+  if(!tbody) return;
+  tbody.querySelectorAll('tr.selected').forEach(tr=> tr.classList.remove('selected'));
+  const row = tbody.querySelector('tr[data-idx="' + idx + '"]');
+  if(row){ row.classList.add('selected'); row.scrollIntoView({block:'nearest'}); }
+}
+
+document.addEventListener('keydown', (e)=>{
+  const tag = (document.activeElement && document.activeElement.tagName) || '';
+  if(tag === 'INPUT' || tag === 'TEXTAREA') return;
+  if($('editorView').style.display !== 'none') return;
+  if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){
+    if(!browseRenderList.length) return;
+    e.preventDefault();
+    const max = browseRenderList.length - 1;
+    if(browseSelectedIndex < 0) browseSelectedIndex = 0;
+    else browseSelectedIndex = e.key === 'ArrowDown'
+      ? Math.min(browseSelectedIndex + 1, max)
+      : Math.max(browseSelectedIndex - 1, 0);
+    while(browseSelectedIndex >= browseRenderedCount && browseRenderedCount < browseRenderList.length) appendBrowseChunk();
+    highlightBrowseRow(browseSelectedIndex);
+  } else if(e.key === 'Enter'){
+    if(browseSelectedIndex >= 0 && browseRenderList[browseSelectedIndex]){
+      e.preventDefault();
+      lastOpenedFrom = 'collection';
+      loadFromLogRecord(browseRenderList[browseSelectedIndex]);
+    }
+  } else if(e.key === 'Escape'){
+    showDashboard(false);
+  }
+});
+
+function selectCandidate(r, artist, title){
+  currentSelection = r;
+  currentRowIndex = null;
+  clearDraft();
+  const cover = r.cover_image || r.thumb || '';
+  $('cardCover').src = cover;
+  $('cardCover').style.visibility = 'visible';
+  setAppBg(cover);
+  $('fArtist').value = artist || '';
+  $('fTitle').value = title || '';
+  $('fYear').value = r.year || '';
+  $('fFormat').value = (r.format||[]).join(', ');
+  const labelStr = r.label ? (Array.isArray(r.label) ? r.label[0] : r.label) : '';
+  $('fLabel').value = labelStr;
+  $('fCatno').value = r.catno || '';
+  $('fGenre').value = [...(r.genre||[]), ...(r.style||[])].join(', ');
+  $('fNotes').value = '';
+  $('fTracklist').value = '';
+  $('fBarcode').value = r.barcode || '';
+  $('fValue').value = '';
+  $('valueHint').style.display = 'none';
+  currentDiscogsUrl = r.uri ? (r.uri.startsWith('http') ? r.uri : ('https://www.discogs.com' + r.uri)) : '';
+  updateExternalLinks(artist, title, currentDiscogsUrl);
+  resetPills();
+  selectPillValue('coverPills', 'Yes');
+  selectPillValue('sleeveCondPills', 'G');
+  setAlert('dupWarning', '', false);
+  setAlert('artistWarning', '', false);
+  setAlert('rareWarning', '', false);
+  lastReleaseData = null;
+  $('discogsInfoWrap').style.display = 'none';
+  $('discogsInfoList').innerHTML = '';
+  $('discStepperWrap').style.display = 'none';
+  $('multiDiscToggle').style.display = 'inline-flex';
+  $('discConditionRows').innerHTML = '';
+  lastRenderedDiscsTotal = 0;
+  setDiscsFromFormat($('fFormat').value);
+  fetchReleaseDetails(r.id);
+  checkDuplicates(artist, title, $('fBarcode').value.trim());
+  setFavourite(false);
+  syncCollectionUI();
+  clearMissingFlags();
+  $('gradeBox').classList.remove('show');
+  showEditor();
+  window.scrollTo({top:0, behavior:'smooth'});
+  setupPressings(r);
+  setupMoreByArtist(artist);
+  scheduleDraftSave();
+}
+
+async function fetchReleaseDetails(releaseId){
+  if(!releaseId || !appsScriptUrl) return;
+  $('discsCheck').textContent = 'Checking Discogs for disc count & pricing…';
+  $('discsCheck').style.display = 'block';
+  try{
+    const data = await callScript({action:'release', id: releaseId});
+    lastReleaseData = data;
+    if(!$('fTracklist').value.trim()){
+      $('fTracklist').value = formatTracklist(data.tracklist);
+    }
+    if(data.discs && data.discs > 0){
+      discsTotal = data.discs;
+      if(discsPresent > discsTotal) discsPresent = discsTotal;
+      updateDiscsUI();
+    }
+    if(data.lowestPrice){
+      const forSale = data.numForSale || 0;
+      if(!$('fValue').value.trim()){
+        $('fValue').value = data.lowestPrice.toFixed(2);
+      }
+      $('valueHint').innerHTML = 'Auto-filled from Discogs\u2019 lowest currently-listed price' +
+        (forSale ? (' (' + forSale + ' for sale)') : '') + ' — edit freely if your copy differs.';
+      $('valueHint').style.display = 'block';
+    } else {
+      $('valueHint').style.display = 'none';
+    }
+    const isExpensive = data.lowestPrice && data.lowestPrice >= expensiveThreshold;
+    const isRare = typeof data.haveCount === 'number' && data.haveCount > 0 && data.haveCount < rareThreshold;
+    if(isExpensive || isRare){
+      const bits = [];
+      if(isExpensive) bits.push('worth $' + data.lowestPrice.toFixed(2) + '+');
+      if(isRare) bits.push('only ' + data.haveCount + ' Discogs users own a copy');
+      const label = isRare && isExpensive ? 'Rare & pricey' : isRare ? 'Rare pressing' : 'Pricey pressing';
+      setAlert('rareWarning', label + ' — ' + bits.join(', '), true);
+    } else {
+      setAlert('rareWarning', '', false);
+    }
+    renderDiscogsInfo(data);
+    scheduleDraftSave();
+  }catch(e){}
+  $('discsCheck').style.display = 'none';
+}
+
+function setAlert(id, msg, show){
+  const el = $(id);
+  const elB = $(id+'Bottom');
+  if(!el) return;
+  el.querySelector('span:last-child').textContent = msg;
+  if(show) el.classList.add('show'); else el.classList.remove('show');
+  if(elB){
+    elB.querySelector('span:last-child').textContent = msg;
+    if(show) elB.classList.add('show'); else elB.classList.remove('show');
+  }
+}
+
+function formatTracklist(tracklist){
+  if(!tracklist || !tracklist.length) return '';
+  return tracklist.map(t=> [t.position, t.title, t.duration ? ('('+t.duration+')') : ''].filter(Boolean).join(' ')).join('\n');
+}
+function buildDiscogsInfoFacts(data){
+  const facts = [];
+  if(data.released) facts.push({label:'Released', value: data.released});
+  if(data.country) facts.push({label:'Country', value: data.country});
+  (data.identifiers||[]).forEach(idf=>{
+    if(!idf.value) return;
+    const label = idf.type + (idf.description ? (' — ' + idf.description) : '');
+    facts.push({label: label || 'Identifier', value: idf.value});
+  });
+  if(data.discogsNotes) facts.push({label:'Discogs Notes', value: data.discogsNotes});
+  (data.videos||[]).forEach(v=>{
+    if(v.url) facts.push({label:'Video', value: (v.title||'Watch') + ' — ' + v.url});
+  });
+  return facts;
+}
+function renderDiscogsInfo(data){
+  const facts = buildDiscogsInfoFacts(data);
+  const wrap = $('discogsInfoWrap');
+  if(!facts.length){ wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  $('discogsInfoToggle').textContent = 'More info from Discogs ▾';
+  $('discogsInfoList').style.display = 'none';
+  const listEl = $('discogsInfoList');
+  listEl.innerHTML = '';
+  facts.forEach(f=>{
+    const tag = f.label + ': ' + f.value;
+    const row = document.createElement('div');
+    row.className = 'info-fact';
+    const already = $('fNotes').value.split('\n').some(line => line.trim() === tag);
+    row.innerHTML = `<div><b>${f.label}:</b> ${f.value}</div><button type="button">${already ? '✓ Added' : '+ Add'}</button>`;
+    if(already) row.querySelector('button').classList.add('added');
+    row.querySelector('button').onclick = (e)=>{
+      const btn = e.currentTarget;
+      const notesEl = $('fNotes');
+      const lines = notesEl.value.split('\n');
+      const isIn = lines.some(line => line.trim() === tag);
+      if(isIn){
+        notesEl.value = lines.filter(line => line.trim() !== tag).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+        btn.textContent = '+ Add';
+        btn.classList.remove('added');
+      } else {
+        notesEl.value = notesEl.value.trim() ? (notesEl.value.trim() + '\n' + tag) : tag;
+        btn.textContent = '✓ Added';
+        btn.classList.add('added');
+      }
+    };
+    listEl.appendChild(row);
+  });
+}
+$('discogsInfoToggle').onclick = ()=>{
+  const list = $('discogsInfoList');
+  const open = list.style.display === 'block';
+  list.style.display = open ? 'none' : 'block';
+  $('discogsInfoToggle').textContent = 'More info from Discogs' + (open ? ' ▾' : ' ▴');
+};
+
+async function checkDuplicates(artist, title, barcode){
+  if(!appsScriptUrl || !artist || !title) return;
+  try{
+    const data = await callScript({action:'checkDuplicates', artist, title, barcode});
+    if(data.duplicates && data.duplicates.length){
+      const bits = data.duplicates.map(m => m.collection + (m.count > 1 ? (' ×' + m.count) : ''));
+      setAlert('dupWarning', 'Already in your collection — ' + bits.join(', '), true);
+    }
+    if(data.artistMatches && data.artistMatches.length){
+      const titles = data.artistMatches.map(m => m.title + ' (' + m.collection + ')');
+      const extra = (data.artistMatchTotal || 0) - data.artistMatches.length;
+      setAlert('artistWarning', 'You already have other records by this artist — ' +
+        titles.join(', ') + (extra > 0 ? (', +' + extra + ' more') : ''), true);
+    }
+  }catch(e){}
+}
+
+async function setupPressings(r){
+  const wrap = $('pressingsWrap');
+  if(!r || !r.master_id){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  $('pressingsList').style.display='none';
+  $('pressingsList').innerHTML = '';
+  delete $('pressingsList').dataset.loaded;
+  $('pressingsToggle').textContent = 'Other pressings ▾';
+  $('pressingsToggle').onclick = async ()=>{
+    const list = $('pressingsList');
+    const open = list.style.display === 'block';
+    list.style.display = open ? 'none' : 'block';
+    $('pressingsToggle').textContent = 'Other pressings' + (open ? ' ▾' : ' ▴');
+    if(open || list.dataset.loaded) return;
+    list.innerHTML = '<div class="scanhint">Loading…</div>';
+    try{
+      const data = await callScript({action:'versions', master_id: r.master_id});
+      const versions = (data.results||[]).slice(0,10);
+      list.innerHTML = versions.map(v=>{
+        const bits = [v.released||v.year||'', v.format||'', v.country||'', v.catno?('#'+v.catno):''].filter(Boolean).join(' · ');
+        return `<div class="mb-item"><img src="${v.thumb||''}"><div>${bits}</div></div>`;
+      }).join('') || '<div class="scanhint">No other pressings found.</div>';
+      list.dataset.loaded = '1';
+    }catch(e){ list.innerHTML = '<div class="scanhint">Could not load.</div>'; }
+  };
+}
+
+function resetPills(){
+  document.querySelectorAll('.pillrow .pill').forEach(p=>p.classList.remove('selected'));
+}
+function bindPillRow(row){
+  row.querySelectorAll('.pill').forEach(btn=>{
+    btn.onclick = ()=>{
+      row.querySelectorAll('.pill').forEach(b=> b.classList.remove('selected'));
+      btn.classList.add('selected');
+      const field = btn.closest('.field');
+      if(field) field.classList.remove('missing');
+    };
+  });
+}
+document.querySelectorAll('.pillrow').forEach(row=> bindPillRow(row));
+function getSelectedPill(rowId){
+  const el = document.querySelector('#'+rowId+' .pill.selected');
+  return el ? el.dataset.v : '';
+}
+function selectPillValue(rowId, value){
+  document.querySelectorAll('#'+rowId+' .pill').forEach(p=>p.classList.remove('selected'));
+  if(!value) return;
+  const el = Array.from(document.querySelectorAll('#'+rowId+' .pill')).find(p=>p.dataset.v === value);
+  if(el) el.classList.add('selected');
+}
+
+const GRADE_TIERS = [
+  {v:'M', tier:'mint', label:'Mint'},
+  {v:'NM', tier:'nm', label:'Near Mint'},
+  {v:'VG+', tier:'vg', label:'V.Good+'},
+  {v:'VG', tier:'vg', label:'V.Good'},
+  {v:'G', tier:'g', label:'Good'},
+  {v:'P', tier:'poor', label:'Poor'}
+];
+const VINYL_TOOLTIPS = {
+  M: "Unplayed, flawless, no visible marks even under raking light.",
+  NM: "Barely played — at most one or two faint marks, plays perfectly.",
+  'VG+': "Light scuffs visible under light, maybe faint noise between tracks, no impact on play.",
+  VG: "Visible/feelable scratches, audible surface noise, still plays through fine.",
+  G: "Heavy visible wear, noise throughout, may skip in places.",
+  P: "Warped, cracked, or heavily damaged — skips badly or won't track."
+};
+const SLEEVE_TOOLTIPS = {
+  M: "As new — sharp corners, no seam wear, no ring wear.",
+  NM: "Barely handled — negligible corner/edge wear.",
+  'VG+': "Light ring wear or corner softening, no writing or splits.",
+  VG: "Noticeable ring wear, corner dings, maybe a short seam split.",
+  G: "Heavy wear, longer seam splits, writing, or creasing.",
+  P: "Major damage — large splits, missing pieces, water damage."
+};
+function gradePillsHTML(tooltips, showLabel){
+  return GRADE_TIERS.map(t=>
+    `<button class="pill" data-v="${t.v}" data-tier="${t.tier}" title="${tooltips[t.v]}"><b>${t.v}</b>${showLabel ? ('<small>'+t.label+'</small>') : ''}</button>`
+  ).join('');
+}
+$('sleeveCondPills').innerHTML = gradePillsHTML(SLEEVE_TOOLTIPS, false);
+bindPillRow($('sleeveCondPills'));
+
+function renderDiscConditionRows(n){
+  const wrap = $('discConditionRows');
+  const prevMedia = {}, prevInner = {};
+  wrap.querySelectorAll('[id^="mediaPills_"]').forEach(el=>{
+    const i = el.id.split('_')[1];
+    const sel = el.querySelector('.pill.selected');
+    if(sel) prevMedia[i] = sel.dataset.v;
+  });
+  wrap.querySelectorAll('[id^="innerSleevePills_"]').forEach(el=>{
+    const i = el.id.split('_')[1];
+    const sel = el.querySelector('.pill.selected');
+    if(sel) prevInner[i] = sel.dataset.v;
+  });
+  const mediaPillHtml = i => `<div class="pillrow" id="mediaPills_${i}">${gradePillsHTML(VINYL_TOOLTIPS, true)}</div>`;
+  const innerPillHtml = i => `
+    <div class="pillrow" id="innerSleevePills_${i}">
+      <button class="pill" data-v="Original" data-tier="original"><b>Original</b></button>
+      <button class="pill" data-v="Poly" data-tier="poly"><b>Poly</b></button>
+      <button class="pill" data-v="Missing" data-tier="poor"><b>Missing</b></button>
+    </div>`;
+  let html = '';
+  for(let i=1; i<=n; i++){
+    const prefix = n > 1 ? ('Disc ' + i + ' — ') : '';
+    html += `<div class="field"><label>${prefix}Vinyl Condition</label>${mediaPillHtml(i)}</div>`;
+    html += `<div class="field"><label>${prefix}Inner Sleeve</label>${innerPillHtml(i)}</div>`;
+  }
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('.pillrow').forEach(row=> bindPillRow(row));
+  for(let i=1; i<=n; i++){
+    selectPillValue('mediaPills_'+i, prevMedia[i] || 'G');
+    selectPillValue('innerSleevePills_'+i, prevInner[i] || 'Original');
+  }
+}
+const GRADE_ORDER = ['P','G','VG','VG+','NM','M'];
+function worstOf(order, values){
+  const valid = values.filter(Boolean);
+  if(!valid.length) return '';
+  return valid.reduce((worst,v)=> order.indexOf(v) < order.indexOf(worst) ? v : worst);
+}
+function collectDiscConditions(){
+  const media = [], inner = [];
+  for(let i=1; i<=discsTotal; i++){
+    media.push(getSelectedPill('mediaPills_'+i));
+    inner.push(getSelectedPill('innerSleevePills_'+i));
+  }
+  const worstMedia = worstOf(GRADE_ORDER, media);
+  const worstInner = worstOf(['Missing','Poly','Original'], inner);
+  let breakdown = '';
+  if(discsTotal > 1){
+    const parts = [];
+    for(let i=1; i<=discsTotal; i++){
+      parts.push('Disc ' + i + ': ' + (media[i-1]||'?') + ' vinyl / ' + (inner[i-1]||'?') + ' inner');
+    }
+    breakdown = '[Disc conditions — ' + parts.join('; ') + ']';
+  }
+  return {worstMedia, worstInner, breakdown};
+}
+
+function rarityFlag(data){
+  if(!data) return '';
+  const isExpensive = data.lowestPrice && data.lowestPrice >= expensiveThreshold;
+  const isRare = typeof data.haveCount === 'number' && data.haveCount > 0 && data.haveCount < rareThreshold;
+  if(isRare && isExpensive) return 'Rare & Pricey';
+  if(isRare) return 'Rare';
+  if(isExpensive) return 'Pricey';
+  return '';
+}
+function buildDiscogsNote(data){
+  if(!data) return '';
+  const bits = [];
+  if(data.lowestPrice != null) bits.push('$' + data.lowestPrice.toFixed(2) + ' lowest listed');
+  if(data.numForSale) bits.push(data.numForSale + ' for sale');
+  if(typeof data.haveCount === 'number') bits.push(data.haveCount + ' Discogs users have it');
+  if(!bits.length) return '';
+  const flag = rarityFlag(data);
+  return '[Discogs: ' + bits.join(', ') + (flag ? ' — ' + flag : '') + ']';
+}
+function setDiscsFromFormat(fmt){
+  let total = 1;
+  const m = (fmt||'').match(/(\d+)\s*x/i);
+  if(m) total = parseInt(m[1], 10) || 1;
+  discsTotal = total;
+  discsPresent = total;
+  updateDiscsUI();
+}
+
+function updateDiscsUI(){
+  $('discsTotalVal').textContent = discsTotal;
+  $('discsPresentVal').textContent = discsPresent;
+  const missing = discsTotal - discsPresent;
+  $('discsWarn').style.display = missing > 0 ? 'block' : 'none';
+  $('discsWarn').textContent = missing > 0 ? ('⚠ Missing ' + missing + ' disc' + (missing > 1 ? 's' : '')) : '';
+  if(discsTotal > 1){
+    $('discStepperWrap').style.display = 'block';
+    $('multiDiscToggle').style.display = 'none';
+  }
+  if(discsTotal !== lastRenderedDiscsTotal){
+    lastRenderedDiscsTotal = discsTotal;
+    renderDiscConditionRows(discsTotal);
+  }
+}
+$('discsTotalMinus').onclick = ()=>{ discsTotal = Math.max(1, discsTotal-1); if(discsPresent > discsTotal) discsPresent = discsTotal; updateDiscsUI(); };
+$('discsTotalPlus').onclick = ()=>{ discsTotal = Math.min(20, discsTotal+1); updateDiscsUI(); };
+$('discsPresentMinus').onclick = ()=>{ discsPresent = Math.max(0, discsPresent-1); updateDiscsUI(); };
+$('discsPresentPlus').onclick = ()=>{ discsPresent = Math.min(discsTotal, discsPresent+1); updateDiscsUI(); };
+$('multiDiscToggle').onclick = ()=>{
+  discsTotal = Math.max(2, discsTotal);
+  discsPresent = discsTotal;
+  $('discStepperWrap').style.display = 'block';
+  $('multiDiscToggle').style.display = 'none';
+  updateDiscsUI();
+};
+$('fFormat').addEventListener('change', ()=> setDiscsFromFormat($('fFormat').value));
+
+const REQUIRED_FIELDS = [
+  {id:'fArtist', kind:'input', label:'Artist'},
+  {id:'fTitle', kind:'input', label:'Title'},
+  {id:'coverPills', kind:'pill', label:'Cover'},
+  {id:'sleeveCondPills', kind:'pill', label:'Cover condition'}
+];
+
+function clearMissingFlags(){
+  document.querySelectorAll('#cardPanel .field').forEach(f=>f.classList.remove('missing'));
+  $('saveWarn').classList.remove('show');
+  $('saveWarn').textContent = '';
+}
+function validateCard(){
+  const missing = [];
+  REQUIRED_FIELDS.forEach(f=>{
+    const el = $(f.id);
+    const ok = f.kind === 'input' ? el.value.trim().length > 0 : !!el.querySelector('.pill.selected');
+    if(!ok){
+      missing.push(f.label);
+      const field = el.closest('.field');
+      if(field) field.classList.add('missing');
+    }
+  });
+  for(let i=1; i<=discsTotal; i++){
+    const mEl = $('mediaPills_'+i), iEl = $('innerSleevePills_'+i);
+    const label = discsTotal > 1 ? ('Disc ' + i + ' ') : '';
+    if(mEl && !mEl.querySelector('.pill.selected')){
+      missing.push(label + 'Vinyl condition');
+      const field = mEl.closest('.field'); if(field) field.classList.add('missing');
+    }
+    if(iEl && !iEl.querySelector('.pill.selected')){
+      missing.push(label + 'Inner sleeve');
+      const field = iEl.closest('.field'); if(field) field.classList.add('missing');
+    }
+  }
+  return missing;
+}
+
+$('gradeToggle').onclick = ()=> $('gradeBox').classList.toggle('show');
+
+function setFavourite(v){
+  currentFavourite = v;
+  $('favBtn').classList.toggle('active', v);
+  $('favBtn').textContent = v ? '★ Listen Later / Favourite' : '☆ Listen Later / Favourite';
+}
+$('favBtn').onclick = ()=> setFavourite(!currentFavourite);
+
+async function setupMoreByArtist(artist){
+  const wrap = $('morebyWrap');
+  if(!artist){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  $('morebyList').style.display='none';
+  $('morebyList').innerHTML = '';
+  delete $('morebyList').dataset.loaded;
+  $('morebyToggle').textContent = 'More by ' + artist + ' ▾';
+  $('morebyToggle').onclick = async ()=>{
+    const list = $('morebyList');
+    const open = list.style.display === 'block';
+    list.style.display = open ? 'none' : 'block';
+    $('morebyToggle').textContent = 'More by ' + artist + (open ? ' ▾' : ' ▴');
+    if(open || list.dataset.loaded) return;
+    list.innerHTML = '<div class="scanhint">Loading…</div>';
+    try{
+      const data = await callScript({action:'search', query: artist});
+      const results = (data.results||[]).filter(r => (r.title||'').toLowerCase().includes(artist.toLowerCase())).slice(0,6);
+      let already = [];
+      try{ const lr = localStorage.getItem('crate-log-recent'); if(lr) already = JSON.parse(lr); }catch(e){}
+      const loggedTitles = already.filter(a => (a.artist||'').toLowerCase() === artist.toLowerCase()).map(a=>a.title);
+      list.innerHTML = results.map(r=>{
+        const t = (r.title||'').split(' - ').slice(1).join(' - ') || r.title;
+        const got = loggedTitles.some(lt => lt && t.toLowerCase().includes(lt.toLowerCase()));
+        return `<div class="mb-item"><img src="${r.cover_image||r.thumb||''}"><div>${t} ${r.year?('· '+r.year):''} ${got ? '— already logged ✓' : ''}</div></div>`;
+      }).join('') || '<div class="scanhint">No other releases found.</div>';
+      list.dataset.loaded = '1';
+    }catch(e){ list.innerHTML = '<div class="scanhint">Could not load.</div>'; }
+  };
+}
+
+function buildRecordPayload(){
+  const activeColl = getActiveCollection();
+  const discCond = collectDiscConditions();
+  let notes = $('fNotes').value.trim();
+  const discogsNote = buildDiscogsNote(lastReleaseData);
+  if(discogsNote) notes = notes ? (notes + '\n\n' + discogsNote) : discogsNote;
+  if(discCond.breakdown) notes = notes ? (notes + '\n\n' + discCond.breakdown) : discCond.breakdown;
+  return {
+    collection: activeColl.name,
+    artist: $('fArtist').value, title: $('fTitle').value, year: $('fYear').value,
+    format: $('fFormat').value, label: $('fLabel').value, catno: $('fCatno').value,
+    genre: $('fGenre').value, notes: notes,
+    tracklist: $('fTracklist').value.trim(),
+    barcode: $('fBarcode').value.trim(),
+    estimatedValue: $('fValue').value.trim(),
+    coverImage: currentSelection ? (currentSelection.cover_image||currentSelection.thumb||'') : ($('cardCover').src || ''),
+    collectionColor: activeColl.color,
+    sleevePresent: getSelectedPill('coverPills'),
+    innerSleeve: discCond.worstInner,
+    outerSleeve: getSelectedPill('outerSleevePills'),
+    discsTotal: discsTotal,
+    discsPresent: discsPresent,
+    discsMissing: Math.max(0, discsTotal - discsPresent),
+    mediaCondition: discCond.worstMedia,
+    sleeveCondition: getSelectedPill('sleeveCondPills'),
+    favourite: currentFavourite ? 'Yes' : ''
+  };
+}
+function checkRequiredOrWarn(){
+  const missing = validateCard();
+  if(missing.length){
+    $('saveWarn').textContent = '⚠ Missing: ' + missing.join(', ');
+    $('saveWarn').classList.add('show');
+    const firstMissing = document.querySelector('#cardPanel .field.missing');
+    if(firstMissing) firstMissing.scrollIntoView({behavior:'smooth', block:'center'});
+    toast('Fill in ' + missing.join(', ') + ' before saving', true);
+    return false;
+  }
+  clearMissingFlags();
+  return true;
+}
+
+$('saveBtn').onclick = async ()=>{
+  if(!appsScriptUrl){ toast('Set up your Apps Script URL in Settings first', true); return; }
+  if(!checkRequiredOrWarn()) return;
+  const isUpdate = !!currentRowIndex;
+  const record = buildRecordPayload();
+  record.action = isUpdate ? 'update' : 'save';
+  if(isUpdate) record.rowIndex = currentRowIndex;
+  $('saveBtn').disabled = true;
+  let previousValues = null;
+  if(isUpdate){
+    try{
+      const rj = await callScript({action:'getRow', rowIndex: currentRowIndex});
+      if(rj.status === 'ok') previousValues = rj.values;
+    }catch(e){}
+  }
+  try{
+    const j = await callScript(record);
+    if(j.status === 'ok'){
+      const savedRowIndex = j.rowIndex || currentRowIndex;
+      addToLog({...record, rowIndex: savedRowIndex});
+      clearDraft();
+      if(isUpdate){
+        toast('Updated', false, previousValues ? (()=> undoRestore(currentRowIndex, previousValues)) : null);
+      } else {
+        toast('Saved to ' + record.collection, false, ()=> undoDelete(savedRowIndex));
+      }
+      showDashboard(true);
+      window.scrollTo({top:0, behavior:'smooth'});
+      collectionCache = null;
+      runBrowse('');
+    } else {
+      toast((isUpdate ? 'Update failed: ' : 'Save failed: ') + (j.message||'unknown error'), true);
+    }
+  }catch(e){ toast((isUpdate ? 'Update' : 'Save') + ' failed — check connection', true); }
+  $('saveBtn').disabled = false;
+};
+
+$('duplicateBtn').onclick = async ()=>{
+  if(!appsScriptUrl){ toast('Set up your Apps Script URL in Settings first', true); return; }
+  if(!checkRequiredOrWarn()) return;
+  const record = buildRecordPayload();
+  record.action = 'save';
+  $('duplicateBtn').disabled = true;
+  try{
+    const j = await callScript(record);
+    if(j.status === 'ok'){
+      addToLog({...record, rowIndex: j.rowIndex});
+      toast('Duplicate copy saved to ' + record.collection, false, ()=> undoDelete(j.rowIndex));
+      showDashboard(true);
+      window.scrollTo({top:0, behavior:'smooth'});
+      collectionCache = null;
+      runBrowse('');
+    } else {
+      toast('Duplicate failed: ' + (j.message||'unknown error'), true);
+    }
+  }catch(e){ toast('Duplicate failed — check connection', true); }
+  $('duplicateBtn').disabled = false;
+};
+
+async function undoDelete(rowIndex){
+  try{
+    const j = await callScript({action:'deleteRow', rowIndex});
+    if(j.status === 'ok'){
+      removeFromLogByRowIndex(rowIndex);
+      toast('Removed');
+      collectionCache = null;
+      runBrowse('');
+    } else {
+      toast(j.message || 'Could not undo — edit the sheet directly', true);
+    }
+  }catch(e){ toast('Undo failed — check connection', true); }
+}
+async function undoRestore(rowIndex, values){
+  try{
+    const j = await callScript({action:'restoreRow', rowIndex, values});
+    toast(j.status === 'ok' ? 'Reverted' : (j.message || 'Could not undo'), j.status !== 'ok');
+    if(j.status === 'ok'){
+      collectionCache = null;
+      runBrowse('');
+    }
+  }catch(e){ toast('Undo failed — check connection', true); }
+}
+
+async function addToLog(record){
+  let log = [];
+  try{
+    const v = localStorage.getItem('crate-log-recent');
+    if(v) log = JSON.parse(v);
+  }catch(e){}
+  log.unshift({...record, ts: Date.now()});
+  log = log.slice(0, 25);
+  try{ localStorage.setItem('crate-log-recent', JSON.stringify(log)); }catch(e){}
+  renderLog(log);
+}
+function removeFromLogByRowIndex(rowIndex){
+  try{
+    const v = localStorage.getItem('crate-log-recent');
+    if(!v) return;
+    let log = JSON.parse(v).filter(r => r.rowIndex !== rowIndex);
+    localStorage.setItem('crate-log-recent', JSON.stringify(log));
+    renderLog(log);
+  }catch(e){}
+}
+async function loadLog(){
+  try{
+    const v = localStorage.getItem('crate-log-recent');
+    if(v) renderLog(JSON.parse(v));
+    else renderLog([]);
+  }catch(e){ renderLog([]); }
+}
+
+function renderLog(log){
+  $('logList').innerHTML = log.map((r,i)=>`
+    <div class="logitem" data-i="${i}">
+      <span class="log-dot" style="color:${r.collectionColor||'var(--dim)'}">●</span>
+      <div class="li-t">
+        <b>${r.favourite ? '<span style="color:var(--amber)">★</span> ' : ''}${r.artist||'Unknown Artist'}</b>
+        <span>${r.title||'Untitled'} ${r.year ? `(${r.year})` : ''}</span>
+      </div>
+    </div>`).join('') || '<div style="padding:16px;" class="scanhint">Nothing logged yet this session.</div>';
+  $('logList').querySelectorAll('.logitem').forEach(el=>{
+    el.onclick = ()=> {
+      lastOpenedFrom = 'collection';
+      loadFromLogRecord(log[Number(el.dataset.i)]);
+    };
+  });
+}
+
+function loadFromLogRecord(record){
+  if(!record) return;
+  currentSelection = null;
+  currentRowIndex = record.rowIndex || null;
+  clearDraft();
+  $('cardCover').src = record.coverImage || '';
+  $('cardCover').style.visibility = 'visible';
+  setAppBg(record.coverImage || null);
+  $('fArtist').value = record.artist || '';
+  $('fTitle').value = record.title || '';
+  $('fYear').value = record.year || '';
+  $('fFormat').value = record.format || '';
+  $('fLabel').value = record.label || '';
+  $('fCatno').value = record.catno || '';
+  $('fGenre').value = record.genre || '';
+  $('fNotes').value = record.notes || '';
+  $('fTracklist').value = record.tracklist || '';
+  $('fBarcode').value = record.barcode || '';
+  $('fValue').value = record.estimatedValue || '';
+  currentDiscogsUrl = '';
+  updateExternalLinks(record.artist, record.title, currentDiscogsUrl);
+  setAlert('dupWarning', '', false);
+  setAlert('artistWarning', '', false);
+  setAlert('rareWarning', '', false);
+  lastReleaseData = null;
+  $('discogsInfoWrap').style.display = 'none';
+  $('discogsInfoList').innerHTML = '';
+  $('valueHint').style.display = 'none';
+  resetPills();
+  selectPillValue('coverPills', record.sleevePresent);
+  selectPillValue('outerSleevePills', record.outerSleeve);
+  selectPillValue('sleeveCondPills', record.sleeveCondition);
+  discsTotal = record.discsTotal || 1;
+  discsPresent = record.discsPresent != null ? record.discsPresent : discsTotal;
+  $('discStepperWrap').style.display = discsTotal > 1 ? 'block' : 'none';
+  $('multiDiscToggle').style.display = discsTotal > 1 ? 'none' : 'inline-flex';
+  $('discConditionRows').innerHTML = '';
+  lastRenderedDiscsTotal = 0;
+  updateDiscsUI();
+  for(let i=1; i<=discsTotal; i++){
+    selectPillValue('mediaPills_'+i, record.mediaCondition);
+    selectPillValue('innerSleevePills_'+i, record.innerSleeve);
+  }
+  setFavourite(record.favourite === 'Yes');
+  const coll = collections.find(c => c.name === record.collection);
+  if(coll) activeCollectionId = coll.id;
+  syncCollectionUI();
+  clearMissingFlags();
+  $('pressingsWrap').style.display = 'none';
+  $('morebyWrap').style.display = 'none';
+  $('draftBanner').style.display = 'none';
+  showEditor();
+  toast('Loaded from library — click Save to update sheet');
+}
+
+function scheduleDraftSave(){
+  clearTimeout(draftSaveTimer);
+  draftSaveTimer = setTimeout(saveDraftNow, 800);
+}
+function snapshotCurrentCard(){
+  const discs = [];
+  for(let i=1; i<=discsTotal; i++){
+    discs.push({ media: getSelectedPill('mediaPills_'+i), inner: getSelectedPill('innerSleevePills_'+i) });
+  }
+  return {
+    artist: $('fArtist').value, title: $('fTitle').value, year: $('fYear').value,
+    format: $('fFormat').value, label: $('fLabel').value, catno: $('fCatno').value,
+    genre: $('fGenre').value, notes: $('fNotes').value, tracklist: $('fTracklist').value,
+    barcode: $('fBarcode').value, estimatedValue: $('fValue').value,
+    coverImage: $('cardCover').src || '',
+    activeCollectionId: activeCollectionId,
+    coverPresent: getSelectedPill('coverPills'),
+    outerSleeve: getSelectedPill('outerSleevePills'),
+    sleeveCondition: getSelectedPill('sleeveCondPills'),
+    discsTotal: discsTotal, discsPresent: discsPresent, discs: discs,
+    favourite: currentFavourite,
+    currentRowIndex: currentRowIndex,
+    savedAt: Date.now()
+  };
+}
+function saveDraftNow(){
+  if($('editorView').style.display !== 'block') return;
+  if(!$('fArtist').value.trim() && !$('fTitle').value.trim()) return;
+  try{ localStorage.setItem('crate-log-draft', JSON.stringify(snapshotCurrentCard())); }catch(e){}
+}
+function clearDraft(){
+  try{ localStorage.removeItem('crate-log-draft'); }catch(e){}
+  $('draftBanner').style.display = 'none';
+}
+function checkForDraft(){
+  try{
+    const v = localStorage.getItem('crate-log-draft');
+    if(!v) return;
+    const draft = JSON.parse(v);
+    if(!draft.artist && !draft.title){ clearDraft(); return; }
+    $('draftBanner').style.display = 'flex';
+    $('draftBannerText').textContent = 'Unsaved record from earlier: ' + (draft.artist||'Untitled') + ' — ' + (draft.title||'');
+    $('draftResumeBtn').onclick = ()=> restoreDraft(draft);
+    $('draftDiscardBtn').onclick = ()=> clearDraft();
+  }catch(e){}
+}
+function restoreDraft(draft){
+  currentSelection = null;
+  currentRowIndex = draft.currentRowIndex || null;
+  $('cardCover').src = draft.coverImage || '';
+  $('cardCover').style.visibility = 'visible';
+  setAppBg(draft.coverImage || null);
+  $('fArtist').value = draft.artist || '';
+  $('fTitle').value = draft.title || '';
+  $('fYear').value = draft.year || '';
+  $('fFormat').value = draft.format || '';
+  $('fLabel').value = draft.label || '';
+  $('fCatno').value = draft.catno || '';
+  $('fGenre').value = draft.genre || '';
+  $('fNotes').value = draft.notes || '';
+  $('fTracklist').value = draft.tracklist || '';
+  $('fBarcode').value = draft.barcode || '';
+  $('fValue').value = draft.estimatedValue || '';
+  currentDiscogsUrl = '';
+  updateExternalLinks(draft.artist, draft.title, currentDiscogsUrl);
+  setAlert('dupWarning', '', false);
+  setAlert('artistWarning', '', false);
+  setAlert('rareWarning', '', false);
+  resetPills();
+  selectPillValue('coverPills', draft.coverPresent);
+  selectPillValue('outerSleevePills', draft.outerSleeve);
+  selectPillValue('sleeveCondPills', draft.sleeveCondition);
+  discsTotal = draft.discsTotal || 1;
+  discsPresent = draft.discsPresent != null ? draft.discsPresent : discsTotal;
+  $('discStepperWrap').style.display = discsTotal > 1 ? 'block' : 'none';
+  $('multiDiscToggle').style.display = discsTotal > 1 ? 'none' : 'inline-flex';
+  $('discConditionRows').innerHTML = '';
+  lastRenderedDiscsTotal = 0;
+  updateDiscsUI();
+  (draft.discs || []).forEach((d, i)=>{
+    selectPillValue('mediaPills_'+(i+1), d.media);
+    selectPillValue('innerSleevePills_'+(i+1), d.inner);
+  });
+  setFavourite(!!draft.favourite);
+  if(draft.activeCollectionId && collections.find(c=>c.id===draft.activeCollectionId)){
+    activeCollectionId = draft.activeCollectionId;
+  }
+  syncCollectionUI();
+  clearMissingFlags();
+  $('pressingsWrap').style.display = 'none';
+  $('morebyWrap').style.display = 'none';
+  $('draftBanner').style.display = 'none';
+  lastOpenedFrom = 'collection';
+  showEditor();
+  window.scrollTo({top:0, behavior:'smooth'});
+  toast('Draft restored');
+}
+$('cardPanel').addEventListener('input', scheduleDraftSave);
+$('cardPanel').addEventListener('click', (e)=>{
+  if(e.target.closest('.pill') || e.target.closest('.stepper button')) scheduleDraftSave();
+});
+
+loadSettings();
+loadCollections();
+loadLog();
+checkForDraft();
+setTimeout(() => runBrowse(''), 500);
+</script>
+</body>
+</html>
