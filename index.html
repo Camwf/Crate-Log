@@ -177,7 +177,18 @@
   .browse-table th.sortable::after { content: ' ↕'; opacity: 0.3; font-size: 10px; }
   .browse-table th.sort-active { color: var(--amber); }
   .browse-table th.sort-active::after { content: ' ▾'; opacity: 1; color: var(--amber); }
+  .browse-table th.sort-active.sort-desc::after { content: ' ▴'; }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat-card { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 10px; padding: 14px; text-align: center; }
+  .stat-num { font-family: 'Oswald', sans-serif; font-size: 26px; font-weight: 600; color: var(--amber); line-height: 1.1; }
+  .stat-label { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 4px; }
+  .stats-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; }
+  .stats-cols h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--dim); margin: 0 0 8px; font-weight: 600; }
+  .stat-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text); }
+  .stat-row span:last-child { color: var(--dim); font-weight: 600; }
   .browse-table th.col-art { width: 72px; text-align: center; }
+  .browse-table th.col-check { width: 32px; text-align: center; }
+  .browse-table td.col-check { width: 32px; text-align: center; padding: 6px 4px; }
   .browse-table th.col-fav { width: 24px; }
   .browse-table th.col-price { width: 80px; text-align: right; }
   .browse-table th.col-action { width: 80px; text-align: right; padding-right: 16px; }
@@ -245,6 +256,28 @@
     <button class="primary" id="draftResumeBtn" style="padding:10px 14px; width:auto;">Resume</button>
   </div>
 </div>
+<div id="sharedView" style="display:none;">
+  <div class="panel">
+    <h3 id="sharedHeading" style="margin-top:0;">🔗 Shared Crate</h3>
+    <p id="sharedSubheading" style="color:var(--dim); font-size:13px; margin-top:-8px;">Loading…</p>
+    <div id="sharedResultsList"></div>
+  </div>
+</div>
+<div class="modal" id="borrowRequestModal">
+  <div class="modalbox" style="max-width:400px;">
+    <h3 style="margin-top:0;" id="borrowModalTitle">Request to Borrow</h3>
+    <div class="field">
+      <label>Your name</label>
+      <input type="text" id="borrowRequesterName" placeholder="So they know who's asking">
+    </div>
+    <div class="field">
+      <label>Note (optional)</label>
+      <input type="text" id="borrowRequesterNote" placeholder="e.g. Could I grab this Friday?">
+    </div>
+    <button class="primary" style="width:100%;" id="submitBorrowBtn">Send Request</button>
+    <button class="secondary" style="width:100%; margin-top:8px;" id="cancelBorrowBtn">Cancel</button>
+  </div>
+</div>
 <div id="dashboardView">
   <div class="panel" id="searchPanel">
     <div class="panel-header" onclick="this.closest('.panel').classList.toggle('collapsed')">
@@ -274,12 +307,43 @@
     </div>
   </div>
   <div class="panel" id="collectionPanel">
-    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 16px;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 16px; gap:12px; flex-wrap:wrap;">
       <h3 style="margin: 0; font-size: 20px; color: var(--text); font-weight: 600;">📚 In Your Collection</h3>
+      <div style="display:flex; gap:8px;">
+        <button class="secondary" id="exportCsvBtn" style="width:auto; padding:8px 14px; font-size:12px; margin:0;">Export CSV</button>
+        <button class="secondary" id="importCsvBtn" style="width:auto; padding:8px 14px; font-size:12px; margin:0;">Import CSV</button>
+        <input type="file" id="importCsvFile" accept=".csv" style="display:none;">
+      </div>
     </div>
     <div class="chiprow" id="collectionFilterChips" style="margin-bottom: 12px;"></div>
+    <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;">
+      <select id="genreFilterSelect" style="flex:1; min-width:120px;"><option value="">All Genres</option></select>
+      <select id="formatFilterSelect" style="flex:1; min-width:120px;"><option value="">All Formats</option></select>
+    </div>
     <div class="browse-summary" id="browseSummary"></div>
+    <div id="bulkToolbar" style="display:none; align-items:center; gap:10px; flex-wrap:wrap; background:rgba(232,170,85,0.08); border:1px solid var(--amber-dim); border-radius:8px; padding:10px 12px; margin-bottom:12px;">
+      <span id="bulkCount" style="font-size:13px; color:var(--text); font-weight:600;"></span>
+      <select id="bulkMoveSelect" style="width:auto; min-width:140px;"></select>
+      <button class="secondary" id="bulkMoveBtn" style="width:auto; padding:6px 12px; font-size:12px; margin:0;">Move</button>
+      <button class="secondary" id="bulkFavBtn" style="width:auto; padding:6px 12px; font-size:12px; margin:0;">★ Favourite</button>
+      <button class="secondary" id="bulkDeleteBtn" style="width:auto; padding:6px 12px; font-size:12px; margin:0; border-color:var(--red); color:var(--red);">Delete</button>
+      <button class="secondary" id="bulkClearBtn" style="width:auto; padding:6px 12px; font-size:12px; margin:0 0 0 auto;">Clear Selection</button>
+    </div>
     <div id="collectionResultsList"></div>
+  </div>
+  <div class="panel collapsed" id="statsPanel">
+    <div class="panel-header" onclick="this.closest('.panel').classList.toggle('collapsed'); refreshStatsIfOpen();">
+      <h3>📊 Collection Stats</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="panel-body" id="statsBody"></div>
+  </div>
+  <div class="panel collapsed" id="borrowPanel">
+    <div class="panel-header" onclick="this.closest('.panel').classList.toggle('collapsed'); refreshBorrowRequests();">
+      <h3>📬 Borrow Requests <span id="borrowBadge" style="display:none; background:var(--amber); color:var(--bg); font-size:11px; padding:1px 7px; border-radius:10px; margin-left:6px; font-weight:700;"></span></h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="panel-body" id="borrowRequestsList"></div>
   </div>
   <div class="panel collapsed" id="logPanel">
     <div class="panel-header" onclick="this.closest('.panel').classList.toggle('collapsed')">
@@ -339,7 +403,7 @@
         </div>
         <div class="grid-4">
           <div class="field"><label>Year</label><input type="text" id="fYear"></div>
-          <div class="field"><label>Format</label><input type="text" id="fFormat"></div>
+          <div class="field"><label>Format</label><input type="text" id="fFormat" list="formatDatalist"></div>
           <div class="field"><label>Label</label><input type="text" id="fLabel"></div>
           <div class="field"><label>Catalog #</label><input type="text" id="fCatno"></div>
         </div>
@@ -353,7 +417,7 @@
             <div class="scanhint" id="valueHint" style="display:none;"></div>
           </div>
         </div>
-        <div class="field"><label>Genre / Style</label><input type="text" id="fGenre"></div>
+        <div class="field"><label>Genre / Style</label><input type="text" id="fGenre" list="genreDatalist"></div>
         <div class="field" id="discStepperWrap" style="display:none; margin-bottom: 20px;">
           <label>Discs in this Set</label>
           <div class="grid-2" style="background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px;">
@@ -400,7 +464,7 @@
         <div class="alert alert-dup" id="dupWarningBottom"><span class="alert-icon">📀</span><span></span></div>
         <div class="alert alert-artist" id="artistWarningBottom"><span class="alert-icon">🎤</span><span></span></div>
         <div class="alert alert-rare" id="rareWarningBottom"><span class="alert-icon">⭐</span><span></span></div>
-        <div class="field"><label>Save To Collection</label>
+        <div class="field"><label>Save To Crate</label>
           <div class="pillrow collpicker" id="saveCollPills"></div>
         </div>
         <div class="field-warn" id="saveWarn"></div>
@@ -412,7 +476,7 @@
 <div class="fab-container" id="fabContainer">
   <div class="fab-inner">
     <button class="secondary" id="discardBtn">Discard</button>
-    <button class="secondary" id="removeBtn" style="display:none; border-color:var(--red); color:var(--red);">Remove from Collection</button>
+    <button class="secondary" id="removeBtn" style="display:none; border-color:var(--red); color:var(--red);">Remove from Crate</button>
     <button class="secondary" id="duplicateBtn" style="display:none;">Duplicate</button>
     <button class="primary" id="saveBtn">Save Record</button>
   </div>
@@ -422,13 +486,14 @@
     <button class="closebtn" id="closeSettings">✕</button>
     <h3>Settings</h3>
     <div class="field">
-      <label>Google Apps Script Web App URL</label>
-      <input type="text" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/.../exec">
-      <small style="display:block;color:var(--dim);margin-top:6px;">Paste the URL from your Apps Script deployment.</small>
+      <label>Backend URL</label>
+      <input type="text" id="appsScriptUrl" placeholder="https://crate-log-proxy....workers.dev/">
+      <small style="display:block;color:var(--dim);margin-top:6px;">The Cloudflare Worker URL — same for everyone using this app.</small>
     </div>
     <div class="field">
-      <label>Access Key <span style="color:var(--dim); text-transform:none; letter-spacing:0;">(only if your host set one)</span></label>
-      <input type="text" id="accessKey" placeholder="Leave blank unless you were given one">
+      <label>Your Access Key</label>
+      <input type="text" id="accessKey" placeholder="Paste the personal key you were given">
+      <small style="display:block;color:var(--dim);margin-top:6px;">Each person has their own — this is what keeps your collection separate from everyone else's.</small>
     </div>
     <div class="row2">
       <div class="field"><label>Flag as expensive if over</label>
@@ -441,14 +506,62 @@
     <small style="display:block;color:var(--dim);margin:-6px 0 16px;">"Rare" is based on how many Discogs users own a copy.</small>
     <button class="primary" id="saveSettingsBtn">Save Settings</button>
     <button class="secondary" style="width:100%;margin-top:8px" id="testConnBtn">Test Connection</button>
-    <h3 style="margin-top:24px;">Collections</h3>
+
+    <div class="panel-header" style="margin-top:24px;cursor:pointer;padding:0;" onclick="$('adminSection').style.display = $('adminSection').style.display === 'none' ? 'block' : 'none';">
+      <h3 style="margin:0;">Add a user (admin only)</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div id="adminSection" style="display:none; margin-top:12px;">
+      <div class="field">
+        <label>Admin Key</label>
+        <input type="text" id="adminKeyInput" placeholder="Only you know this">
+      </div>
+      <div class="field">
+        <label>New user's name</label>
+        <input type="text" id="newUserName" placeholder="e.g. Jordan">
+      </div>
+      <button class="secondary" style="width:100%;" id="createUserBtn">Generate Access Key</button>
+      <div id="newUserResult" style="display:none; margin-top:12px; padding:12px; background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:8px; font-size:13px;"></div>
+    </div>
+
+    <h3 style="margin-top:24px;">Crates</h3>
+    <small style="display:block;color:var(--dim);margin-top:-8px;margin-bottom:12px;">Your own way of grouping records — could be people, genres, shelves, whatever makes sense to you.</small>
     <div id="collEditList"></div>
     <div class="addcollrow">
-      <input type="text" id="newCollName" placeholder="New collection name">
+      <input type="text" id="newCollName" placeholder="New crate name">
       <input type="color" id="newCollColor" value="#7C8FA6">
       <button class="secondary" id="addCollBtn">Add</button>
     </div>
     <small style="display:block;color:var(--dim);margin-top:10px">Adding/Renaming only relabels the chips — records already saved keep the name they were saved under.</small>
+
+    <h3 style="margin-top:24px;">Share a Crate</h3>
+    <small style="display:block;color:var(--dim);margin-top:-8px;margin-bottom:12px;">Gives someone a read-only link — they can look, but can't add or edit anything. They can request to borrow a specific record instead.</small>
+    <div class="field">
+      <label>Which crate</label>
+      <select id="shareCrateSelect"><option value="">Everything</option></select>
+    </div>
+    <div class="field">
+      <label>Label (optional, helps you remember why you shared it)</label>
+      <input type="text" id="shareLabelInput" placeholder="e.g. For Jordan">
+    </div>
+    <button class="secondary" style="width:100%;" id="createShareBtn">Create Share Link</button>
+    <div id="shareLinkResult" style="display:none; margin-top:12px; padding:12px; background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:8px; font-size:13px;"></div>
+    <div id="activeSharesList" style="margin-top:14px;"></div>
+  </div>
+</div>
+<div class="modal" id="crateOnboardModal">
+  <div class="modalbox" style="max-width:420px;">
+    <h3 style="margin-top:0;">Set up your crates</h3>
+    <p style="color:var(--dim); font-size:14px; line-height:1.5;">
+      Crates are how you group your records — could be by person, genre, shelf, format,
+      whatever makes sense to you. You've got one to start (<strong style="color:var(--text);">Wishlist</strong>),
+      which stays the default for new searches so nothing accidentally lands in a real crate.
+    </p>
+    <p style="color:var(--dim); font-size:14px; line-height:1.5;">
+      Add your own crates now, or skip it and add them later from Settings anytime.
+    </p>
+    <button class="primary" id="crateOnboardSetupBtn" style="width:100%;">Set Up Crates</button>
+    <button class="secondary" id="crateOnboardSkipBtn" style="width:100%; margin-top:8px;">I'll Do This Later</button>
   </div>
 </div>
 <div class="modal" id="zoomModal">
@@ -457,6 +570,8 @@
     <img id="zoomImg" src="" style="width:100%; border-radius:10px; display:block; background:#000;">
   </div>
 </div>
+<datalist id="genreDatalist"></datalist>
+<datalist id="formatDatalist"></datalist>
 <script>
 let isUpdatingExistingCard = false;
 let lastReleaseData = null;
@@ -483,6 +598,9 @@ let expensiveThreshold = 50;
 let rareThreshold = 100;
 let accessKey = "";
 let lastBrowseResults = [];
+let browseGenreFilter = '';
+let browseFormatFilter = '';
+let selectedRowIds = new Set();
 
 // Points at the Cloudflare Worker proxy, NOT the Apps Script URL directly.
 // The Worker injects the access key server-side, so nothing secret lives here.
@@ -490,14 +608,11 @@ let lastBrowseResults = [];
 const DEFAULT_APPS_SCRIPT_URL = "https://crate-log-proxy.cameron-w-franklyn.workers.dev/";
 
 const DEFAULT_COLLECTIONS = [
-  {id:"wishlist", name:"Wishlist", color:"#8E7CC3"},
-  {id:"pete", name:"Pete", color:"#3E7D75"},
-  {id:"cam", name:"Cam", color:"#E3A857"},
-  {id:"lily", name:"Lily", color:"#B8607A"},
-  {id:"tyson", name:"Tyson", color:"#9B8C3F"}
+  {id:"wishlist", name:"Wishlist", color:"#8E7CC3"}
 ];
 let collections = DEFAULT_COLLECTIONS.slice();
 let activeCollectionId = "wishlist";
+let isFirstRunCrates = false;
 let appsScriptUrl = "";
 
 const $ = id => document.getElementById(id);
@@ -541,12 +656,28 @@ async function loadCollections(){
     if(v){
       const saved = JSON.parse(v);
       if(Array.isArray(saved) && saved.length) collections = saved;
+    } else {
+      isFirstRunCrates = true;
     }
   }catch(e){}
   if(!collections.find(c => c.id === activeCollectionId)) activeCollectionId = collections[0].id;
   syncCollectionUI();
   renderCollEditList();
+  if(isFirstRunCrates) showCrateOnboarding();
 }
+
+function showCrateOnboarding(){
+  $('crateOnboardModal').classList.add('show');
+}
+$('crateOnboardSetupBtn').onclick = ()=>{
+  $('crateOnboardModal').classList.remove('show');
+  $('settingsModal').classList.add('show');
+  $('collEditList').scrollIntoView({behavior:'smooth', block:'center'});
+};
+$('crateOnboardSkipBtn').onclick = ()=>{
+  $('crateOnboardModal').classList.remove('show');
+  persistCollections();
+};
 async function persistCollections(){
   try{ localStorage.setItem('crate-log-collections', JSON.stringify(collections)); }catch(e){}
 }
@@ -554,7 +685,7 @@ async function persistCollections(){
 function renderBrowseFilters(){
   const wrap = $('collectionFilterChips');
   if(!wrap) return;
-  let html = `<button class="chip ${browseFilters.length===0 ? 'active' : ''}" onclick="toggleBrowseFilter('all')">All Collections</button>`;
+  let html = `<button class="chip ${browseFilters.length===0 ? 'active' : ''}" onclick="toggleBrowseFilter('all')">All Crates</button>`;
   collections.forEach(c=>{
     const isActive = browseFilters.includes(c.id);
     const style = isActive ? `background:${c.color}; color:${pickTextColor(c.color)}; border-color:transparent;` : '';
@@ -614,6 +745,7 @@ function syncCollectionUI(){
   renderBrowseFilters();
   renderSaveCollPills();
   refreshSaveButtonMode();
+  populateShareCrateSelect();
 }
 
 function renderCollEditList(){
@@ -752,7 +884,7 @@ function callScript(payload){
   return fetch(appsScriptUrl, {method:'POST', body: JSON.stringify(body)}).then(res => res.json());
 }
 
-$('settingsBtn').onclick = ()=> $('settingsModal').classList.add('show');
+$('settingsBtn').onclick = ()=> { $('settingsModal').classList.add('show'); populateShareCrateSelect(); refreshActiveShares(); };
 $('closeSettings').onclick = ()=> $('settingsModal').classList.remove('show');
 
 function openZoomModal(src) {
@@ -770,6 +902,30 @@ $('testConnBtn').onclick = async ()=>{
     const j = await callScript({action:'ping'});
     toast(j.status === 'ok' ? 'Connected ✓' : 'Unexpected response');
   }catch(e){ toast('Connection failed', true); }
+};
+
+$('createUserBtn').onclick = async ()=>{
+  const adminKey = $('adminKeyInput').value.trim();
+  const displayName = $('newUserName').value.trim();
+  if(!appsScriptUrl){ toast('Set the Backend URL first', true); return; }
+  if(!adminKey){ toast('Enter the admin key', true); return; }
+  if(!displayName){ toast('Enter a name for the new user', true); return; }
+  $('createUserBtn').disabled = true;
+  try{
+    const res = await fetch(appsScriptUrl, {method:'POST', body: JSON.stringify({action:'createUser', adminKey, displayName})});
+    const j = await res.json();
+    if(j.status === 'ok'){
+      $('newUserResult').style.display = 'block';
+      $('newUserResult').innerHTML =
+        '<div style="color:var(--dim);margin-bottom:6px;">Access key for <strong style="color:var(--text);">' + escHtml(j.displayName) + '</strong> — send this to them:</div>' +
+        '<div style="font-family:monospace; font-size:13px; word-break:break-all; color:var(--amber); user-select:all;">' + escHtml(j.accessKey) + '</div>' +
+        '<div style="color:var(--dim); margin-top:8px; font-size:12px;">They paste this into their own Settings → Your Access Key, along with the same Backend URL.</div>';
+      $('newUserName').value = '';
+    } else {
+      toast(j.message || 'Could not create user', true);
+    }
+  }catch(e){ toast('Request failed — check connection', true); }
+  $('createUserBtn').disabled = false;
 };
 
 function clearUnifiedSearch(){
@@ -947,7 +1103,19 @@ function renderSearchResults(results){
     list.style.display='block';
     return;
   }
-  let html = `
+  // Flag when multiple results look like the same release (different pressings) —
+  // worth comparing Country/Year/Catalog # before picking one.
+  const normKey = r => {
+    const parts = (r.title||'').split(' - ');
+    const artist = (parts.length>1 ? parts[0] : (r.artist||'')).toLowerCase().trim();
+    const title = (parts.length>1 ? parts.slice(1).join(' - ') : (r.title||'')).toLowerCase().trim();
+    return artist + '|' + title;
+  };
+  const counts = {};
+  results.slice(0,12).forEach(r => { const k = normKey(r); counts[k] = (counts[k]||0) + 1; });
+  const anyMultiple = Object.values(counts).some(c => c > 1);
+
+  let html = (anyMultiple ? '<div class="scanhint" style="margin-bottom:8px;">⚠ Multiple pressings of the same release below — check Country/Year/Cat # before adding.</div>' : '') + `
     <div class="table-wrapper">
     <table class="browse-table">
       <thead>
@@ -956,6 +1124,7 @@ function renderSearchResults(results){
           <th>Artist</th>
           <th>Title</th>
           <th>Year</th>
+          <th>Country</th>
           <th>Format</th>
           <th>Label</th>
           <th>Cat #</th>
@@ -971,12 +1140,14 @@ function renderSearchResults(results){
     const thumb = r.cover_image || r.thumb || '';
     const labelStr = r.label ? (Array.isArray(r.label) ? r.label[0] : r.label) : '';
     const catnoStr = r.catno || '';
+    const isDup = counts[normKey(r)] > 1;
     html += `
-      <tr data-search-idx="${i}">
+      <tr data-search-idx="${i}" style="${isDup ? 'background:rgba(232,170,85,0.05);' : ''}">
         <td class="col-art">${thumb ? `<img class="table-thumb" loading="lazy" src="${escHtml(thumb)}" alt="" onclick="event.stopPropagation(); openZoomModal('${escHtml(thumb)}')">` : ''}</td>
         <td class="col-artist">${escHtml(artist)}</td>
         <td class="col-title">${escHtml(title)}</td>
         <td>${escHtml(r.year||'')}</td>
+        <td>${escHtml(r.country||'')}</td>
         <td>${escHtml((r.format||[]).join(', '))}</td>
         <td>${escHtml(labelStr)}</td>
         <td>${escHtml(catnoStr)}</td>
@@ -1010,6 +1181,9 @@ async function runBrowse(query){
     try{
       const data = await callScript({action:'browse', query:''});
       collectionCache = data.results || [];
+      refreshStatsIfOpen();
+      populateGenreFormatFilters();
+      populateDatalists();
     }catch(e){
       $('collectionResultsList').innerHTML = '<div class="scanhint">Failed to load library.</div>';
       toast('Could not load your collection', true);
@@ -1027,6 +1201,160 @@ async function runBrowse(query){
   applyBrowseSortAndFilter();
 }
 
+function refreshStatsIfOpen(){
+  const panel = $('statsPanel');
+  if(panel && !panel.classList.contains('collapsed')) renderStats();
+}
+
+function computeStats(list){
+  const s = { total: list.length, totalValue: 0, pricedCount: 0, favCount: 0, byCollection: {}, byArtist: {}, byGenre: {} };
+  list.forEach(r=>{
+    const v = parseFloat(r.estimatedValue);
+    if(!isNaN(v) && v > 0){ s.totalValue += v; s.pricedCount++; }
+    if(r.favourite === 'Yes') s.favCount++;
+    const coll = (String(r.collection||'').trim()) || 'Unassigned';
+    s.byCollection[coll] = (s.byCollection[coll]||0) + 1;
+    const artist = String(r.artist||'').trim();
+    if(artist) s.byArtist[artist] = (s.byArtist[artist]||0) + 1;
+    String(r.genre||'').split(',').map(g=>g.trim()).filter(Boolean).forEach(g=>{
+      s.byGenre[g] = (s.byGenre[g]||0) + 1;
+    });
+  });
+  return s;
+}
+
+function topEntries(obj, n){
+  return Object.entries(obj).sort((a,b)=> b[1]-a[1]).slice(0,n);
+}
+
+function statRowsHtml(entries){
+  if(!entries.length) return '<div class="scanhint">—</div>';
+  return entries.map(([name,count])=>
+    '<div class="stat-row"><span>' + escHtml(name) + '</span><span>' + count + '</span></div>'
+  ).join('');
+}
+
+function renderStats(){
+  const body = $('statsBody');
+  if(!body) return;
+  const list = collectionCache || [];
+  if(!list.length){ body.innerHTML = '<div class="scanhint">No records logged yet.</div>'; return; }
+  const s = computeStats(list);
+  const collRows = Object.entries(s.byCollection).sort((a,b)=> b[1]-a[1]);
+  body.innerHTML =
+    '<div class="stats-grid">' +
+      '<div class="stat-card"><div class="stat-num">' + s.total + '</div><div class="stat-label">Total Records</div></div>' +
+      '<div class="stat-card"><div class="stat-num">$' + s.totalValue.toFixed(2) + '</div><div class="stat-label">Est. Value' + (s.pricedCount < s.total ? ' (' + s.pricedCount + ' priced)' : '') + '</div></div>' +
+      '<div class="stat-card"><div class="stat-num">' + s.favCount + '</div><div class="stat-label">Favourites</div></div>' +
+    '</div>' +
+    '<div class="stats-cols">' +
+      '<div><h4>By Crate</h4>' + statRowsHtml(collRows) + '</div>' +
+      '<div><h4>Top Artists</h4>' + statRowsHtml(topEntries(s.byArtist, 6)) + '</div>' +
+      '<div><h4>Top Genres</h4>' + statRowsHtml(topEntries(s.byGenre, 6)) + '</div>' +
+    '</div>';
+}
+
+// ---------- CSV export / import ----------
+const CSV_FIELD_MAP = {
+  collection: 'Crate', artist: 'Artist', title: 'Title', year: 'Year',
+  format: 'Format', label: 'Label', catno: 'Catalog #', genre: 'Genre/Style',
+  notes: 'Notes', tracklist: 'Tracklist', barcode: 'Barcode', estimatedValue: 'Estimated Value',
+  coverImage: 'Cover Image', sleevePresent: 'Album Cover', innerSleeve: 'Inner Sleeve', outerSleeve: 'Outer Sleeve',
+  discsTotal: 'Discs Expected', discsPresent: 'Discs Present', discsMissing: 'Discs Missing',
+  mediaCondition: 'Media Grade', sleeveCondition: 'Sleeve Grade', favourite: 'Favourite',
+  dateAdded: 'Date Added'
+};
+
+function csvEscape(v){
+  const s = (v === null || v === undefined) ? '' : String(v);
+  if(/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+$('exportCsvBtn').onclick = async ()=>{
+  if(collectionCache === null){ toast('Load your collection first', true); return; }
+  const list = collectionCache || [];
+  if(!list.length){ toast('Nothing to export yet', true); return; }
+  const keys = Object.keys(CSV_FIELD_MAP);
+  const lines = [keys.map(k => csvEscape(CSV_FIELD_MAP[k])).join(',')];
+  list.forEach(row => {
+    lines.push(keys.map(k => csvEscape(row[k])).join(','));
+  });
+  const blob = new Blob([lines.join('\n')], {type: 'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'crate-log-export-' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Exported ' + list.length + ' records');
+};
+
+// Minimal RFC4180-ish CSV parser — handles quoted fields, embedded commas/newlines, escaped quotes
+function parseCsv(text){
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i], next = text[i+1];
+    if(inQuotes){
+      if(c === '"' && next === '"'){ field += '"'; i++; }
+      else if(c === '"'){ inQuotes = false; }
+      else { field += c; }
+    } else {
+      if(c === '"'){ inQuotes = true; }
+      else if(c === ','){ row.push(field); field = ''; }
+      else if(c === '\r'){ /* skip */ }
+      else if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ''; }
+      else { field += c; }
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r => r.length > 1 || (r.length === 1 && r[0] !== ''));
+}
+
+$('importCsvBtn').onclick = ()=> $('importCsvFile').click();
+
+$('importCsvFile').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  e.target.value = '';
+  const text = await file.text();
+  const rows = parseCsv(text);
+  if(rows.length < 2){ toast('CSV looks empty', true); return; }
+  const headerRow = rows[0];
+  const reverseMap = {};
+  Object.keys(CSV_FIELD_MAP).forEach(k => { reverseMap[CSV_FIELD_MAP[k]] = k; });
+  const colKeys = headerRow.map(h => reverseMap[h.trim()] || null);
+  if(!colKeys.some(k => k === 'artist' || k === 'title')){
+    toast('CSV headers do not match expected columns (Artist, Title, etc.)', true);
+    return;
+  }
+  const dataRows = rows.slice(1);
+  if(!confirm('Import ' + dataRows.length + ' records into your collection? This adds new records, it will not overwrite existing ones.')) return;
+
+  let ok = 0, failed = 0;
+  toast('Importing 0 / ' + dataRows.length + '...');
+  for(let i = 0; i < dataRows.length; i++){
+    const record = {};
+    colKeys.forEach((key, ci) => { if(key && key !== 'dateAdded') record[key] = dataRows[i][ci] || ''; });
+    if(!record.artist && !record.title){ failed++; continue; }
+    try{
+      const j = await callScript({action:'save', ...record});
+      if(j.status === 'ok') ok++; else failed++;
+    }catch(e){ failed++; }
+    if(i % 10 === 0 || i === dataRows.length - 1){
+      toast('Importing ' + (i+1) + ' / ' + dataRows.length + '...');
+    }
+  }
+  collectionCache = null;
+  runBrowse('');
+  toast('Imported ' + ok + ' records' + (failed ? (', ' + failed + ' skipped') : ''), failed > 0 && ok === 0);
+});
+
+let browseSortDir = 1; // 1 = asc, -1 = desc
+
 function applyBrowseSortAndFilter(){
   let list = lastBrowseResults.slice();
   if(browseFilters.length > 0) {
@@ -1037,17 +1365,57 @@ function applyBrowseSortAndFilter(){
     list = list.filter(r => activeNames.includes(String(r.collection||'').trim()));
   }
   if(browseFavOnly) list = list.filter(r=> r.favourite === 'Yes');
-  if(browseSortMode === 'artist') list.sort((a,b)=> (a.artist||'').localeCompare(b.artist||''));
-  else if(browseSortMode === 'title') list.sort((a,b)=> (a.title||'').localeCompare(b.title||''));
-  else if(browseSortMode === 'year') list.sort((a,b)=> (parseInt(a.year,10)||0) - (parseInt(b.year,10)||0));
-  else if(browseSortMode === 'price') list.sort((a,b)=> (parseFloat(b.estimatedValue)||0) - (parseFloat(a.estimatedValue)||0));
+  if(browseGenreFilter) list = list.filter(r=> String(r.genre||'').split(',').map(g=>g.trim()).includes(browseGenreFilter));
+  if(browseFormatFilter) list = list.filter(r=> String(r.format||'').split(',').map(f=>f.trim()).includes(browseFormatFilter));
+  const dir = browseSortDir;
+  if(browseSortMode === 'artist') list.sort((a,b)=> dir * (a.artist||'').localeCompare(b.artist||''));
+  else if(browseSortMode === 'title') list.sort((a,b)=> dir * (a.title||'').localeCompare(b.title||''));
+  else if(browseSortMode === 'year') list.sort((a,b)=> dir * ((parseInt(a.year,10)||0) - (parseInt(b.year,10)||0)));
+  else if(browseSortMode === 'price') list.sort((a,b)=> dir * ((parseFloat(a.estimatedValue)||0) - (parseFloat(b.estimatedValue)||0)));
   renderBrowseResults(list);
 }
 
+const COMMON_GENRES = ['Rock','Pop','Jazz','Blues','Soul','Funk','Hip Hop','Electronic','House','Techno','Disco','Folk','Country','Classical','Reggae','Punk','Metal','Alternative','Indie','R&B','Ambient','Experimental','World','Soundtrack'];
+const COMMON_FORMATS = ['Vinyl','LP','12"','7"','10"','CD','Cassette','Box Set','Picture Disc','Colored Vinyl'];
+
+function populateDatalists(){
+  const genres = new Set(COMMON_GENRES), formats = new Set(COMMON_FORMATS);
+  (collectionCache||[]).forEach(r=>{
+    String(r.genre||'').split(',').map(g=>g.trim()).filter(Boolean).forEach(g=>genres.add(g));
+    String(r.format||'').split(',').map(f=>f.trim()).filter(Boolean).forEach(f=>formats.add(f));
+  });
+  $('genreDatalist').innerHTML = [...genres].sort().map(g=>`<option value="${escHtml(g)}">`).join('');
+  $('formatDatalist').innerHTML = [...formats].sort().map(f=>`<option value="${escHtml(f)}">`).join('');
+}
+
+function populateGenreFormatFilters(){
+  const genreSel = $('genreFilterSelect'), formatSel = $('formatFilterSelect');
+  if(!genreSel || !formatSel) return;
+  const genres = new Set(), formats = new Set();
+  (collectionCache||[]).forEach(r=>{
+    String(r.genre||'').split(',').map(g=>g.trim()).filter(Boolean).forEach(g=>genres.add(g));
+    String(r.format||'').split(',').map(f=>f.trim()).filter(Boolean).forEach(f=>formats.add(f));
+  });
+  const gCurrent = genreSel.value, fCurrent = formatSel.value;
+  genreSel.innerHTML = '<option value="">All Genres</option>' + [...genres].sort().map(g=>`<option value="${escHtml(g)}">${escHtml(g)}</option>`).join('');
+  formatSel.innerHTML = '<option value="">All Formats</option>' + [...formats].sort().map(f=>`<option value="${escHtml(f)}">${escHtml(f)}</option>`).join('');
+  if([...genreSel.options].some(o=>o.value===gCurrent)) genreSel.value = gCurrent;
+  if([...formatSel.options].some(o=>o.value===fCurrent)) formatSel.value = fCurrent;
+}
+$('genreFilterSelect').addEventListener('change', ()=>{ browseGenreFilter = $('genreFilterSelect').value; applyBrowseSortAndFilter(); });
+$('formatFilterSelect').addEventListener('change', ()=>{ browseFormatFilter = $('formatFilterSelect').value; applyBrowseSortAndFilter(); });
+
 function setBrowseSort(mode){
-  browseSortMode = mode;
+  if(browseSortMode === mode){
+    browseSortDir = -browseSortDir;
+  } else {
+    browseSortMode = mode;
+    browseSortDir = (mode === 'price') ? -1 : 1; // price defaults high-to-low, others A-Z
+  }
   document.querySelectorAll('#browseTable th.sortable').forEach(x=> {
     x.classList.toggle('sort-active', x.dataset.sort === mode);
+    if(x.dataset.sort === mode) x.classList.toggle('sort-desc', browseSortDir === -1);
+    else x.classList.remove('sort-desc');
   });
   applyBrowseSortAndFilter();
 }
@@ -1076,13 +1444,14 @@ function renderBrowseResults(results){
     '<div class="table-wrapper">' +
     '<table class="browse-table" id="browseTable">' +
       '<thead><tr>' +
+        '<th class="col-check"><input type="checkbox" id="browseSelectAll"></th>' +
         '<th class="col-art"></th>' +
         '<th class="col-fav"></th>' +
         '<th class="sortable" data-sort="artist">Artist</th>' +
         '<th class="sortable" data-sort="title">Title</th>' +
         '<th class="sortable" data-sort="year">Year</th>' +
         '<th>Format</th>' +
-        '<th>Collection</th>' +
+        '<th>Crate</th>' +
         '<th>Grade</th>' +
         '<th class="sortable col-price" data-sort="price">Price</th>' +
         '<th class="col-action"></th>' +
@@ -1091,9 +1460,22 @@ function renderBrowseResults(results){
     '</table></div>' +
     '<div id="browseLoadSentinel" class="browse-sentinel"></div>';
   document.querySelectorAll('#browseTable th.sortable').forEach(th=>{
-    th.classList.toggle('sort-active', th.dataset.sort === browseSortMode);
+    const isActive = th.dataset.sort === browseSortMode;
+    th.classList.toggle('sort-active', isActive);
+    th.classList.toggle('sort-desc', isActive && browseSortDir === -1);
     th.onclick = ()=> setBrowseSort(th.dataset.sort);
   });
+  const selectAllEl = $('browseSelectAll');
+  if(selectAllEl){
+    selectAllEl.checked = results.length > 0 && results.every(r => selectedRowIds.has(r.rowIndex));
+    selectAllEl.onclick = (e)=>{
+      e.stopPropagation();
+      if(selectAllEl.checked) results.forEach(r => selectedRowIds.add(r.rowIndex));
+      else results.forEach(r => selectedRowIds.delete(r.rowIndex));
+      refreshBulkToolbar();
+      document.querySelectorAll('#browseTbody input.row-check').forEach(cb => { cb.checked = selectAllEl.checked; });
+    };
+  }
   appendBrowseChunk();
   browseChunkObserver = new IntersectionObserver(entries=>{
     entries.forEach(en=>{
@@ -1122,6 +1504,7 @@ function appendBrowseChunk(){
     const priceStr = hasPrice ? ('$' + priceVal.toFixed(2)) : `<button class="fix-btn" onclick="startUpdateFromDiscogs(event, ${idx})">🔍 Fix</button>`;
     const thumb = r.coverImage || '';
     tr.innerHTML =
+      '<td class="col-check"><input type="checkbox" class="row-check" data-id="' + r.rowIndex + '" ' + (selectedRowIds.has(r.rowIndex) ? 'checked' : '') + '></td>' +
       '<td class="col-art">' + (thumb ? `<img class="table-thumb" loading="lazy" src="${escHtml(thumb)}" alt="" onclick="event.stopPropagation(); openZoomModal('${escHtml(thumb)}')">` : '') + '</td>' +
       '<td class="col-fav">' + (r.favourite === 'Yes' ? '<span class="browse-fav">★</span>' : '') + '</td>' +
       '<td class="col-artist">' + escHtml(r.artist||'') + '</td>' +
@@ -1132,6 +1515,12 @@ function appendBrowseChunk(){
       '<td>' + gradeBadgeHtml(r.mediaCondition) + '</td>' +
       '<td class="col-price">' + priceStr + '</td>' +
       '<td class="col-action">›</td>';
+    tr.querySelector('.row-check').onclick = (e)=>{
+      e.stopPropagation();
+      const id = r.rowIndex;
+      if(e.target.checked) selectedRowIds.add(id); else selectedRowIds.delete(id);
+      refreshBulkToolbar();
+    };
     tr.onclick = ()=>{
       browseSelectedIndex = idx;
       highlightBrowseRow(idx);
@@ -1150,6 +1539,83 @@ function highlightBrowseRow(idx){
   const row = tbody.querySelector('tr[data-idx="' + idx + '"]');
   if(row){ row.classList.add('selected'); row.scrollIntoView({block:'nearest'}); }
 }
+
+function refreshBulkToolbar(){
+  const bar = $('bulkToolbar');
+  const n = selectedRowIds.size;
+  if(!bar) return;
+  if(n === 0){ bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+  $('bulkCount').textContent = n + ' selected';
+  const sel = $('bulkMoveSelect');
+  const current = sel.value;
+  sel.innerHTML = collections.map(c => `<option value="${escHtml(c.name)}">${escHtml(c.name)}</option>`).join('');
+  if([...sel.options].some(o=>o.value===current)) sel.value = current;
+}
+
+$('bulkClearBtn').onclick = ()=>{
+  selectedRowIds.clear();
+  refreshBulkToolbar();
+  document.querySelectorAll('#browseTbody input.row-check').forEach(cb => cb.checked = false);
+  if($('browseSelectAll')) $('browseSelectAll').checked = false;
+};
+
+$('bulkMoveBtn').onclick = async ()=>{
+  const ids = [...selectedRowIds];
+  const crateName = $('bulkMoveSelect').value;
+  if(!ids.length || !crateName) return;
+  if(!confirm('Move ' + ids.length + ' record(s) to "' + crateName + '"?')) return;
+  $('bulkMoveBtn').disabled = true;
+  try{
+    const j = await callScript({action:'bulkMove', ids, crateName});
+    if(j.status === 'ok'){
+      toast('Moved ' + ids.length + ' record(s) to ' + crateName);
+      selectedRowIds.clear();
+      collectionCache = null;
+      runBrowse('');
+    } else {
+      toast(j.message || 'Could not move records', true);
+    }
+  }catch(e){ toast('Request failed — check connection', true); }
+  $('bulkMoveBtn').disabled = false;
+};
+
+$('bulkFavBtn').onclick = async ()=>{
+  const ids = [...selectedRowIds];
+  if(!ids.length) return;
+  $('bulkFavBtn').disabled = true;
+  try{
+    const j = await callScript({action:'bulkFavourite', ids, favourite: true});
+    if(j.status === 'ok'){
+      toast('Marked ' + ids.length + ' as favourite');
+      selectedRowIds.clear();
+      collectionCache = null;
+      runBrowse('');
+    } else {
+      toast(j.message || 'Could not update records', true);
+    }
+  }catch(e){ toast('Request failed — check connection', true); }
+  $('bulkFavBtn').disabled = false;
+};
+
+$('bulkDeleteBtn').onclick = async ()=>{
+  const ids = [...selectedRowIds];
+  if(!ids.length) return;
+  if(!confirm('Delete ' + ids.length + ' record(s)? This can\u2019t be undone.')) return;
+  $('bulkDeleteBtn').disabled = true;
+  try{
+    const j = await callScript({action:'bulkDelete', ids});
+    if(j.status === 'ok'){
+      toast('Deleted ' + ids.length + ' record(s)');
+      selectedRowIds.clear();
+      collectionCache = null;
+      runBrowse('');
+    } else {
+      toast(j.message || 'Could not delete records', true);
+    }
+  }catch(e){ toast('Request failed — check connection', true); }
+  $('bulkDeleteBtn').disabled = false;
+};
 
 document.addEventListener('keydown', (e)=>{
   const tag = (document.activeElement && document.activeElement.tagName) || '';
@@ -1358,6 +1824,34 @@ async function checkDuplicates(artist, title, barcode){
   }catch(e){}
 }
 
+async function applyPressingSwap(v){
+  if(!v || !v.id){ toast('Could not load that pressing', true); return; }
+  toast('Swapping to this pressing...');
+  try{
+    const data = await callScript({action:'release', id: v.id});
+    // Force-overwrite — this is a correction, not a fill-in-the-blanks
+    if(v.format) $('fFormat').value = v.format;
+    const labelStr = v.label ? (Array.isArray(v.label) ? v.label[0] : v.label) : '';
+    if(labelStr) $('fLabel').value = labelStr;
+    if(v.catno) $('fCatno').value = v.catno;
+    if(data.released || v.year) $('fYear').value = (data.released || v.year || '').toString().slice(0,4);
+    if(data.identifiers){
+      const barcodeId = data.identifiers.find(i => (i.type||'').toLowerCase() === 'barcode');
+      if(barcodeId) $('fBarcode').value = barcodeId.value;
+    }
+    if(v.thumb){
+      $('cardCover').src = v.thumb;
+      $('cardCover').style.visibility = 'visible';
+      setAppBg(v.thumb);
+    }
+    if(data.tracklist) $('fTracklist').value = formatTracklist(data.tracklist);
+    lastReleaseData = data;
+    renderDiscogsInfo(data);
+    scheduleDraftSave();
+    toast('Swapped to ' + [v.country, v.released||v.year].filter(Boolean).join(' · '));
+  }catch(e){ toast('Could not swap pressing — check connection', true); }
+}
+
 async function setupPressings(r){
   const wrap = $('pressingsWrap');
   if(!r || !r.master_id){ wrap.style.display='none'; return; }
@@ -1376,11 +1870,15 @@ async function setupPressings(r){
     try{
       const data = await callScript({action:'versions', master_id: r.master_id});
       const versions = (data.results||[]).slice(0,10);
-      list.innerHTML = versions.map(v=>{
-        const bits = [v.released||v.year||'', v.format||'', v.country||'', v.catno?('#'+v.catno):''].filter(Boolean).join(' · ');
-        return `<div class="mb-item"><img src="${v.thumb||''}"><div>${bits}</div></div>`;
-      }).join('') || '<div class="scanhint">No other pressings found.</div>';
+      list.innerHTML = (versions.length ? '<div class="scanhint" style="margin-bottom:6px;">Tap a pressing to swap it in — checks Country/Year/Catalog # for you.</div>' : '') +
+        versions.map((v,i)=>{
+          const bits = [v.released||v.year||'', v.format||'', v.country||'', v.catno?('#'+v.catno):''].filter(Boolean).join(' · ');
+          return `<div class="mb-item" style="cursor:pointer;" data-pressing-idx="${i}"><img src="${v.thumb||''}"><div>${bits}</div></div>`;
+        }).join('') || '<div class="scanhint">No other pressings found.</div>';
       list.dataset.loaded = '1';
+      list.querySelectorAll('.mb-item[data-pressing-idx]').forEach(el=>{
+        el.onclick = ()=> applyPressingSwap(versions[parseInt(el.dataset.pressingIdx,10)]);
+      });
     }catch(e){ list.innerHTML = '<div class="scanhint">Could not load.</div>'; }
   };
 }
@@ -1762,7 +2260,7 @@ async function undoRestore(rowIndex, values){
 $('removeBtn').onclick = async ()=>{
   if(!currentRowIndex) return;
   const who = ($('fArtist').value || 'this record') + (($('fTitle').value) ? ' — ' + $('fTitle').value : '');
-  if(!confirm('Remove "' + who + '" from your collection?')) return;
+  if(!confirm('Remove "' + who + '" from its crate?')) return;
   $('removeBtn').disabled = true;
   try{
     let previousValues = null;
@@ -1988,11 +2486,191 @@ $('cardPanel').addEventListener('click', (e)=>{
   if(e.target.closest('.pill') || e.target.closest('.stepper button')) scheduleDraftSave();
 });
 
+// ---------- Sharing (owner side) ----------
+function populateShareCrateSelect(){
+  const sel = $('shareCrateSelect');
+  if(!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Everything</option>' + collections.map(c => `<option value="${escHtml(c.name)}">${escHtml(c.name)}</option>`).join('');
+  if([...sel.options].some(o=>o.value===current)) sel.value = current;
+}
+
+$('createShareBtn').onclick = async ()=>{
+  if(!accessKey){ toast('Set your Access Key in Settings first', true); return; }
+  const crateName = $('shareCrateSelect').value;
+  const label = $('shareLabelInput').value.trim();
+  $('createShareBtn').disabled = true;
+  try{
+    const j = await callScript({action:'createShare', crateName, label});
+    if(j.status === 'ok'){
+      const url = location.origin + location.pathname + '?share=' + j.shareId;
+      $('shareLinkResult').style.display = 'block';
+      $('shareLinkResult').innerHTML =
+        '<div style="color:var(--dim); margin-bottom:6px;">Share this link:</div>' +
+        '<div style="font-family:monospace; font-size:12px; word-break:break-all; color:var(--amber); user-select:all;">' + escHtml(url) + '</div>';
+      $('shareLabelInput').value = '';
+      refreshActiveShares();
+    } else {
+      toast(j.message || 'Could not create share', true);
+    }
+  }catch(e){ toast('Request failed — check connection', true); }
+  $('createShareBtn').disabled = false;
+};
+
+async function refreshActiveShares(){
+  if(!accessKey) return;
+  const wrap = $('activeSharesList');
+  if(!wrap) return;
+  try{
+    const j = await callScript({action:'listShares'});
+    const shares = j.shares || [];
+    if(!shares.length){ wrap.innerHTML = ''; return; }
+    wrap.innerHTML = '<div style="font-size:12px; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;">Active Shares</div>' +
+      shares.map(s => {
+        const url = location.origin + location.pathname + '?share=' + s.id;
+        return '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:6px 0; border-bottom:1px solid var(--line); font-size:12px;">' +
+          '<div style="min-width:0;">' +
+            '<div style="color:var(--text); font-weight:600;">' + escHtml(s.label || (s.crateName || 'Everything')) + '</div>' +
+            '<div style="color:var(--dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + escHtml(url) + '</div>' +
+          '</div>' +
+          '<button class="secondary" style="width:auto; padding:4px 10px; font-size:11px; margin:0; flex:0 0 auto;" onclick="revokeShareById(\'' + s.id + '\')">Revoke</button>' +
+        '</div>';
+      }).join('');
+  }catch(e){}
+}
+
+async function revokeShareById(shareId){
+  if(!confirm('Revoke this share link? Anyone with the link will lose access immediately.')) return;
+  try{
+    const j = await callScript({action:'revokeShare', shareId});
+    if(j.status === 'ok'){ toast('Share revoked'); refreshActiveShares(); }
+    else toast(j.message || 'Could not revoke', true);
+  }catch(e){ toast('Request failed', true); }
+}
+
+// ---------- Borrow requests (owner side) ----------
+async function refreshBorrowRequests(){
+  if(!accessKey) return;
+  try{
+    const j = await callScript({action:'listBorrowRequests'});
+    const list = j.requests || [];
+    const pending = list.filter(r => r.status === 'pending');
+    const badge = $('borrowBadge');
+    if(badge){
+      if(pending.length){ badge.style.display='inline-block'; badge.textContent = pending.length; }
+      else { badge.style.display = 'none'; }
+    }
+    const wrap = $('borrowRequestsList');
+    if(!wrap) return;
+    if(!list.length){ wrap.innerHTML = '<div class="scanhint">No borrow requests yet.</div>'; return; }
+    wrap.innerHTML = list.map(r =>
+      '<div style="padding:10px 0; border-bottom:1px solid var(--line);">' +
+        '<div style="font-weight:600; color:var(--text);">' + escHtml(r.artist||'') + ' — ' + escHtml(r.title||'') + ' <span style="color:var(--dim); font-weight:400; font-size:12px;">(' + escHtml(r.collection||'') + ')</span></div>' +
+        '<div style="font-size:12px; color:var(--dim); margin:4px 0;">From ' + escHtml(r.requesterName||'someone') + (r.requesterNote ? ' — "' + escHtml(r.requesterNote) + '"' : '') + '</div>' +
+        '<div style="font-size:11px; color:var(--dim); text-transform:uppercase; letter-spacing:0.04em;">Status: ' + escHtml(r.status) + '</div>' +
+        (r.status === 'pending' ?
+          '<div style="display:flex; gap:8px; margin-top:8px;">' +
+            '<button class="secondary" style="width:auto; padding:5px 12px; font-size:12px; margin:0;" onclick="setBorrowStatus(\'' + r.id + '\',\'approved\')">Approve</button>' +
+            '<button class="secondary" style="width:auto; padding:5px 12px; font-size:12px; margin:0;" onclick="setBorrowStatus(\'' + r.id + '\',\'declined\')">Decline</button>' +
+          '</div>' : '') +
+        (r.status === 'approved' ?
+          '<div style="margin-top:8px;">' +
+            '<button class="secondary" style="width:auto; padding:5px 12px; font-size:12px; margin:0;" onclick="setBorrowStatus(\'' + r.id + '\',\'returned\')">Mark Returned</button>' +
+          '</div>' : '') +
+      '</div>'
+    ).join('');
+  }catch(e){}
+}
+
+async function setBorrowStatus(id, status){
+  try{
+    const j = await callScript({action:'updateBorrowRequest', requestId: id, status});
+    if(j.status === 'ok'){ toast('Updated'); refreshBorrowRequests(); }
+    else toast(j.message || 'Could not update', true);
+  }catch(e){ toast('Request failed', true); }
+}
+
+// ---------- Shared view (public, read-only visitor) ----------
+const shareIdParam = new URLSearchParams(location.search).get('share');
+let sharedResultsCache = [];
+
+async function initSharedView(){
+  $('dashboardView').style.display = 'none';
+  $('editorView').style.display = 'none';
+  $('fabContainer').classList.remove('visible');
+  if($('settingsBtn')) $('settingsBtn').style.display = 'none';
+  $('sharedView').style.display = 'block';
+  try{
+    const res = await fetch(appsScriptUrl, {method:'POST', body: JSON.stringify({action:'viewShared', shareId: shareIdParam})});
+    const data = await res.json();
+    if(data.status !== 'ok'){
+      $('sharedSubheading').textContent = data.message || 'This link is no longer valid.';
+      return;
+    }
+    $('sharedHeading').textContent = '🔗 ' + (data.label || data.crateName || 'Full Collection');
+    $('sharedSubheading').textContent = 'Shared by ' + data.ownerName + (data.crateName ? ' — ' + data.crateName + ' crate' : ' — everything') + '. View only.';
+    renderSharedResults(data.results || []);
+  }catch(e){
+    $('sharedSubheading').textContent = 'Could not load this share right now.';
+  }
+}
+
+function renderSharedResults(list){
+  sharedResultsCache = list;
+  const wrap = $('sharedResultsList');
+  if(!list.length){ wrap.innerHTML = '<div class="scanhint">Nothing here yet.</div>'; return; }
+  wrap.innerHTML = list.map(r =>
+    '<div style="display:flex; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid var(--line);">' +
+      '<img src="' + (r.coverImage || '') + '" onerror="this.style.display=\'none\'" style="width:44px;height:44px;object-fit:cover;border-radius:6px;background:#111;flex:0 0 auto;">' +
+      '<div style="flex:1; min-width:0;">' +
+        '<div style="font-weight:600; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + escHtml(r.artist||'') + ' — ' + escHtml(r.title||'') + '</div>' +
+        '<div style="font-size:12px; color:var(--dim);">' + escHtml(r.year||'') + (r.format ? ' · ' + escHtml(r.format) : '') + (r.genre ? ' · ' + escHtml(r.genre) : '') + '</div>' +
+      '</div>' +
+      '<button class="secondary" style="width:auto; padding:6px 12px; font-size:12px; margin:0; flex:0 0 auto;" onclick="openBorrowModal(' + r.rowIndex + ')">Request to Borrow</button>' +
+    '</div>'
+  ).join('');
+}
+
+function openBorrowModal(recordId){
+  borrowTargetRecordId = recordId;
+  const rec = sharedResultsCache.find(r => r.rowIndex === recordId);
+  $('borrowModalTitle').textContent = rec ? ('Request to Borrow: ' + rec.title) : 'Request to Borrow';
+  $('borrowRequesterName').value = '';
+  $('borrowRequesterNote').value = '';
+  $('borrowRequestModal').classList.add('show');
+}
+let borrowTargetRecordId = null;
+$('cancelBorrowBtn').onclick = ()=> $('borrowRequestModal').classList.remove('show');
+$('submitBorrowBtn').onclick = async ()=>{
+  const requesterName = $('borrowRequesterName').value.trim();
+  if(!requesterName){ toast('Enter your name', true); return; }
+  $('submitBorrowBtn').disabled = true;
+  try{
+    const res = await fetch(appsScriptUrl, {method:'POST', body: JSON.stringify({
+      action:'requestBorrow', shareId: shareIdParam, recordId: borrowTargetRecordId,
+      requesterName, requesterNote: $('borrowRequesterNote').value.trim()
+    })});
+    const j = await res.json();
+    if(j.status === 'ok'){
+      $('borrowRequestModal').classList.remove('show');
+      toast('Request sent!');
+    } else {
+      toast(j.message || 'Could not send request', true);
+    }
+  }catch(e){ toast('Request failed — check connection', true); }
+  $('submitBorrowBtn').disabled = false;
+};
+
 loadSettings();
-loadCollections();
-loadLog();
-checkForDraft();
-setTimeout(() => runBrowse(''), 500);
+if(shareIdParam){
+  initSharedView();
+} else {
+  loadCollections();
+  loadLog();
+  checkForDraft();
+  setTimeout(() => runBrowse(''), 500);
+  setTimeout(() => refreshBorrowRequests(), 800);
+}
 </script>
 </body>
 </html>
