@@ -10,6 +10,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Crate Log">
 <link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -105,6 +109,7 @@
   button.primary:active { transform: translateY(0); }
   button.primary:disabled { opacity: 0.6; cursor: default; transform: none; box-shadow: none; }
   button.secondary { background: rgba(255,255,255,0.03); border: 1px solid var(--line); color: var(--text); border-radius: var(--radius-sm); padding: 12px 16px; font-family: 'Oswald', sans-serif; font-size: 14px; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.02em; }
+  button.secondary.active { background: var(--amber); border-color: var(--amber); color: #14120F; }
   button.secondary:hover { background: rgba(255,255,255,0.08); border-color: var(--dim); }
   .fav-btn { width: 100%; background: transparent; border: 1px dashed var(--dim); color: var(--dim); border-radius: var(--radius-sm); padding: 14px; font-family: 'Oswald', sans-serif; font-size: 15px; cursor: pointer; transition: 0.2s; margin-top: 8px;}
   .fav-btn.active { background: var(--amber-dim); border: 1px solid var(--amber); color: var(--amber); }
@@ -263,6 +268,13 @@
     <div id="sharedResultsList"></div>
   </div>
 </div>
+<div id="grantedView" style="display:none;">
+  <div class="panel">
+    <button class="secondary" style="width:auto; padding:6px 12px; font-size:12px; margin-bottom:12px;" onclick="exitGrantedView()">← Back to My Collection</button>
+    <h3 id="grantedHeading" style="margin-top:0;">👤 Shared Crate</h3>
+    <div id="grantedResultsList"></div>
+  </div>
+</div>
 <div class="modal" id="borrowRequestModal">
   <div class="modalbox" style="max-width:400px;">
     <h3 style="margin-top:0;" id="borrowModalTitle">Request to Borrow</h3>
@@ -312,6 +324,7 @@
       <div style="display:flex; gap:8px;">
         <button class="secondary" id="exportCsvBtn" style="width:auto; padding:8px 14px; font-size:12px; margin:0;">Export CSV</button>
         <button class="secondary" id="importCsvBtn" style="width:auto; padding:8px 14px; font-size:12px; margin:0;">Import CSV</button>
+        <button class="secondary" id="printSummaryBtn" style="width:auto; padding:8px 14px; font-size:12px; margin:0;">Print / PDF Summary</button>
         <input type="file" id="importCsvFile" accept=".csv" style="display:none;">
       </div>
     </div>
@@ -367,6 +380,16 @@
           <img class="cover" id="cardCover" src="" title="Tap to view full" onerror="this.style.visibility='hidden'">
           <div class="cover-hint">Tap to zoom</div>
         </div>
+        <div class="field" style="margin-top:10px;">
+          <label>📷 Photo of Your Copy</label>
+          <div id="ownerPhotoWrap" style="display:none; margin-bottom:8px;">
+            <img id="ownerPhotoPreview" src="" style="width:100%; border-radius:8px; cursor:pointer; display:block;" title="Tap to view full" onerror="this.closest('#ownerPhotoWrap').style.display='none'">
+            <button class="secondary" id="removeOwnerPhotoBtn" style="width:100%; margin-top:6px; padding:6px; font-size:11px;">Remove Photo</button>
+          </div>
+          <input type="file" id="ownerPhotoInput" accept="image/*" capture="environment" style="display:none;">
+          <button class="secondary" id="addOwnerPhotoBtn" style="width:100%;">Add / Replace Photo</button>
+          <small style="display:block;color:var(--dim);margin-top:6px;">Useful for documenting condition or wear — separate from the Discogs cover art above.</small>
+        </div>
         <div class="action-links" id="externalLinks" style="display:none;"></div>
         <div class="field"><label>🗂️ Cover Present</label>
           <div class="pillrow" id="coverPills">
@@ -415,6 +438,7 @@
               <input type="text" id="fValue" placeholder="0.00" inputmode="decimal">
             </div>
             <div class="scanhint" id="valueHint" style="display:none;"></div>
+            <div id="valueTrendWrap" style="display:none; margin-top:8px; font-size:12px; color:var(--dim);"></div>
           </div>
         </div>
         <div class="field"><label>Genre / Style</label><input type="text" id="fGenre" list="genreDatalist"></div>
@@ -481,9 +505,34 @@
     <button class="primary" id="saveBtn">Save Record</button>
   </div>
 </div>
+<div class="modal" id="accessGateModal">
+  <div class="modalbox" style="max-width:380px;">
+    <h3 style="margin-top:0;" id="authHeading">Log in</h3>
+    <div style="display:flex; gap:8px; margin:-6px 0 16px;">
+      <button class="secondary" id="authTabLogin" style="width:auto; flex:1; padding:8px; margin:0;">Log In</button>
+      <button class="secondary" id="authTabSignup" style="width:auto; flex:1; padding:8px; margin:0;">Sign Up</button>
+    </div>
+    <div class="field" id="authDisplayNameField" style="display:none;">
+      <label>Your Name</label>
+      <input type="text" id="authDisplayName" placeholder="e.g. Jordan">
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="authEmail" placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="authPassword" placeholder="At least 8 characters">
+    </div>
+    <div id="authError" style="display:none; color:var(--red); font-size:13px; margin:-6px 0 12px;"></div>
+    <button class="primary" id="authSubmitBtn" style="width:100%;">Log In</button>
+    <button class="secondary" id="gateSettingsBtn" style="width:100%; margin-top:8px;">Backend URL / Other Settings</button>
+  </div>
+</div>
 <div class="modal" id="settingsModal">
   <div class="modalbox">
     <button class="closebtn" id="closeSettings">✕</button>
+
     <h3>Settings</h3>
     <div class="field">
       <label>Backend URL</label>
@@ -491,9 +540,11 @@
       <small style="display:block;color:var(--dim);margin-top:6px;">The Cloudflare Worker URL — same for everyone using this app.</small>
     </div>
     <div class="field">
-      <label>Your Access Key</label>
-      <input type="text" id="accessKey" placeholder="Paste the personal key you were given">
-      <small style="display:block;color:var(--dim);margin-top:6px;">Each person has their own — this is what keeps your collection separate from everyone else's.</small>
+      <label>Account</label>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:8px;">
+        <span id="accountEmailDisplay" style="font-size:13px; color:var(--text);">Not logged in</span>
+        <button class="secondary" id="logoutBtn" style="width:auto; padding:6px 12px; font-size:12px; margin:0;">Log Out</button>
+      </div>
     </div>
     <div class="row2">
       <div class="field"><label>Flag as expensive if over</label>
@@ -508,10 +559,11 @@
     <button class="secondary" style="width:100%;margin-top:8px" id="testConnBtn">Test Connection</button>
 
     <div class="panel-header" style="margin-top:24px;cursor:pointer;padding:0;" onclick="$('adminSection').style.display = $('adminSection').style.display === 'none' ? 'block' : 'none';">
-      <h3 style="margin:0;">Add a user (admin only)</h3>
+      <h3 style="margin:0;">Add a user (admin only, legacy)</h3>
       <span class="toggle-icon">▼</span>
     </div>
     <div id="adminSection" style="display:none; margin-top:12px;">
+      <small style="display:block;color:var(--dim);margin-bottom:10px;">Old access-key flow — new users should just use Sign Up instead.</small>
       <div class="field">
         <label>Admin Key</label>
         <input type="text" id="adminKeyInput" placeholder="Only you know this">
@@ -522,7 +574,39 @@
       </div>
       <button class="secondary" style="width:100%;" id="createUserBtn">Generate Access Key</button>
       <div id="newUserResult" style="display:none; margin-top:12px; padding:12px; background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:8px; font-size:13px;"></div>
+
+      <h4 style="margin-top:20px; margin-bottom:8px; font-size:13px; color:var(--dim); text-transform:uppercase; letter-spacing:0.04em;">Reset a User's Password</h4>
+      <small style="display:block;color:var(--dim);margin-bottom:10px;">
+        For when someone's forgotten theirs. Open <code>generate_password_hash.html</code>
+        locally, generate a new hash for them, then paste the hash + salt it gives you here.
+      </small>
+      <div class="field">
+        <label>Their email</label>
+        <input type="email" id="resetPwEmail" placeholder="them@example.com">
+      </div>
+      <div class="field">
+        <label>New Password Hash (from generate_password_hash.html)</label>
+        <input type="text" id="resetPwHash" placeholder="Paste generated hash">
+      </div>
+      <div class="field">
+        <label>New Password Salt (from generate_password_hash.html)</label>
+        <input type="text" id="resetPwSalt" placeholder="Paste generated salt">
+      </div>
+      <button class="secondary" style="width:100%;" id="resetPwBtn">Reset Password</button>
     </div>
+
+    <h3 style="margin-top:24px;">Give a User Access to Your Crates</h3>
+    <small style="display:block;color:var(--dim);margin-top:-8px;margin-bottom:12px;">For other people who've signed up in this app — they'll see the crate in their own dashboard, no link needed. They can look, but can't add or edit anything.</small>
+    <div class="field">
+      <label>Their email</label>
+      <input type="email" id="grantEmailInput" placeholder="friend@example.com">
+    </div>
+    <div class="field">
+      <label>Which crate</label>
+      <select id="grantCrateSelect"><option value="">Everything</option></select>
+    </div>
+    <button class="secondary" style="width:100%;" id="grantAccessBtn">Grant Access</button>
+    <div id="grantedUsersList" style="margin-top:14px;"></div>
 
     <h3 style="margin-top:24px;">Crates</h3>
     <small style="display:block;color:var(--dim);margin-top:-8px;margin-bottom:12px;">Your own way of grouping records — could be people, genres, shelves, whatever makes sense to you.</small>
@@ -547,6 +631,10 @@
     <button class="secondary" style="width:100%;" id="createShareBtn">Create Share Link</button>
     <div id="shareLinkResult" style="display:none; margin-top:12px; padding:12px; background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:8px; font-size:13px;"></div>
     <div id="activeSharesList" style="margin-top:14px;"></div>
+
+    <h3 style="margin-top:24px;">Crates Shared With Me</h3>
+    <small style="display:block;color:var(--dim);margin-top:-8px;margin-bottom:12px;">Other users' crates you've been given access to.</small>
+    <div id="grantsToMeList"><div class="scanhint">None yet.</div></div>
   </div>
 </div>
 <div class="modal" id="crateOnboardModal">
@@ -578,6 +666,7 @@ let lastReleaseData = null;
 let discsTotal = 1;
 let discsPresent = 1;
 let currentFavourite = false;
+let currentOwnerPhoto = ''; // base64 data URI of the user's own photo of this copy, if any
 let toastTimer = null;
 let currentRowIndex = null;
 let searchDebounce = null;
@@ -597,6 +686,9 @@ let lastOpenedFrom = 'collection';
 let expensiveThreshold = 50;
 let rareThreshold = 100;
 let accessKey = "";
+let sessionToken = "";
+let currentUser = null; // { userId, displayName, email }
+let viewingGranted = null; // { ownerUserId, ownerName, crateName } when viewing someone else's crate via a permission grant
 let lastBrowseResults = [];
 let browseGenreFilter = '';
 let browseFormatFilter = '';
@@ -741,6 +833,15 @@ function pickTextColor(hex){
   }catch(e){ return '#14120F'; }
 }
 
+function crateChipHtml(name){
+  if(!name) return '';
+  const c = collections.find(x => x.name === name);
+  const color = c ? c.color : '#7C8FA6';
+  return '<span style="display:inline-flex; align-items:center; gap:6px;">' +
+    '<span style="width:9px; height:9px; border-radius:50%; background:' + escHtml(color) + '; flex:0 0 auto;"></span>' +
+    escHtml(name) + '</span>';
+}
+
 function syncCollectionUI(){
   renderBrowseFilters();
   renderSaveCollPills();
@@ -857,34 +958,130 @@ async function loadSettings(){
       expensiveThreshold = s.expensiveThreshold != null ? s.expensiveThreshold : 50;
       rareThreshold = s.rareThreshold != null ? s.rareThreshold : 100;
       accessKey = s.accessKey || "";
+      sessionToken = s.sessionToken || "";
     }
   }catch(e){}
   $('appsScriptUrl').value = appsScriptUrl;
   $('expensiveThreshold').value = expensiveThreshold;
   $('rareThreshold').value = rareThreshold;
-  $('accessKey').value = accessKey;
   if(!appsScriptUrl || appsScriptUrl.indexOf('REPLACE_WITH') === 0){
     setTimeout(()=> $('settingsModal').classList.add('show'), 400);
+    return;
+  }
+  if(sessionToken){
+    try{
+      const j = await callScript({action:'me'});
+      if(j.status === 'ok'){
+        currentUser = { userId: j.userId, displayName: j.displayName, email: j.email };
+        $('accountEmailDisplay').textContent = j.email || j.displayName;
+        return;
+      }
+    }catch(e){}
+    // Session invalid/expired — fall through to login gate
+    sessionToken = "";
+  }
+  if(!accessKey){
+    setTimeout(()=> showAuthGate('login'), 300);
   }
 }
 async function saveSettings(){
   appsScriptUrl = $('appsScriptUrl').value.trim();
   expensiveThreshold = parseFloat($('expensiveThreshold').value) || 50;
   rareThreshold = parseInt($('rareThreshold').value, 10) || 100;
-  accessKey = $('accessKey').value.trim();
   try{
-    localStorage.setItem('crate-log-settings', JSON.stringify({appsScriptUrl, expensiveThreshold, rareThreshold, accessKey}));
+    persistSettings();
     toast('Settings saved');
     $('settingsModal').classList.remove('show');
   }catch(e){ toast('Could not save settings', true); }
 }
+function persistSettings(){
+  localStorage.setItem('crate-log-settings', JSON.stringify({appsScriptUrl, expensiveThreshold, rareThreshold, accessKey, sessionToken}));
+}
+
+// ---------- Auth (login / signup) ----------
+let authMode = 'login';
+function showAuthGate(mode){
+  authMode = mode;
+  $('authTabLogin').classList.toggle('active', mode === 'login');
+  $('authTabSignup').classList.toggle('active', mode === 'signup');
+  $('authDisplayNameField').style.display = mode === 'signup' ? 'block' : 'none';
+  $('authHeading').textContent = mode === 'signup' ? 'Sign Up' : 'Log In';
+  $('authSubmitBtn').textContent = mode === 'signup' ? 'Sign Up' : 'Log In';
+  $('authError').style.display = 'none';
+  $('accessGateModal').classList.add('show');
+}
+$('authTabLogin').onclick = ()=> showAuthGate('login');
+$('authTabSignup').onclick = ()=> showAuthGate('signup');
+
+async function submitAuth(){
+  const email = $('authEmail').value.trim();
+  const password = $('authPassword').value;
+  const displayName = $('authDisplayName').value.trim();
+  $('authError').style.display = 'none';
+  $('authSubmitBtn').disabled = true;
+  try{
+    const payload = authMode === 'signup'
+      ? {action:'signup', email, password, displayName}
+      : {action:'login', email, password};
+    const res = await fetch(appsScriptUrl, {method:'POST', body: JSON.stringify(payload)});
+    const j = await res.json();
+    if(j.status === 'ok'){
+      sessionToken = j.sessionToken;
+      currentUser = { userId: j.userId, displayName: j.displayName, email: j.email };
+      persistSettings();
+      $('accountEmailDisplay').textContent = j.email || j.displayName;
+      $('accessGateModal').classList.remove('show');
+      toast(authMode === 'signup' ? 'Account created!' : 'Logged in');
+      loadCollections();
+      loadLog();
+      runBrowse('');
+      refreshBorrowRequests();
+      refreshGrantsToMe();
+    } else {
+      $('authError').textContent = j.message || 'Something went wrong';
+      $('authError').style.display = 'block';
+    }
+  }catch(e){
+    $('authError').textContent = 'Request failed — check connection';
+    $('authError').style.display = 'block';
+  }
+  $('authSubmitBtn').disabled = false;
+}
+$('authSubmitBtn').onclick = submitAuth;
+[$('authEmail'), $('authPassword'), $('authDisplayName')].forEach(el=>{
+  el.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') submitAuth(); });
+});
+$('gateSettingsBtn').onclick = ()=>{
+  $('accessGateModal').classList.remove('show');
+  $('settingsModal').classList.add('show');
+};
+$('logoutBtn').onclick = async ()=>{
+  try{ await callScript({action:'logout'}); }catch(e){}
+  sessionToken = "";
+  currentUser = null;
+  persistSettings();
+  $('settingsModal').classList.remove('show');
+  toast('Logged out');
+  location.reload();
+};
+
+function isLoggedIn(){ return !!(sessionToken || accessKey); }
 
 function callScript(payload){
-  const body = accessKey ? {...payload, accessKey} : payload;
+  const body = {...payload};
+  if(sessionToken) body.sessionToken = sessionToken;
+  else if(accessKey) body.accessKey = accessKey;
   return fetch(appsScriptUrl, {method:'POST', body: JSON.stringify(body)}).then(res => res.json());
 }
 
-$('settingsBtn').onclick = ()=> { $('settingsModal').classList.add('show'); populateShareCrateSelect(); refreshActiveShares(); };
+$('settingsBtn').onclick = ()=> {
+  $('settingsModal').classList.add('show');
+  populateShareCrateSelect();
+  populateGrantCrateSelect();
+  refreshActiveShares();
+  refreshGrantedUsers();
+  refreshGrantsToMe();
+};
 $('closeSettings').onclick = ()=> $('settingsModal').classList.remove('show');
 
 function openZoomModal(src) {
@@ -895,6 +1092,62 @@ function openZoomModal(src) {
 $('cardCover').onclick = ()=> openZoomModal($('cardCover').src);
 $('closeZoom').onclick = ()=> $('zoomModal').classList.remove('show');
 $('zoomModal').onclick = (e)=>{ if(e.target.id === 'zoomModal') $('zoomModal').classList.remove('show'); };
+
+// ---------- Owner's own photo of their copy (separate from the Discogs cover art) ----------
+function setOwnerPhoto(dataUri){
+  currentOwnerPhoto = dataUri || '';
+  if(currentOwnerPhoto){
+    $('ownerPhotoPreview').src = currentOwnerPhoto;
+    $('ownerPhotoWrap').style.display = 'block';
+  } else {
+    $('ownerPhotoPreview').src = '';
+    $('ownerPhotoWrap').style.display = 'none';
+  }
+}
+$('ownerPhotoPreview').onclick = ()=> openZoomModal(currentOwnerPhoto);
+$('addOwnerPhotoBtn').onclick = ()=> $('ownerPhotoInput').click();
+$('removeOwnerPhotoBtn').onclick = ()=> setOwnerPhoto('');
+
+// Downscales + re-encodes as JPEG client-side so a phone photo (often several MB)
+// doesn't turn into a multi-MB base64 blob going into the database on every save.
+function compressImageFile(file, maxDim, quality){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onerror = ()=> reject(new Error('Could not read file'));
+    reader.onload = ()=>{
+      const img = new Image();
+      img.onerror = ()=> reject(new Error('Could not load image'));
+      img.onload = ()=>{
+        let w = img.width, h = img.height;
+        if(w > h && w > maxDim){ h = Math.round(h * maxDim / w); w = maxDim; }
+        else if(h > maxDim){ w = Math.round(w * maxDim / h); h = maxDim; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+$('ownerPhotoInput').onchange = async ()=>{
+  const file = $('ownerPhotoInput').files[0];
+  $('ownerPhotoInput').value = '';
+  if(!file) return;
+  if(!file.type.startsWith('image/')){ toast('Please choose an image file', true); return; }
+  $('addOwnerPhotoBtn').disabled = true;
+  $('addOwnerPhotoBtn').textContent = 'Processing…';
+  try{
+    const compressed = await compressImageFile(file, 1200, 0.8);
+    setOwnerPhoto(compressed);
+  }catch(e){
+    toast('Could not process that photo', true);
+  }
+  $('addOwnerPhotoBtn').disabled = false;
+  $('addOwnerPhotoBtn').textContent = 'Add / Replace Photo';
+};
+
 $('saveSettingsBtn').onclick = saveSettings;
 $('testConnBtn').onclick = async ()=>{
   if(!appsScriptUrl){ toast('Enter a valid URL first', true); return; }
@@ -926,6 +1179,30 @@ $('createUserBtn').onclick = async ()=>{
     }
   }catch(e){ toast('Request failed — check connection', true); }
   $('createUserBtn').disabled = false;
+};
+
+$('resetPwBtn').onclick = async ()=>{
+  const adminKey = $('adminKeyInput').value.trim();
+  const email = $('resetPwEmail').value.trim();
+  const newPasswordHash = $('resetPwHash').value.trim();
+  const newPasswordSalt = $('resetPwSalt').value.trim();
+  if(!appsScriptUrl){ toast('Set the Backend URL first', true); return; }
+  if(!adminKey){ toast('Enter the admin key above', true); return; }
+  if(!email || !newPasswordHash || !newPasswordSalt){ toast('Fill in email, hash, and salt', true); return; }
+  $('resetPwBtn').disabled = true;
+  try{
+    const res = await fetch(appsScriptUrl, {method:'POST', body: JSON.stringify({action:'resetPassword', adminKey, email, newPasswordHash, newPasswordSalt})});
+    const j = await res.json();
+    if(j.status === 'ok'){
+      toast('Password reset — they can log in with the new password now');
+      $('resetPwEmail').value = '';
+      $('resetPwHash').value = '';
+      $('resetPwSalt').value = '';
+    } else {
+      toast(j.message || 'Could not reset password', true);
+    }
+  }catch(e){ toast('Request failed — check connection', true); }
+  $('resetPwBtn').disabled = false;
 };
 
 function clearUnifiedSearch(){
@@ -1038,14 +1315,16 @@ function startUpdateFromDiscogs(e, idx) {
   loadFromLogRecord(r);
   showDashboard(false);
   isUpdatingExistingCard = true;
-  const q = (r.barcode || (r.artist + ' ' + r.title)).trim();
+  // Always search by artist + title — this is "view other pressings of this record",
+  // not a general Discogs search, so barcode/fuzzy matching would surface unrelated releases.
+  const q = ((r.artist||'') + ' ' + (r.title||'')).trim();
   $('unifiedSearchInput').value = q;
   $('alsoSearchDiscogsToggle').checked = true;
   $('discogsSearchBtn').style.display = 'block';
   $('searchPanel').classList.remove('collapsed');
   window.scrollTo({top:0, behavior:'smooth'});
   runSearch({query: q});
-  toast('Select a Discogs pressing below to fill missing data', false);
+  toast('Pick the matching pressing below to fill in price & missing data', false);
 }
 
 async function applyDiscogsUpdate(r, artist, title) {
@@ -1145,7 +1424,7 @@ function renderSearchResults(results){
       <tr data-search-idx="${i}" style="${isDup ? 'background:rgba(232,170,85,0.05);' : ''}">
         <td class="col-art">${thumb ? `<img class="table-thumb" loading="lazy" src="${escHtml(thumb)}" alt="" onclick="event.stopPropagation(); openZoomModal('${escHtml(thumb)}')">` : ''}</td>
         <td class="col-artist">${escHtml(artist)}</td>
-        <td class="col-title">${escHtml(title)}</td>
+        <td class="col-title">${escHtml(title)}${r.master_id ? `<br><a href="#" class="unsure-link" data-unsure-idx="${i}" onclick="event.stopPropagation()" style="font-size:11px; color:var(--dim); text-decoration:underline;">Unsure? Other pressings</a>` : ''}</td>
         <td>${escHtml(r.year||'')}</td>
         <td>${escHtml(r.country||'')}</td>
         <td>${escHtml((r.format||[]).join(', '))}</td>
@@ -1153,11 +1432,12 @@ function renderSearchResults(results){
         <td>${escHtml(catnoStr)}</td>
         <td class="col-action"><button class="add-btn">${isUpdatingExistingCard ? 'Select' : 'Add +'}</button></td>
       </tr>
+      <tr data-unsure-row-idx="${i}" style="display:none;"><td colspan="9" style="padding:8px 10px; background:rgba(255,255,255,0.02);"><div class="scanhint" data-unsure-list-idx="${i}">Loading…</div></td></tr>
     `;
   });
   html += `</tbody></table></div>`;
   list.innerHTML = html;
-  list.querySelectorAll('tbody tr').forEach((tr, i) => {
+  list.querySelectorAll('tbody tr[data-search-idx]').forEach((tr, i) => {
     tr.onclick = () => {
       const r = results[i];
       const parts = (r.title||'').split(' - ');
@@ -1169,6 +1449,36 @@ function renderSearchResults(results){
          lastOpenedFrom = 'discogs';
          selectCandidate(r, artist, title);
       }
+    };
+  });
+  list.querySelectorAll('.unsure-link').forEach(a => {
+    a.onclick = async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const i = parseInt(a.dataset.unsureIdx, 10);
+      const row = list.querySelector('tr[data-unsure-row-idx="' + i + '"]');
+      const target = list.querySelector('[data-unsure-list-idx="' + i + '"]');
+      const open = row.style.display !== 'none';
+      row.style.display = open ? 'none' : 'table-row';
+      if (open || target.dataset.loaded) return;
+      target.innerHTML = 'Loading…';
+      try{
+        const data = await callScript({action:'versions', master_id: results[i].master_id});
+        const versions = (data.versions||[]).slice(0,10);
+        target.innerHTML = (versions.length ? 'Other pressings of this release — tap one to use it instead:<br>' : 'No other pressings found.') +
+          versions.map((v,vi) => {
+            const bits = [v.released||v.year||'', v.format||'', v.country||'', v.catno?('#'+v.catno):''].filter(Boolean).join(' · ');
+            return `<div class="mb-item" style="cursor:pointer;" data-swap-vi="${vi}"><img src="${v.thumb||''}"><div>${escHtml(bits)}</div></div>`;
+          }).join('');
+        target.dataset.loaded = '1';
+        target.querySelectorAll('[data-swap-vi]').forEach(el => {
+          el.onclick = () => {
+            const v = versions[parseInt(el.dataset.swapVi, 10)];
+            if (isUpdatingExistingCard) applyDiscogsUpdate(v, results[i].artist, results[i].title);
+            else { lastOpenedFrom = 'discogs'; const parts = (results[i].title||'').split(' - '); const artist = parts.length>1?parts[0]:(results[i].artist||''); const title = parts.length>1?parts.slice(1).join(' - '):(results[i].title||''); selectCandidate(v, artist, title); }
+          };
+        });
+      }catch(e){ target.innerHTML = 'Could not load pressings.'; }
     };
   });
   list.style.display='block';
@@ -1217,7 +1527,12 @@ function computeStats(list){
     const artist = String(r.artist||'').trim();
     if(artist) s.byArtist[artist] = (s.byArtist[artist]||0) + 1;
     String(r.genre||'').split(',').map(g=>g.trim()).filter(Boolean).forEach(g=>{
-      s.byGenre[g] = (s.byGenre[g]||0) + 1;
+      // Case-insensitive merge so existing "rock"/"Rock" data doesn't split the stat —
+      // first-seen casing wins as the display label.
+      const key = g.toLowerCase();
+      if(!s._genreKeyToLabel) s._genreKeyToLabel = {};
+      const label = s._genreKeyToLabel[key] || (s._genreKeyToLabel[key] = g);
+      s.byGenre[label] = (s.byGenre[label]||0) + 1;
     });
   });
   return s;
@@ -1290,6 +1605,90 @@ $('exportCsvBtn').onclick = async ()=>{
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
   toast('Exported ' + list.length + ' records');
+};
+
+$('printSummaryBtn').onclick = ()=>{
+  if(collectionCache === null){ toast('Load your collection first', true); return; }
+  const list = collectionCache || [];
+  if(!list.length){ toast('Nothing to summarize yet', true); return; }
+
+  const byColl = {};
+  list.forEach(r=>{
+    const c = (r.collection||'').trim() || 'Unassigned';
+    (byColl[c] = byColl[c] || []).push(r);
+  });
+  const crateNames = Object.keys(byColl).sort();
+
+  let totalValue = 0, pricedCount = 0;
+  list.forEach(r=>{
+    const v = parseFloat(r.estimatedValue);
+    if(!isNaN(v) && v > 0){ totalValue += v; pricedCount++; }
+  });
+
+  const today = new Date().toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'});
+  const ownerLabel = (currentUser && (currentUser.displayName || currentUser.email)) || '';
+
+  let bodyHtml = '';
+  crateNames.forEach(crate=>{
+    const rows = byColl[crate];
+    let crateValue = 0;
+    rows.sort((a,b)=> (a.artist||'').localeCompare(b.artist||''));
+    bodyHtml += '<h2>' + escHtml(crate) + ' <span class="count">(' + rows.length + ')</span></h2>';
+    bodyHtml += '<table><thead><tr><th>Artist</th><th>Title</th><th>Year</th><th>Format</th><th>Media</th><th>Sleeve</th><th>Value</th></tr></thead><tbody>';
+    rows.forEach(r=>{
+      const v = parseFloat(r.estimatedValue);
+      if(!isNaN(v) && v > 0) crateValue += v;
+      bodyHtml += '<tr>' +
+        '<td>' + escHtml(r.artist||'') + '</td>' +
+        '<td>' + escHtml(r.title||'') + '</td>' +
+        '<td>' + escHtml(r.year||'') + '</td>' +
+        '<td>' + escHtml(r.format||'') + '</td>' +
+        '<td>' + escHtml(r.mediaCondition||'') + '</td>' +
+        '<td>' + escHtml(r.sleeveCondition||'') + '</td>' +
+        '<td>' + (!isNaN(v) && v > 0 ? '$' + v.toFixed(2) : '') + '</td>' +
+      '</tr>';
+    });
+    bodyHtml += '</tbody></table>';
+    bodyHtml += '<div class="crate-total">Crate value: $' + crateValue.toFixed(2) + '</div>';
+  });
+
+  const doc = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Crate Log — Collection Summary</title>
+<style>
+  body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; max-width: 900px; margin: 30px auto; padding: 0 20px; }
+  header { display:flex; justify-content:space-between; align-items:baseline; border-bottom: 2px solid #1a1a1a; padding-bottom: 10px; margin-bottom: 20px; }
+  header h1 { font-size: 22px; margin: 0; }
+  header .meta { font-size: 12px; color: #555; text-align: right; }
+  .summary-bar { display:flex; gap:30px; margin-bottom: 30px; font-size: 13px; }
+  .summary-bar b { font-size: 18px; display:block; }
+  h2 { font-size: 15px; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 28px; }
+  h2 .count { font-weight: normal; color: #666; font-size: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 6px; }
+  th, td { text-align: left; padding: 4px 6px; border-bottom: 1px solid #e0e0e0; }
+  th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em; color: #666; border-bottom: 1px solid #999; }
+  td:last-child, th:last-child { text-align: right; }
+  .crate-total { text-align: right; font-size: 12px; font-weight: bold; margin-top: 4px; }
+  footer { margin-top: 40px; font-size: 10px; color: #888; border-top: 1px solid #ccc; padding-top: 8px; }
+  @media print { body { margin: 0; } h2 { page-break-after: avoid; } tr { page-break-inside: avoid; } }
+</style></head><body>
+<header>
+  <h1>Crate Log — Collection Summary</h1>
+  <div class="meta">${ownerLabel ? escHtml(ownerLabel) + '<br>' : ''}${today}</div>
+</header>
+<div class="summary-bar">
+  <div><b>${list.length}</b>Total Records</div>
+  <div><b>${crateNames.length}</b>Crates</div>
+  <div><b>$${totalValue.toFixed(2)}</b>Estimated Total Value</div>
+  <div><b>${pricedCount}</b>Records with a Value on File</div>
+</div>
+${bodyHtml}
+<footer>Generated by Crate Log on ${today}. Estimated values are self-reported / Discogs marketplace estimates at time of entry, not an appraisal.</footer>
+</body></html>`;
+
+  const w = window.open('', '_blank');
+  if(!w){ toast('Allow pop-ups to open the print view', true); return; }
+  w.document.write(doc);
+  w.document.close();
+  w.onload = ()=> w.print();
 };
 
 // Minimal RFC4180-ish CSV parser — handles quoted fields, embedded commas/newlines, escaped quotes
@@ -1511,7 +1910,7 @@ function appendBrowseChunk(){
       '<td class="col-title">' + escHtml(r.title||'Untitled') + '</td>' +
       '<td>' + escHtml(r.year||'') + '</td>' +
       '<td>' + escHtml(r.format||'') + '</td>' +
-      '<td>' + escHtml(r.collection||'') + '</td>' +
+      '<td>' + crateChipHtml(r.collection) + '</td>' +
       '<td>' + gradeBadgeHtml(r.mediaCondition) + '</td>' +
       '<td class="col-price">' + priceStr + '</td>' +
       '<td class="col-action">›</td>';
@@ -1646,6 +2045,8 @@ function selectCandidate(r, artist, title){
   currentSelection = r;
   currentRowIndex = null;
   clearDraft();
+  setOwnerPhoto('');
+  $('valueTrendWrap').style.display = 'none';
   const cover = r.cover_image || r.thumb || '';
   $('cardCover').src = cover;
   $('cardCover').style.visibility = 'visible';
@@ -1869,7 +2270,7 @@ async function setupPressings(r){
     list.innerHTML = '<div class="scanhint">Loading…</div>';
     try{
       const data = await callScript({action:'versions', master_id: r.master_id});
-      const versions = (data.results||[]).slice(0,10);
+      const versions = (data.versions||[]).slice(0,10);
       list.innerHTML = (versions.length ? '<div class="scanhint" style="margin-bottom:6px;">Tap a pressing to swap it in — checks Country/Year/Catalog # for you.</div>' : '') +
         versions.map((v,i)=>{
           const bits = [v.released||v.year||'', v.format||'', v.country||'', v.catno?('#'+v.catno):''].filter(Boolean).join(' · ');
@@ -2132,6 +2533,39 @@ async function setupMoreByArtist(artist){
   };
 }
 
+// Snaps free-typed genre/format values to their existing canonical spelling/casing
+// (matched case-insensitively against COMMON_GENRES/COMMON_FORMATS and anything
+// already in the collection) so "rock" and "Rock" don't become two different
+// entries in Top Genres. Anything genuinely new is kept as typed, just trimmed
+// and title-cased for consistency, and folded into the picklist next reload.
+function buildCanonicalMap(knownList){
+  const map = new Map();
+  knownList.forEach(v => map.set(v.toLowerCase(), v));
+  return map;
+}
+function titleCase(s){
+  return s.replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase());
+}
+function normalizeTagList(raw, canonicalMap){
+  return raw.split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(s => canonicalMap.get(s.toLowerCase()) || titleCase(s))
+    .join(', ');
+}
+function normalizeGenreFormat(genre, format){
+  const knownGenres = new Set(COMMON_GENRES);
+  const knownFormats = new Set(COMMON_FORMATS);
+  (collectionCache||[]).forEach(r=>{
+    String(r.genre||'').split(',').map(g=>g.trim()).filter(Boolean).forEach(g=>knownGenres.add(g));
+    String(r.format||'').split(',').map(f=>f.trim()).filter(Boolean).forEach(f=>knownFormats.add(f));
+  });
+  return {
+    genre: normalizeTagList(genre, buildCanonicalMap(knownGenres)),
+    format: normalizeTagList(format, buildCanonicalMap(knownFormats))
+  };
+}
+
 function buildRecordPayload(){
   const activeColl = getActiveCollection();
   const discCond = collectDiscConditions();
@@ -2139,15 +2573,17 @@ function buildRecordPayload(){
   const discogsNote = buildDiscogsNote(lastReleaseData);
   if(discogsNote) notes = notes ? (notes + '\n\n' + discogsNote) : discogsNote;
   if(discCond.breakdown) notes = notes ? (notes + '\n\n' + discCond.breakdown) : discCond.breakdown;
+  const normalized = normalizeGenreFormat($('fGenre').value, $('fFormat').value);
   return {
     collection: activeColl.name,
     artist: $('fArtist').value, title: $('fTitle').value, year: $('fYear').value,
-    format: $('fFormat').value, label: $('fLabel').value, catno: $('fCatno').value,
-    genre: $('fGenre').value, notes: notes,
+    format: normalized.format, label: $('fLabel').value, catno: $('fCatno').value,
+    genre: normalized.genre, notes: notes,
     tracklist: $('fTracklist').value.trim(),
     barcode: $('fBarcode').value.trim(),
     estimatedValue: $('fValue').value.trim(),
     coverImage: currentSelection ? (currentSelection.cover_image||currentSelection.thumb||'') : ($('cardCover').src || ''),
+    ownerPhoto: currentOwnerPhoto || '',
     collectionColor: activeColl.color,
     sleevePresent: getSelectedPill('coverPills'),
     innerSleeve: discCond.worstInner,
@@ -2337,6 +2773,17 @@ function loadFromLogRecord(record){
   $('cardCover').src = record.coverImage || '';
   $('cardCover').style.visibility = 'visible';
   setAppBg(record.coverImage || null);
+  setOwnerPhoto(record.ownerPhoto || ''); // usually empty here — browse omits it; fetched below if this record has one
+  $('valueTrendWrap').style.display = 'none';
+  if(currentRowIndex){
+    callScript({action:'getRow', rowIndex: currentRowIndex}).then(rj=>{
+      // Only apply if still viewing the same record — user may have navigated away already
+      if(rj.status === 'ok' && currentRowIndex === record.rowIndex){
+        setOwnerPhoto(rj.values.ownerPhoto || '');
+      }
+    }).catch(()=>{});
+    loadValueTrend(currentRowIndex);
+  }
   $('fArtist').value = record.artist || '';
   $('fTitle').value = record.title || '';
   $('fYear').value = record.year || '';
@@ -2382,6 +2829,43 @@ function loadFromLogRecord(record){
   $('draftBanner').style.display = 'none';
   showEditor();
   toast('Loaded from library — click Save to update sheet');
+}
+
+// ---------- Value history / trend ----------
+async function loadValueTrend(rowIndex){
+  try{
+    const j = await callScript({action:'getValueHistory', rowIndex});
+    if(j.status !== 'ok' || currentRowIndex !== rowIndex) return;
+    const points = (j.history||[]).map(h => ({ value: parseFloat(h.value), date: h.capturedAt })).filter(p => !isNaN(p.value));
+    if(points.length < 2){ $('valueTrendWrap').style.display = 'none'; return; }
+    $('valueTrendWrap').style.display = 'block';
+    $('valueTrendWrap').innerHTML = renderSparkline(points);
+  }catch(e){}
+}
+function renderSparkline(points){
+  const vals = points.map(p=>p.value);
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const range = (max - min) || 1;
+  const w = 200, h = 36, pad = 3;
+  const stepX = points.length > 1 ? (w - pad*2) / (points.length - 1) : 0;
+  const coords = points.map((p,i) => {
+    const x = pad + i * stepX;
+    const y = pad + (h - pad*2) * (1 - (p.value - min) / range);
+    return [x,y];
+  });
+  const path = coords.map((c,i) => (i===0?'M':'L') + c[0].toFixed(1) + ',' + c[1].toFixed(1)).join(' ');
+  const first = points[0].value, last = points[points.length-1].value;
+  const delta = last - first;
+  const deltaColor = delta > 0 ? '#7CB88F' : (delta < 0 ? '#D97757' : 'var(--dim)');
+  const deltaSign = delta > 0 ? '+' : '';
+  const firstDate = new Date(points[0].date).toLocaleDateString(undefined,{month:'short',year:'numeric'});
+  return '<div style="display:flex; align-items:center; gap:10px;">' +
+    '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" style="flex:0 0 auto;">' +
+      '<path d="' + path + '" fill="none" stroke="var(--amber)" stroke-width="1.5"/>' +
+    '</svg>' +
+    '<div><div style="color:' + deltaColor + '; font-weight:600;">' + deltaSign + delta.toFixed(2) + '</div>' +
+    '<div style="font-size:11px;">since ' + escHtml(firstDate) + '</div></div>' +
+  '</div>';
 }
 
 function scheduleDraftSave(){
@@ -2433,6 +2917,12 @@ function checkForDraft(){
 function restoreDraft(draft){
   currentSelection = null;
   currentRowIndex = draft.currentRowIndex || null;
+  setOwnerPhoto(''); // drafts don't carry the photo (kept out of localStorage on purpose)
+  if(currentRowIndex){
+    callScript({action:'getRow', rowIndex: currentRowIndex}).then(rj=>{
+      if(rj.status === 'ok' && currentRowIndex === draft.currentRowIndex) setOwnerPhoto(rj.values.ownerPhoto || '');
+    }).catch(()=>{});
+  }
   $('cardCover').src = draft.coverImage || '';
   $('cardCover').style.visibility = 'visible';
   setAppBg(draft.coverImage || null);
@@ -2496,7 +2986,7 @@ function populateShareCrateSelect(){
 }
 
 $('createShareBtn').onclick = async ()=>{
-  if(!accessKey){ toast('Set your Access Key in Settings first', true); return; }
+  if(!isLoggedIn()){ toast('Log in first', true); return; }
   const crateName = $('shareCrateSelect').value;
   const label = $('shareLabelInput').value.trim();
   $('createShareBtn').disabled = true;
@@ -2518,7 +3008,7 @@ $('createShareBtn').onclick = async ()=>{
 };
 
 async function refreshActiveShares(){
-  if(!accessKey) return;
+  if(!isLoggedIn()) return;
   const wrap = $('activeSharesList');
   if(!wrap) return;
   try{
@@ -2548,9 +3038,122 @@ async function revokeShareById(shareId){
   }catch(e){ toast('Request failed', true); }
 }
 
+// ---------- Permission-based sharing (between logged-in users) ----------
+function populateGrantCrateSelect(){
+  const sel = $('grantCrateSelect');
+  if(!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Everything</option>' + collections.map(c => `<option value="${escHtml(c.name)}">${escHtml(c.name)}</option>`).join('');
+  if([...sel.options].some(o=>o.value===current)) sel.value = current;
+}
+
+$('grantAccessBtn').onclick = async ()=>{
+  if(!isLoggedIn()){ toast('Log in first', true); return; }
+  const email = $('grantEmailInput').value.trim();
+  const crateName = $('grantCrateSelect').value;
+  if(!email){ toast('Enter their email', true); return; }
+  $('grantAccessBtn').disabled = true;
+  try{
+    const j = await callScript({action:'grantAccess', email, crateName});
+    if(j.status === 'ok'){
+      toast('Access granted to ' + j.grantedTo);
+      $('grantEmailInput').value = '';
+      refreshGrantedUsers();
+    } else {
+      toast(j.message || 'Could not grant access', true);
+    }
+  }catch(e){ toast('Request failed — check connection', true); }
+  $('grantAccessBtn').disabled = false;
+};
+
+async function refreshGrantedUsers(){
+  if(!isLoggedIn()) return;
+  const wrap = $('grantedUsersList');
+  if(!wrap) return;
+  try{
+    const j = await callScript({action:'listGrantedUsers'});
+    const grants = j.grants || [];
+    if(!grants.length){ wrap.innerHTML = ''; return; }
+    wrap.innerHTML = '<div style="font-size:12px; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;">People With Access</div>' +
+      grants.map(g => {
+        return '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:6px 0; border-bottom:1px solid var(--line); font-size:12px;">' +
+          '<div style="min-width:0;">' +
+            '<div style="color:var(--text); font-weight:600;">' + escHtml(g.displayName) + ' <span style="color:var(--dim); font-weight:400;">(' + escHtml(g.email) + ')</span></div>' +
+            '<div style="color:var(--dim);">' + escHtml(g.crateName || 'Everything') + '</div>' +
+          '</div>' +
+          '<button class="secondary" style="width:auto; padding:4px 10px; font-size:11px; margin:0; flex:0 0 auto;" onclick="revokeAccessById(\'' + g.id + '\')">Revoke</button>' +
+        '</div>';
+      }).join('');
+  }catch(e){}
+}
+
+async function revokeAccessById(permissionId){
+  if(!confirm('Remove this person\u2019s access?')) return;
+  try{
+    const j = await callScript({action:'revokeAccess', permissionId});
+    if(j.status === 'ok'){ toast('Access removed'); refreshGrantedUsers(); }
+    else toast(j.message || 'Could not remove access', true);
+  }catch(e){ toast('Request failed', true); }
+}
+
+async function refreshGrantsToMe(){
+  if(!isLoggedIn()) return;
+  const wrap = $('grantsToMeList');
+  if(!wrap) return;
+  try{
+    const j = await callScript({action:'listGrantsToMe'});
+    const grants = j.grants || [];
+    if(!grants.length){ wrap.innerHTML = '<div class="scanhint">None yet.</div>'; return; }
+    wrap.innerHTML = grants.map(g =>
+      '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:6px 0; border-bottom:1px solid var(--line); font-size:12px;">' +
+        '<div style="min-width:0;">' +
+          '<div style="color:var(--text); font-weight:600;">' + escHtml(g.ownerName) + '</div>' +
+          '<div style="color:var(--dim);">' + escHtml(g.crateName || 'Everything') + '</div>' +
+        '</div>' +
+        '<button class="secondary" style="width:auto; padding:4px 10px; font-size:11px; margin:0; flex:0 0 auto;" onclick="viewGrantedCrate(\'' + g.ownerUserId + '\',\'' + escHtml(g.ownerName).replace(/'/g,"\\'") + '\',\'' + escHtml(g.crateName||'').replace(/'/g,"\\'") + '\')">View</button>' +
+      '</div>'
+    ).join('');
+  }catch(e){}
+}
+
+async function viewGrantedCrate(ownerUserId, ownerName, crateName){
+  $('settingsModal').classList.remove('show');
+  try{
+    const j = await callScript({action:'browseGranted', ownerUserId, crateName});
+    if(j.status !== 'ok'){ toast(j.message || 'Could not load that crate', true); return; }
+    viewingGranted = { ownerUserId, ownerName, crateName };
+    renderGrantedResults(j.results || []);
+  }catch(e){ toast('Request failed — check connection', true); }
+}
+
+function exitGrantedView(){
+  viewingGranted = null;
+  $('grantedView').style.display = 'none';
+  $('dashboardView').style.display = 'block';
+  $('fabContainer').classList.add('visible');
+}
+
+function renderGrantedResults(list){
+  $('dashboardView').style.display = 'none';
+  $('fabContainer').classList.remove('visible');
+  $('grantedView').style.display = 'block';
+  $('grantedHeading').textContent = '👤 ' + viewingGranted.ownerName + (viewingGranted.crateName ? ' — ' + viewingGranted.crateName : ' — everything');
+  const wrap = $('grantedResultsList');
+  if(!list.length){ wrap.innerHTML = '<div class="scanhint">Nothing here yet.</div>'; return; }
+  wrap.innerHTML = list.map(r =>
+    '<div style="display:flex; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid var(--line);">' +
+      '<img src="' + (r.coverImage || '') + '" onerror="this.style.display=\'none\'" style="width:44px;height:44px;object-fit:cover;border-radius:6px;background:#111;flex:0 0 auto;">' +
+      '<div style="flex:1; min-width:0;">' +
+        '<div style="font-weight:600; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + escHtml(r.artist||'') + ' — ' + escHtml(r.title||'') + '</div>' +
+        '<div style="font-size:12px; color:var(--dim);">' + escHtml(r.year||'') + (r.format ? ' · ' + escHtml(r.format) : '') + (r.genre ? ' · ' + escHtml(r.genre) : '') + '</div>' +
+      '</div>' +
+    '</div>'
+  ).join('');
+}
+
 // ---------- Borrow requests (owner side) ----------
 async function refreshBorrowRequests(){
-  if(!accessKey) return;
+  if(!isLoggedIn()) return;
   try{
     const j = await callScript({action:'listBorrowRequests'});
     const list = j.requests || [];
@@ -2661,16 +3264,21 @@ $('submitBorrowBtn').onclick = async ()=>{
   $('submitBorrowBtn').disabled = false;
 };
 
-loadSettings();
-if(shareIdParam){
-  initSharedView();
-} else {
-  loadCollections();
-  loadLog();
-  checkForDraft();
-  setTimeout(() => runBrowse(''), 500);
-  setTimeout(() => refreshBorrowRequests(), 800);
-}
+(async ()=>{
+  await loadSettings();
+  if(shareIdParam){
+    initSharedView();
+  } else if(isLoggedIn()){
+    loadCollections();
+    loadLog();
+    checkForDraft();
+    setTimeout(() => runBrowse(''), 500);
+    setTimeout(() => refreshBorrowRequests(), 800);
+    setTimeout(() => refreshGrantsToMe(), 800);
+  }
+  // If not logged in, loadSettings() shows accessGateModal and submitAuth()
+  // kicks off the same loads once login/signup succeeds.
+})();
 </script>
 </body>
 </html>
