@@ -10,10 +10,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Crate Log">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icons/favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -109,7 +105,6 @@
   button.primary:active { transform: translateY(0); }
   button.primary:disabled { opacity: 0.6; cursor: default; transform: none; box-shadow: none; }
   button.secondary { background: rgba(255,255,255,0.03); border: 1px solid var(--line); color: var(--text); border-radius: var(--radius-sm); padding: 12px 16px; font-family: 'Oswald', sans-serif; font-size: 14px; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.02em; }
-  button.secondary.active { background: var(--amber); border-color: var(--amber); color: #14120F; }
   button.secondary:hover { background: rgba(255,255,255,0.08); border-color: var(--dim); }
   .fav-btn { width: 100%; background: transparent; border: 1px dashed var(--dim); color: var(--dim); border-radius: var(--radius-sm); padding: 14px; font-family: 'Oswald', sans-serif; font-size: 15px; cursor: pointer; transition: 0.2s; margin-top: 8px;}
   .fav-btn.active { background: var(--amber-dim); border: 1px solid var(--amber); color: var(--amber); }
@@ -191,6 +186,103 @@
   .stats-cols h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--dim); margin: 0 0 8px; font-weight: 600; }
   .stat-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text); }
   .stat-row span:last-child { color: var(--dim); font-weight: 600; }
+  .crate-section { margin-bottom: 28px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .crate-section-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--line); }
+  .crate-section-header h4 { margin: 0; font-family: 'Oswald', sans-serif; font-size: 16px; font-weight: 600; letter-spacing: 0.02em; display:flex; align-items:center; gap:8px; }
+  .crate-color-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink:0; }
+  .crate-section-count { font-size: 12px; color: var(--dim); }
+  .subcrate-letter { padding: 6px 16px 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); background: rgba(255,255,255,0.015); }
+  .crate-record-row { display: flex; align-items: center; gap: 12px; padding: 8px 16px; cursor: pointer; border-top: 1px solid rgba(255,255,255,0.04); }
+  .crate-record-row:hover { background: rgba(255,255,255,0.03); }
+  .crate-record-row img { width: 34px; height: 34px; border-radius: 4px; object-fit: cover; background: rgba(255,255,255,0.05); flex-shrink: 0; }
+  .crate-record-row .cr-main { flex: 1; min-width: 0; }
+  .crate-record-row .cr-artist { font-weight: 600; font-size: 13.5px; color: var(--text); }
+  .crate-record-row .cr-title { font-size: 12.5px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .crate-record-row .cr-year { font-size: 11px; color: var(--dim); flex-shrink: 0; }
+  .crate-section-empty { padding: 16px; text-align: center; color: var(--dim); font-size: 13px; }
+
+  /* Rethought filter dropdowns */
+  .filter-row { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .pill-select {
+    flex: 1; min-width: 130px; appearance: none; -webkit-appearance: none;
+    background: rgba(255,255,255,0.04); border: 1px solid var(--line); color: var(--text);
+    padding: 9px 30px 9px 14px; border-radius: 20px; font-size: 13px; font-family: inherit;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%23A89D8D'/></svg>");
+    background-repeat: no-repeat; background-position: right 12px center; cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .pill-select:hover, .pill-select:focus { border-color: var(--amber); outline: none; }
+  .pill-select option { background: #1a1712; color: var(--text); }
+
+  /* Ambient background glow */
+  #ambientGlow {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background: radial-gradient(ellipse at center, var(--glow-color, rgba(232,170,85,0.10)) 0%, transparent 65%);
+    filter: blur(60px); opacity: 0; transition: opacity 0.6s ease, background 0.8s ease;
+  }
+  #ambientGlow.active { opacity: 1; }
+
+  /* Record Wall */
+  .wall-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; }
+  .wall-item { position: relative; aspect-ratio: 1/1; border-radius: 6px; overflow: hidden; cursor: pointer;
+    background: rgba(255,255,255,0.04); box-shadow: 0 4px 14px rgba(0,0,0,0.4); transition: transform 0.22s ease, box-shadow 0.22s ease; }
+  .wall-item:hover { transform: translateY(-6px) scale(1.035); box-shadow: 0 16px 30px rgba(0,0,0,0.55); z-index: 2; }
+  .wall-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .wall-item .wall-overlay {
+    position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 10px; background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.88) 100%);
+    opacity: 0; transition: opacity 0.22s ease;
+  }
+  .wall-item:hover .wall-overlay { opacity: 1; }
+  .wall-overlay .w-artist { font-size: 12px; font-weight: 700; color: var(--text); line-height: 1.25; }
+  .wall-overlay .w-title { font-size: 11px; color: var(--dim); line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wall-item .wall-fav { position: absolute; top: 6px; right: 6px; color: var(--amber); font-size: 13px; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+
+  /* DNA dashboard */
+  .dna-bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; margin: 4px 0 10px; background: rgba(255,255,255,0.05); }
+  .dna-seg { height: 100%; transition: opacity 0.15s; }
+  .dna-seg:hover { opacity: 0.75; }
+  .dna-legend { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 11px; color: var(--dim); margin-bottom: 4px; }
+  .dna-legend span.dna-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: middle; }
+
+  /* 3D True Crate view */
+  .crate3d-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
+  .crate3d-stage { position: relative; perspective: 1400px; height: 340px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+  .crate3d-well { position: absolute; bottom: 0; width: 220px; height: 30px; left: 50%; transform: translateX(-50%) rotateX(75deg); background: radial-gradient(ellipse, rgba(0,0,0,0.6), transparent 70%); }
+  .crate3d-card {
+    position: absolute; width: 210px; height: 210px; border-radius: 4px; transform-style: preserve-3d;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.55); transition: transform 0.55s cubic-bezier(.4,.1,.3,1), opacity 0.5s;
+    background-size: cover; background-position: center; cursor: pointer;
+  }
+  .crate3d-card::after {
+    content: ''; position: absolute; inset: 0; border-radius: 4px;
+    background: linear-gradient(115deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 26%, rgba(255,255,255,0) 74%, rgba(255,255,255,0.08) 100%);
+    pointer-events: none;
+  }
+  .crate3d-card.flipping { transform: rotateX(-115deg) translateY(160px) translateZ(60px) !important; opacity: 0; }
+  .crate3d-card .c3d-label {
+    position: absolute; left: 0; right: 0; bottom: -26px; text-align: center; font-size: 11px; color: var(--dim);
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .crate3d-card.front .c3d-label { opacity: 1; }
+  .crate3d-divider {
+    background: linear-gradient(160deg, #8a6a3a, #6b4f28) !important; display: flex; align-items: center; justify-content: center;
+    font-family: 'Oswald', sans-serif; font-size: 34px; font-weight: 700; color: rgba(255,255,255,0.85);
+    letter-spacing: 0.04em; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  }
+  .crate3d-controls { display: flex; justify-content: center; gap: 14px; margin-bottom: 8px; }
+  .crate3d-controls button { width: auto; padding: 8px 20px; margin: 0; }
+  .crate3d-info { text-align: center; color: var(--dim); font-size: 12px; margin-bottom: 16px; }
+
+  /* Discogs detail accordion */
+  .accordion-section { border: 1px solid var(--line); border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+  .accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; cursor: pointer; background: rgba(255,255,255,0.02); }
+  .accordion-header:hover { background: rgba(255,255,255,0.04); }
+  .accordion-header .ah-label { font-size: 12.5px; font-weight: 600; color: var(--text); }
+  .accordion-header .ah-count { font-size: 11px; color: var(--dim); margin-left: 6px; }
+  .accordion-header .ah-icon { font-size: 15px; color: var(--amber); font-weight: 700; width: 16px; text-align: center; }
+  .accordion-body { padding: 4px 12px 10px; display: none; }
+  .accordion-section.open .accordion-body { display: block; }
   .browse-table th.col-art { width: 72px; text-align: center; }
   .browse-table th.col-check { width: 32px; text-align: center; }
   .browse-table td.col-check { width: 32px; text-align: center; padding: 6px 4px; }
@@ -268,13 +360,6 @@
     <div id="sharedResultsList"></div>
   </div>
 </div>
-<div id="grantedView" style="display:none;">
-  <div class="panel">
-    <button class="secondary" style="width:auto; padding:6px 12px; font-size:12px; margin-bottom:12px;" onclick="exitGrantedView()">← Back to My Collection</button>
-    <h3 id="grantedHeading" style="margin-top:0;">👤 Shared Crate</h3>
-    <div id="grantedResultsList"></div>
-  </div>
-</div>
 <div class="modal" id="borrowRequestModal">
   <div class="modalbox" style="max-width:400px;">
     <h3 style="margin-top:0;" id="borrowModalTitle">Request to Borrow</h3>
@@ -302,12 +387,14 @@
     <div class="panel-body">
       <div class="row2">
         <input type="text" id="unifiedSearchInput" placeholder="Artist, Title, Barcode, Label...">
+        <button class="chip" id="searchModeToggleBtn" title="Where to search" onclick="event.stopPropagation(); toggleSearchModeRow();" style="flex:0 0 auto;">🚩 Collection</button>
         <button class="primary" id="discogsSearchBtn" style="display:none;">Search Discogs</button>
       </div>
-      <label style="display:flex; align-items:center; gap:8px; margin-top:12px; margin-bottom:4px; font-size:13px; color:var(--dim); cursor:pointer; user-select:none;">
-        <input type="checkbox" id="alsoSearchDiscogsToggle" style="width:16px;height:16px;accent-color:var(--amber);">
-        Also search Discogs <span style="color:rgba(255,255,255,0.4);">— to find and add new records</span>
-      </label>
+      <div class="chiprow" id="searchModeToggle" style="margin:10px 0 4px; display:none;">
+        <button class="chip active" data-mode="collection">Search Collection</button>
+        <button class="chip" data-mode="discogs">Search Discogs</button>
+        <button class="chip" data-mode="both">Both</button>
+      </div>
       <div id="loadingPanel" style="display:none; text-align: center; padding: 30px 20px;">
         <div class="spinner"></div>
         <div style="color: var(--dim); font-size: 14px;">Searching Discogs Database...</div>
@@ -320,18 +407,28 @@
   </div>
   <div class="panel" id="collectionPanel">
     <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 16px; gap:12px; flex-wrap:wrap;">
-      <h3 style="margin: 0; font-size: 20px; color: var(--text); font-weight: 600;">📚 In Your Collection</h3>
+      <h3 style="margin: 0; font-size: 20px; color: var(--text); font-weight: 600;">Collection</h3>
       <div style="display:flex; gap:8px;">
         <button class="secondary" id="exportCsvBtn" style="width:auto; padding:8px 14px; font-size:12px; margin:0;">Export CSV</button>
         <button class="secondary" id="importCsvBtn" style="width:auto; padding:8px 14px; font-size:12px; margin:0;">Import CSV</button>
-        <button class="secondary" id="printSummaryBtn" style="width:auto; padding:8px 14px; font-size:12px; margin:0;">Print / PDF Summary</button>
         <input type="file" id="importCsvFile" accept=".csv" style="display:none;">
       </div>
     </div>
     <div class="chiprow" id="collectionFilterChips" style="margin-bottom: 12px;"></div>
-    <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;">
-      <select id="genreFilterSelect" style="flex:1; min-width:120px;"><option value="">All Genres</option></select>
-      <select id="formatFilterSelect" style="flex:1; min-width:120px;"><option value="">All Formats</option></select>
+    <div class="addcollrow" id="quickAddCrateRow" style="display:none; margin-bottom:12px;">
+      <input type="text" id="quickAddCrateName" placeholder="New crate name" onkeydown="if(event.key==='Enter') submitQuickAddCrate();">
+      <input type="color" id="quickAddCrateColor" value="#7C8FA6">
+      <button class="secondary" onclick="submitQuickAddCrate()">Add</button>
+    </div>
+    <div class="chiprow" id="viewModeToggle" style="margin-bottom:10px; align-items:center;">
+      <button class="chip active" data-view="table" onclick="setBrowseViewMode('table')">▤ Table</button>
+      <button class="chip" data-view="crate" onclick="setBrowseViewMode('crate')">🗃 Crate</button>
+      <button class="chip" data-view="wall" onclick="setBrowseViewMode('wall')">🖼 Wall</button>
+      <button class="chip" id="filterToggleBtn" title="Filter by genre/format" style="margin-left:auto;" onclick="toggleFilterRow()">⚙ Filter</button>
+    </div>
+    <div class="filter-row" id="filterRow" style="display:none;">
+      <select id="genreFilterSelect" class="pill-select"><option value="">All Genres</option></select>
+      <select id="formatFilterSelect" class="pill-select"><option value="">All Formats</option></select>
     </div>
     <div class="browse-summary" id="browseSummary"></div>
     <div id="bulkToolbar" style="display:none; align-items:center; gap:10px; flex-wrap:wrap; background:rgba(232,170,85,0.08); border:1px solid var(--amber-dim); border-radius:8px; padding:10px 12px; margin-bottom:12px;">
@@ -343,13 +440,52 @@
       <button class="secondary" id="bulkClearBtn" style="width:auto; padding:6px 12px; font-size:12px; margin:0 0 0 auto;">Clear Selection</button>
     </div>
     <div id="collectionResultsList"></div>
+    <div id="crateGroupedView" style="display:none;"></div>
+    <div id="recordWallView" style="display:none;"></div>
   </div>
+  <div id="ambientGlow"></div>
   <div class="panel collapsed" id="statsPanel">
     <div class="panel-header" onclick="this.closest('.panel').classList.toggle('collapsed'); refreshStatsIfOpen();">
       <h3>📊 Collection Stats</h3>
       <span class="toggle-icon">▼</span>
     </div>
     <div class="panel-body" id="statsBody"></div>
+  </div>
+  <div class="panel collapsed" id="manageCratesPanel">
+    <div class="panel-header" onclick="this.closest('.panel').classList.toggle('collapsed')">
+      <h3>🗃 Manage Crates</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="panel-body">
+      <small style="display:block;color:var(--dim);margin-bottom:12px;">Your own way of grouping records — could be people, genres, shelves, whatever makes sense to you. Reorder, rename, recolor, or remove a crate here.</small>
+      <div id="collEditList"></div>
+      <div class="addcollrow">
+        <input type="text" id="newCollName" placeholder="New crate name">
+        <input type="color" id="newCollColor" value="#7C8FA6">
+        <button class="secondary" id="addCollBtn">Add</button>
+      </div>
+      <small style="display:block;color:var(--dim);margin-top:10px">Adding/Renaming only relabels the chips — records already saved keep the name they were saved under.</small>
+    </div>
+  </div>
+  <div class="panel collapsed" id="sharePanel">
+    <div class="panel-header" onclick="this.closest('.panel').classList.toggle('collapsed'); populateShareCrateSelect(); refreshActiveShares();">
+      <h3>🔗 Share & Access</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="panel-body">
+      <small style="display:block;color:var(--dim);margin-bottom:12px;">Gives someone a read-only link — they can look, but can't add or edit anything. They can request to borrow a specific record instead.</small>
+      <div class="field">
+        <label>Which crate</label>
+        <select id="shareCrateSelect"><option value="">Everything</option></select>
+      </div>
+      <div class="field">
+        <label>Label (optional, helps you remember why you shared it)</label>
+        <input type="text" id="shareLabelInput" placeholder="e.g. For Jordan">
+      </div>
+      <button class="secondary" style="width:100%;" id="createShareBtn">Create Share Link</button>
+      <div id="shareLinkResult" style="display:none; margin-top:12px; padding:12px; background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:8px; font-size:13px;"></div>
+      <div id="activeSharesList" style="margin-top:14px;"></div>
+    </div>
   </div>
   <div class="panel collapsed" id="borrowPanel">
     <div class="panel-header" onclick="this.closest('.panel').classList.toggle('collapsed'); refreshBorrowRequests();">
@@ -379,16 +515,6 @@
         <div class="coverwrap">
           <img class="cover" id="cardCover" src="" title="Tap to view full" onerror="this.style.visibility='hidden'">
           <div class="cover-hint">Tap to zoom</div>
-        </div>
-        <div class="field" style="margin-top:10px;">
-          <label>📷 Photo of Your Copy</label>
-          <div id="ownerPhotoWrap" style="display:none; margin-bottom:8px;">
-            <img id="ownerPhotoPreview" src="" style="width:100%; border-radius:8px; cursor:pointer; display:block;" title="Tap to view full" onerror="this.closest('#ownerPhotoWrap').style.display='none'">
-            <button class="secondary" id="removeOwnerPhotoBtn" style="width:100%; margin-top:6px; padding:6px; font-size:11px;">Remove Photo</button>
-          </div>
-          <input type="file" id="ownerPhotoInput" accept="image/*" capture="environment" style="display:none;">
-          <button class="secondary" id="addOwnerPhotoBtn" style="width:100%;">Add / Replace Photo</button>
-          <small style="display:block;color:var(--dim);margin-top:6px;">Useful for documenting condition or wear — separate from the Discogs cover art above.</small>
         </div>
         <div class="action-links" id="externalLinks" style="display:none;"></div>
         <div class="field"><label>🗂️ Cover Present</label>
@@ -438,7 +564,6 @@
               <input type="text" id="fValue" placeholder="0.00" inputmode="decimal">
             </div>
             <div class="scanhint" id="valueHint" style="display:none;"></div>
-            <div id="valueTrendWrap" style="display:none; margin-top:8px; font-size:12px; color:var(--dim);"></div>
           </div>
         </div>
         <div class="field"><label>Genre / Style</label><input type="text" id="fGenre" list="genreDatalist"></div>
@@ -474,7 +599,10 @@
         <div class="moreby" id="discogsInfoWrap" style="display:none; margin-bottom:16px;">
           <button class="moreby-toggle" id="discogsInfoToggle">More info from Discogs ▾</button>
           <div class="scanhint" style="margin:4px 0 8px;">Pulled from Discogs, not stored unless you add it below.</div>
-          <div id="discogsInfoList" style="display:none; margin-top:6px;"></div>
+          <div id="discogsInfoList" style="display:none; margin-top:6px;">
+            <div id="discogsAccordion"></div>
+            <button class="secondary" id="saveAccordionDefaultBtn" style="width:auto; padding:6px 12px; font-size:11px; margin-top:10px;">💾 Save this open/closed layout as default</button>
+          </div>
         </div>
         <div class="moreby" id="pressingsWrap" style="display:none; margin-top:20px;">
           <button class="moreby-toggle" id="pressingsToggle">Other pressings ▾</button>
@@ -505,47 +633,10 @@
     <button class="primary" id="saveBtn">Save Record</button>
   </div>
 </div>
-<div class="modal" id="accessGateModal">
-  <div class="modalbox" style="max-width:380px;">
-    <h3 style="margin-top:0;" id="authHeading">Log in</h3>
-    <div style="display:flex; gap:8px; margin:-6px 0 16px;">
-      <button class="secondary" id="authTabLogin" style="width:auto; flex:1; padding:8px; margin:0;">Log In</button>
-      <button class="secondary" id="authTabSignup" style="width:auto; flex:1; padding:8px; margin:0;">Sign Up</button>
-    </div>
-    <div class="field" id="authDisplayNameField" style="display:none;">
-      <label>Your Name</label>
-      <input type="text" id="authDisplayName" placeholder="e.g. Jordan">
-    </div>
-    <div class="field">
-      <label>Email</label>
-      <input type="email" id="authEmail" placeholder="you@example.com">
-    </div>
-    <div class="field">
-      <label>Password</label>
-      <input type="password" id="authPassword" placeholder="At least 8 characters">
-    </div>
-    <div id="authError" style="display:none; color:var(--red); font-size:13px; margin:-6px 0 12px;"></div>
-    <button class="primary" id="authSubmitBtn" style="width:100%;">Log In</button>
-    <button class="secondary" id="gateSettingsBtn" style="width:100%; margin-top:8px;">Backend URL / Other Settings</button>
-  </div>
-</div>
 <div class="modal" id="settingsModal">
   <div class="modalbox">
     <button class="closebtn" id="closeSettings">✕</button>
-
     <h3>Settings</h3>
-    <div class="field">
-      <label>Backend URL</label>
-      <input type="text" id="appsScriptUrl" placeholder="https://crate-log-proxy....workers.dev/">
-      <small style="display:block;color:var(--dim);margin-top:6px;">The Cloudflare Worker URL — same for everyone using this app.</small>
-    </div>
-    <div class="field">
-      <label>Account</label>
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:8px;">
-        <span id="accountEmailDisplay" style="font-size:13px; color:var(--text);">Not logged in</span>
-        <button class="secondary" id="logoutBtn" style="width:auto; padding:6px 12px; font-size:12px; margin:0;">Log Out</button>
-      </div>
-    </div>
     <div class="row2">
       <div class="field"><label>Flag as expensive if over</label>
         <input type="text" id="expensiveThreshold" inputmode="decimal" placeholder="50">
@@ -554,16 +645,13 @@
         <input type="text" id="rareThreshold" inputmode="numeric" placeholder="100">
       </div>
     </div>
-    <small style="display:block;color:var(--dim);margin:-6px 0 16px;">"Rare" is based on how many Discogs users own a copy.</small>
-    <button class="primary" id="saveSettingsBtn">Save Settings</button>
-    <button class="secondary" style="width:100%;margin-top:8px" id="testConnBtn">Test Connection</button>
+    <small style="display:block;color:var(--dim);margin:-6px 0 20px;">"Rare" is based on how many Discogs users own a copy.</small>
 
-    <div class="panel-header" style="margin-top:24px;cursor:pointer;padding:0;" onclick="$('adminSection').style.display = $('adminSection').style.display === 'none' ? 'block' : 'none';">
-      <h3 style="margin:0;">Add a user (admin only, legacy)</h3>
+    <div class="panel-header" style="cursor:pointer;padding:0;" onclick="$('adminSection').style.display = $('adminSection').style.display === 'none' ? 'block' : 'none';">
+      <h3 style="margin:0;">Add a user (admin only)</h3>
       <span class="toggle-icon">▼</span>
     </div>
     <div id="adminSection" style="display:none; margin-top:12px;">
-      <small style="display:block;color:var(--dim);margin-bottom:10px;">Old access-key flow — new users should just use Sign Up instead.</small>
       <div class="field">
         <label>Admin Key</label>
         <input type="text" id="adminKeyInput" placeholder="Only you know this">
@@ -574,67 +662,21 @@
       </div>
       <button class="secondary" style="width:100%;" id="createUserBtn">Generate Access Key</button>
       <div id="newUserResult" style="display:none; margin-top:12px; padding:12px; background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:8px; font-size:13px;"></div>
-
-      <h4 style="margin-top:20px; margin-bottom:8px; font-size:13px; color:var(--dim); text-transform:uppercase; letter-spacing:0.04em;">Reset a User's Password</h4>
-      <small style="display:block;color:var(--dim);margin-bottom:10px;">
-        For when someone's forgotten theirs. Open <code>generate_password_hash.html</code>
-        locally, generate a new hash for them, then paste the hash + salt it gives you here.
-      </small>
-      <div class="field">
-        <label>Their email</label>
-        <input type="email" id="resetPwEmail" placeholder="them@example.com">
-      </div>
-      <div class="field">
-        <label>New Password Hash (from generate_password_hash.html)</label>
-        <input type="text" id="resetPwHash" placeholder="Paste generated hash">
-      </div>
-      <div class="field">
-        <label>New Password Salt (from generate_password_hash.html)</label>
-        <input type="text" id="resetPwSalt" placeholder="Paste generated salt">
-      </div>
-      <button class="secondary" style="width:100%;" id="resetPwBtn">Reset Password</button>
     </div>
 
-    <h3 style="margin-top:24px;">Give a User Access to Your Crates</h3>
-    <small style="display:block;color:var(--dim);margin-top:-8px;margin-bottom:12px;">For other people who've signed up in this app — they'll see the crate in their own dashboard, no link needed. They can look, but can't add or edit anything.</small>
+    <h3 style="margin-top:28px;">Connection</h3>
     <div class="field">
-      <label>Their email</label>
-      <input type="email" id="grantEmailInput" placeholder="friend@example.com">
+      <label>Backend URL</label>
+      <input type="text" id="appsScriptUrl" placeholder="https://crate-log-proxy....workers.dev/">
+      <small style="display:block;color:var(--dim);margin-top:6px;">The Cloudflare Worker URL — same for everyone using this app.</small>
     </div>
     <div class="field">
-      <label>Which crate</label>
-      <select id="grantCrateSelect"><option value="">Everything</option></select>
+      <label>Your Access Key</label>
+      <input type="text" id="accessKey" placeholder="Paste the personal key you were given">
+      <small style="display:block;color:var(--dim);margin-top:6px;">Each person has their own — this is what keeps your collection separate from everyone else's.</small>
     </div>
-    <button class="secondary" style="width:100%;" id="grantAccessBtn">Grant Access</button>
-    <div id="grantedUsersList" style="margin-top:14px;"></div>
-
-    <h3 style="margin-top:24px;">Crates</h3>
-    <small style="display:block;color:var(--dim);margin-top:-8px;margin-bottom:12px;">Your own way of grouping records — could be people, genres, shelves, whatever makes sense to you.</small>
-    <div id="collEditList"></div>
-    <div class="addcollrow">
-      <input type="text" id="newCollName" placeholder="New crate name">
-      <input type="color" id="newCollColor" value="#7C8FA6">
-      <button class="secondary" id="addCollBtn">Add</button>
-    </div>
-    <small style="display:block;color:var(--dim);margin-top:10px">Adding/Renaming only relabels the chips — records already saved keep the name they were saved under.</small>
-
-    <h3 style="margin-top:24px;">Share a Crate</h3>
-    <small style="display:block;color:var(--dim);margin-top:-8px;margin-bottom:12px;">Gives someone a read-only link — they can look, but can't add or edit anything. They can request to borrow a specific record instead.</small>
-    <div class="field">
-      <label>Which crate</label>
-      <select id="shareCrateSelect"><option value="">Everything</option></select>
-    </div>
-    <div class="field">
-      <label>Label (optional, helps you remember why you shared it)</label>
-      <input type="text" id="shareLabelInput" placeholder="e.g. For Jordan">
-    </div>
-    <button class="secondary" style="width:100%;" id="createShareBtn">Create Share Link</button>
-    <div id="shareLinkResult" style="display:none; margin-top:12px; padding:12px; background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:8px; font-size:13px;"></div>
-    <div id="activeSharesList" style="margin-top:14px;"></div>
-
-    <h3 style="margin-top:24px;">Crates Shared With Me</h3>
-    <small style="display:block;color:var(--dim);margin-top:-8px;margin-bottom:12px;">Other users' crates you've been given access to.</small>
-    <div id="grantsToMeList"><div class="scanhint">None yet.</div></div>
+    <button class="primary" id="saveSettingsBtn">Save Settings</button>
+    <button class="secondary" style="width:100%;margin-top:8px" id="testConnBtn">Test Connection</button>
   </div>
 </div>
 <div class="modal" id="crateOnboardModal">
@@ -666,7 +708,6 @@ let lastReleaseData = null;
 let discsTotal = 1;
 let discsPresent = 1;
 let currentFavourite = false;
-let currentOwnerPhoto = ''; // base64 data URI of the user's own photo of this copy, if any
 let toastTimer = null;
 let currentRowIndex = null;
 let searchDebounce = null;
@@ -686,13 +727,11 @@ let lastOpenedFrom = 'collection';
 let expensiveThreshold = 50;
 let rareThreshold = 100;
 let accessKey = "";
-let sessionToken = "";
-let currentUser = null; // { userId, displayName, email }
-let viewingGranted = null; // { ownerUserId, ownerName, crateName } when viewing someone else's crate via a permission grant
 let lastBrowseResults = [];
 let browseGenreFilter = '';
 let browseFormatFilter = '';
 let selectedRowIds = new Set();
+let browseViewMode = 'table';
 
 // Points at the Cloudflare Worker proxy, NOT the Apps Script URL directly.
 // The Worker injects the access key server-side, so nothing secret lives here.
@@ -743,11 +782,12 @@ function updateExternalLinks(artist, title, explicitUrl) {
 });
 
 async function loadCollections(){
+  let hadLocal = false;
   try{
     const v = localStorage.getItem('crate-log-collections');
     if(v){
       const saved = JSON.parse(v);
-      if(Array.isArray(saved) && saved.length) collections = saved;
+      if(Array.isArray(saved) && saved.length){ collections = saved; hadLocal = true; }
     } else {
       isFirstRunCrates = true;
     }
@@ -755,7 +795,29 @@ async function loadCollections(){
   if(!collections.find(c => c.id === activeCollectionId)) activeCollectionId = collections[0].id;
   syncCollectionUI();
   renderCollEditList();
-  if(isFirstRunCrates) showCrateOnboarding();
+  if(isFirstRunCrates && !accessKey) showCrateOnboarding(); // no account yet — nothing to pull from the server
+
+  // Pull the account's real crates from the server (works across devices/browsers)
+  if(appsScriptUrl && accessKey){
+    try{
+      const j = await callScript({action:'getCrates'});
+      if(j.status === 'ok'){
+        if(Array.isArray(j.crates) && j.crates.length){
+          collections = j.crates;
+          isFirstRunCrates = false;
+          if(!collections.find(c => c.id === activeCollectionId)) activeCollectionId = collections[0].id;
+          try{ localStorage.setItem('crate-log-collections', JSON.stringify(collections)); }catch(e){}
+          syncCollectionUI();
+          renderCollEditList();
+        } else if(hadLocal){
+          // Server has nothing yet but this browser does — one-time migration up to the account
+          await callScript({action:'saveCrates', crates: collections});
+        } else if(isFirstRunCrates){
+          showCrateOnboarding();
+        }
+      }
+    }catch(e){ /* offline or not set up yet — keep using whatever loaded locally */ }
+  }
 }
 
 function showCrateOnboarding(){
@@ -772,6 +834,9 @@ $('crateOnboardSkipBtn').onclick = ()=>{
 };
 async function persistCollections(){
   try{ localStorage.setItem('crate-log-collections', JSON.stringify(collections)); }catch(e){}
+  if(appsScriptUrl && accessKey){
+    try{ await callScript({action:'saveCrates', crates: collections}); }catch(e){ /* will sync next successful load */ }
+  }
 }
 
 function renderBrowseFilters(){
@@ -784,7 +849,28 @@ function renderBrowseFilters(){
     html += `<button class="chip ${isActive ? 'active' : ''}" style="${style}" onclick="toggleBrowseFilter('${c.id}')">${escHtml(c.name)}</button>`;
   });
   html += `<button class="chip ${browseFavOnly ? 'active' : ''}" onclick="toggleFavFilter()">★ Favourites</button>`;
+  html += `<button class="chip" id="quickAddCrateBtn" title="Add a crate" onclick="toggleQuickAddCrate()">+</button>`;
   wrap.innerHTML = html;
+}
+
+function toggleQuickAddCrate(){
+  const row = $('quickAddCrateRow');
+  const open = row.style.display !== 'none';
+  row.style.display = open ? 'none' : 'flex';
+  if(!open){ $('quickAddCrateName').value = ''; $('quickAddCrateName').focus(); }
+}
+function submitQuickAddCrate(){
+  const name = $('quickAddCrateName').value.trim();
+  if(!name){ toast('Give the crate a name', true); return; }
+  if(collections.some(c => c.name.toLowerCase() === name.toLowerCase())){ toast('You already have a crate called that', true); return; }
+  const id = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || ('crate-' + Date.now());
+  collections.push({ id, name, color: $('quickAddCrateColor').value });
+  persistCollections();
+  renderBrowseFilters();
+  renderCollEditList();
+  populateShareCrateSelect();
+  toggleQuickAddCrate();
+  toast('Added "' + name + '"');
 }
 
 window.toggleFavFilter = function(){
@@ -831,15 +917,6 @@ function pickTextColor(hex){
     const lum = (0.299*r + 0.587*g + 0.114*b)/255;
     return lum > 0.6 ? '#14120F' : '#F2EDE4';
   }catch(e){ return '#14120F'; }
-}
-
-function crateChipHtml(name){
-  if(!name) return '';
-  const c = collections.find(x => x.name === name);
-  const color = c ? c.color : '#7C8FA6';
-  return '<span style="display:inline-flex; align-items:center; gap:6px;">' +
-    '<span style="width:9px; height:9px; border-radius:50%; background:' + escHtml(color) + '; flex:0 0 auto;"></span>' +
-    escHtml(name) + '</span>';
 }
 
 function syncCollectionUI(){
@@ -958,130 +1035,35 @@ async function loadSettings(){
       expensiveThreshold = s.expensiveThreshold != null ? s.expensiveThreshold : 50;
       rareThreshold = s.rareThreshold != null ? s.rareThreshold : 100;
       accessKey = s.accessKey || "";
-      sessionToken = s.sessionToken || "";
     }
   }catch(e){}
   $('appsScriptUrl').value = appsScriptUrl;
   $('expensiveThreshold').value = expensiveThreshold;
   $('rareThreshold').value = rareThreshold;
+  $('accessKey').value = accessKey;
   if(!appsScriptUrl || appsScriptUrl.indexOf('REPLACE_WITH') === 0){
     setTimeout(()=> $('settingsModal').classList.add('show'), 400);
-    return;
-  }
-  if(sessionToken){
-    try{
-      const j = await callScript({action:'me'});
-      if(j.status === 'ok'){
-        currentUser = { userId: j.userId, displayName: j.displayName, email: j.email };
-        $('accountEmailDisplay').textContent = j.email || j.displayName;
-        return;
-      }
-    }catch(e){}
-    // Session invalid/expired — fall through to login gate
-    sessionToken = "";
-  }
-  if(!accessKey){
-    setTimeout(()=> showAuthGate('login'), 300);
   }
 }
 async function saveSettings(){
   appsScriptUrl = $('appsScriptUrl').value.trim();
   expensiveThreshold = parseFloat($('expensiveThreshold').value) || 50;
   rareThreshold = parseInt($('rareThreshold').value, 10) || 100;
+  accessKey = $('accessKey').value.trim();
   try{
-    persistSettings();
+    localStorage.setItem('crate-log-settings', JSON.stringify({appsScriptUrl, expensiveThreshold, rareThreshold, accessKey}));
     toast('Settings saved');
     $('settingsModal').classList.remove('show');
+    loadCollections(); // pull this account's crates now that the key may have changed
   }catch(e){ toast('Could not save settings', true); }
 }
-function persistSettings(){
-  localStorage.setItem('crate-log-settings', JSON.stringify({appsScriptUrl, expensiveThreshold, rareThreshold, accessKey, sessionToken}));
-}
-
-// ---------- Auth (login / signup) ----------
-let authMode = 'login';
-function showAuthGate(mode){
-  authMode = mode;
-  $('authTabLogin').classList.toggle('active', mode === 'login');
-  $('authTabSignup').classList.toggle('active', mode === 'signup');
-  $('authDisplayNameField').style.display = mode === 'signup' ? 'block' : 'none';
-  $('authHeading').textContent = mode === 'signup' ? 'Sign Up' : 'Log In';
-  $('authSubmitBtn').textContent = mode === 'signup' ? 'Sign Up' : 'Log In';
-  $('authError').style.display = 'none';
-  $('accessGateModal').classList.add('show');
-}
-$('authTabLogin').onclick = ()=> showAuthGate('login');
-$('authTabSignup').onclick = ()=> showAuthGate('signup');
-
-async function submitAuth(){
-  const email = $('authEmail').value.trim();
-  const password = $('authPassword').value;
-  const displayName = $('authDisplayName').value.trim();
-  $('authError').style.display = 'none';
-  $('authSubmitBtn').disabled = true;
-  try{
-    const payload = authMode === 'signup'
-      ? {action:'signup', email, password, displayName}
-      : {action:'login', email, password};
-    const res = await fetch(appsScriptUrl, {method:'POST', body: JSON.stringify(payload)});
-    const j = await res.json();
-    if(j.status === 'ok'){
-      sessionToken = j.sessionToken;
-      currentUser = { userId: j.userId, displayName: j.displayName, email: j.email };
-      persistSettings();
-      $('accountEmailDisplay').textContent = j.email || j.displayName;
-      $('accessGateModal').classList.remove('show');
-      toast(authMode === 'signup' ? 'Account created!' : 'Logged in');
-      loadCollections();
-      loadLog();
-      runBrowse('');
-      refreshBorrowRequests();
-      refreshGrantsToMe();
-    } else {
-      $('authError').textContent = j.message || 'Something went wrong';
-      $('authError').style.display = 'block';
-    }
-  }catch(e){
-    $('authError').textContent = 'Request failed — check connection';
-    $('authError').style.display = 'block';
-  }
-  $('authSubmitBtn').disabled = false;
-}
-$('authSubmitBtn').onclick = submitAuth;
-[$('authEmail'), $('authPassword'), $('authDisplayName')].forEach(el=>{
-  el.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') submitAuth(); });
-});
-$('gateSettingsBtn').onclick = ()=>{
-  $('accessGateModal').classList.remove('show');
-  $('settingsModal').classList.add('show');
-};
-$('logoutBtn').onclick = async ()=>{
-  try{ await callScript({action:'logout'}); }catch(e){}
-  sessionToken = "";
-  currentUser = null;
-  persistSettings();
-  $('settingsModal').classList.remove('show');
-  toast('Logged out');
-  location.reload();
-};
-
-function isLoggedIn(){ return !!(sessionToken || accessKey); }
 
 function callScript(payload){
-  const body = {...payload};
-  if(sessionToken) body.sessionToken = sessionToken;
-  else if(accessKey) body.accessKey = accessKey;
+  const body = accessKey ? {...payload, accessKey} : payload;
   return fetch(appsScriptUrl, {method:'POST', body: JSON.stringify(body)}).then(res => res.json());
 }
 
-$('settingsBtn').onclick = ()=> {
-  $('settingsModal').classList.add('show');
-  populateShareCrateSelect();
-  populateGrantCrateSelect();
-  refreshActiveShares();
-  refreshGrantedUsers();
-  refreshGrantsToMe();
-};
+$('settingsBtn').onclick = ()=> { $('settingsModal').classList.add('show'); };
 $('closeSettings').onclick = ()=> $('settingsModal').classList.remove('show');
 
 function openZoomModal(src) {
@@ -1092,62 +1074,6 @@ function openZoomModal(src) {
 $('cardCover').onclick = ()=> openZoomModal($('cardCover').src);
 $('closeZoom').onclick = ()=> $('zoomModal').classList.remove('show');
 $('zoomModal').onclick = (e)=>{ if(e.target.id === 'zoomModal') $('zoomModal').classList.remove('show'); };
-
-// ---------- Owner's own photo of their copy (separate from the Discogs cover art) ----------
-function setOwnerPhoto(dataUri){
-  currentOwnerPhoto = dataUri || '';
-  if(currentOwnerPhoto){
-    $('ownerPhotoPreview').src = currentOwnerPhoto;
-    $('ownerPhotoWrap').style.display = 'block';
-  } else {
-    $('ownerPhotoPreview').src = '';
-    $('ownerPhotoWrap').style.display = 'none';
-  }
-}
-$('ownerPhotoPreview').onclick = ()=> openZoomModal(currentOwnerPhoto);
-$('addOwnerPhotoBtn').onclick = ()=> $('ownerPhotoInput').click();
-$('removeOwnerPhotoBtn').onclick = ()=> setOwnerPhoto('');
-
-// Downscales + re-encodes as JPEG client-side so a phone photo (often several MB)
-// doesn't turn into a multi-MB base64 blob going into the database on every save.
-function compressImageFile(file, maxDim, quality){
-  return new Promise((resolve, reject)=>{
-    const reader = new FileReader();
-    reader.onerror = ()=> reject(new Error('Could not read file'));
-    reader.onload = ()=>{
-      const img = new Image();
-      img.onerror = ()=> reject(new Error('Could not load image'));
-      img.onload = ()=>{
-        let w = img.width, h = img.height;
-        if(w > h && w > maxDim){ h = Math.round(h * maxDim / w); w = maxDim; }
-        else if(h > maxDim){ w = Math.round(w * maxDim / h); h = maxDim; }
-        const canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL('image/jpeg', quality));
-      };
-      img.src = reader.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-$('ownerPhotoInput').onchange = async ()=>{
-  const file = $('ownerPhotoInput').files[0];
-  $('ownerPhotoInput').value = '';
-  if(!file) return;
-  if(!file.type.startsWith('image/')){ toast('Please choose an image file', true); return; }
-  $('addOwnerPhotoBtn').disabled = true;
-  $('addOwnerPhotoBtn').textContent = 'Processing…';
-  try{
-    const compressed = await compressImageFile(file, 1200, 0.8);
-    setOwnerPhoto(compressed);
-  }catch(e){
-    toast('Could not process that photo', true);
-  }
-  $('addOwnerPhotoBtn').disabled = false;
-  $('addOwnerPhotoBtn').textContent = 'Add / Replace Photo';
-};
-
 $('saveSettingsBtn').onclick = saveSettings;
 $('testConnBtn').onclick = async ()=>{
   if(!appsScriptUrl){ toast('Enter a valid URL first', true); return; }
@@ -1179,30 +1105,6 @@ $('createUserBtn').onclick = async ()=>{
     }
   }catch(e){ toast('Request failed — check connection', true); }
   $('createUserBtn').disabled = false;
-};
-
-$('resetPwBtn').onclick = async ()=>{
-  const adminKey = $('adminKeyInput').value.trim();
-  const email = $('resetPwEmail').value.trim();
-  const newPasswordHash = $('resetPwHash').value.trim();
-  const newPasswordSalt = $('resetPwSalt').value.trim();
-  if(!appsScriptUrl){ toast('Set the Backend URL first', true); return; }
-  if(!adminKey){ toast('Enter the admin key above', true); return; }
-  if(!email || !newPasswordHash || !newPasswordSalt){ toast('Fill in email, hash, and salt', true); return; }
-  $('resetPwBtn').disabled = true;
-  try{
-    const res = await fetch(appsScriptUrl, {method:'POST', body: JSON.stringify({action:'resetPassword', adminKey, email, newPasswordHash, newPasswordSalt})});
-    const j = await res.json();
-    if(j.status === 'ok'){
-      toast('Password reset — they can log in with the new password now');
-      $('resetPwEmail').value = '';
-      $('resetPwHash').value = '';
-      $('resetPwSalt').value = '';
-    } else {
-      toast(j.message || 'Could not reset password', true);
-    }
-  }catch(e){ toast('Request failed — check connection', true); }
-  $('resetPwBtn').disabled = false;
 };
 
 function clearUnifiedSearch(){
@@ -1245,22 +1147,40 @@ $('discardBtn').onclick = () => {
   window.scrollTo({top: 0, behavior: 'smooth'});
 };
 
-// Load/persist the "also search Discogs" toggle preference
-try{ $('alsoSearchDiscogsToggle').checked = localStorage.getItem('crate-log-also-discogs') === '1'; }catch(e){}
-$('discogsSearchBtn').style.display = $('alsoSearchDiscogsToggle').checked ? 'block' : 'none';
+// Search mode: which of Collection / Discogs / Both the typed query searches
+let searchMode = 'collection';
+try{ searchMode = localStorage.getItem('crate-log-search-mode') || 'collection'; }catch(e){}
 
-$('alsoSearchDiscogsToggle').addEventListener('change', ()=>{
-  const on = $('alsoSearchDiscogsToggle').checked;
-  $('discogsSearchBtn').style.display = on ? 'block' : 'none';
-  try{ localStorage.setItem('crate-log-also-discogs', on ? '1' : '0'); }catch(e){}
-  if(!on){
+const SEARCH_MODE_LABELS = { collection: '🚩 Collection', discogs: '🚩 Discogs', both: '🚩 Both' };
+function syncSearchModeUI(mode){
+  document.querySelectorAll('#searchModeToggle .chip').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  $('discogsSearchBtn').style.display = (mode === 'discogs' || mode === 'both') ? 'block' : 'none';
+  $('searchModeToggleBtn').textContent = SEARCH_MODE_LABELS[mode] || SEARCH_MODE_LABELS.collection;
+}
+function toggleSearchModeRow(){
+  const row = $('searchModeToggle');
+  row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+}
+
+function setSearchMode(mode){
+  searchMode = mode;
+  try{ localStorage.setItem('crate-log-search-mode', mode); }catch(e){}
+  syncSearchModeUI(mode);
+  $('searchModeToggle').style.display = 'none';
+  if(mode === 'discogs'){
     $('discogsResultsWrap').style.display = 'none';
     $('discogsResultsList').innerHTML = '';
+    runBrowse('');
   } else {
     const q = $('unifiedSearchInput').value.trim();
-    if(q){ isUpdatingExistingCard = false; runSearch({query: q}); }
+    if(q && mode === 'both'){ isUpdatingExistingCard = false; runSearch({query: q}); }
+    runBrowse(q);
   }
+}
+document.querySelectorAll('#searchModeToggle .chip').forEach(b=>{
+  b.onclick = ()=> setSearchMode(b.dataset.mode);
 });
+syncSearchModeUI(searchMode); // safe at load — no network calls yet
 
 $('discogsSearchBtn').onclick = ()=>{
   isUpdatingExistingCard = false;
@@ -1273,10 +1193,12 @@ $('unifiedSearchInput').addEventListener('input', ()=>{
   clearTimeout(searchDebounce);
   const q = $('unifiedSearchInput').value.trim();
   $('clearSearchBtn').style.display = q ? 'inline-block' : 'none';
-  searchDebounce = setTimeout(()=> runBrowse(q), 300);
+  if(searchMode !== 'discogs'){
+    searchDebounce = setTimeout(()=> runBrowse(q), 300);
+  }
 });
 $('unifiedSearchInput').addEventListener('keydown', e=>{
-  if(e.key === 'Enter' && $('alsoSearchDiscogsToggle').checked) {
+  if(e.key === 'Enter' && (searchMode === 'discogs' || searchMode === 'both')) {
     isUpdatingExistingCard = false;
     runSearch({query: $('unifiedSearchInput').value.trim()});
   }
@@ -1315,16 +1237,12 @@ function startUpdateFromDiscogs(e, idx) {
   loadFromLogRecord(r);
   showDashboard(false);
   isUpdatingExistingCard = true;
-  // Always search by artist + title — this is "view other pressings of this record",
-  // not a general Discogs search, so barcode/fuzzy matching would surface unrelated releases.
-  const q = ((r.artist||'') + ' ' + (r.title||'')).trim();
+  const q = (r.barcode || (r.artist + ' ' + r.title)).trim();
   $('unifiedSearchInput').value = q;
-  $('alsoSearchDiscogsToggle').checked = true;
-  $('discogsSearchBtn').style.display = 'block';
+  setSearchMode('both');
   $('searchPanel').classList.remove('collapsed');
   window.scrollTo({top:0, behavior:'smooth'});
-  runSearch({query: q});
-  toast('Pick the matching pressing below to fill in price & missing data', false);
+  toast('Select a Discogs pressing below to fill missing data', false);
 }
 
 async function applyDiscogsUpdate(r, artist, title) {
@@ -1424,7 +1342,7 @@ function renderSearchResults(results){
       <tr data-search-idx="${i}" style="${isDup ? 'background:rgba(232,170,85,0.05);' : ''}">
         <td class="col-art">${thumb ? `<img class="table-thumb" loading="lazy" src="${escHtml(thumb)}" alt="" onclick="event.stopPropagation(); openZoomModal('${escHtml(thumb)}')">` : ''}</td>
         <td class="col-artist">${escHtml(artist)}</td>
-        <td class="col-title">${escHtml(title)}${r.master_id ? `<br><a href="#" class="unsure-link" data-unsure-idx="${i}" onclick="event.stopPropagation()" style="font-size:11px; color:var(--dim); text-decoration:underline;">Unsure? Other pressings</a>` : ''}</td>
+        <td class="col-title">${escHtml(title)}</td>
         <td>${escHtml(r.year||'')}</td>
         <td>${escHtml(r.country||'')}</td>
         <td>${escHtml((r.format||[]).join(', '))}</td>
@@ -1432,12 +1350,11 @@ function renderSearchResults(results){
         <td>${escHtml(catnoStr)}</td>
         <td class="col-action"><button class="add-btn">${isUpdatingExistingCard ? 'Select' : 'Add +'}</button></td>
       </tr>
-      <tr data-unsure-row-idx="${i}" style="display:none;"><td colspan="9" style="padding:8px 10px; background:rgba(255,255,255,0.02);"><div class="scanhint" data-unsure-list-idx="${i}">Loading…</div></td></tr>
     `;
   });
   html += `</tbody></table></div>`;
   list.innerHTML = html;
-  list.querySelectorAll('tbody tr[data-search-idx]').forEach((tr, i) => {
+  list.querySelectorAll('tbody tr').forEach((tr, i) => {
     tr.onclick = () => {
       const r = results[i];
       const parts = (r.title||'').split(' - ');
@@ -1449,36 +1366,6 @@ function renderSearchResults(results){
          lastOpenedFrom = 'discogs';
          selectCandidate(r, artist, title);
       }
-    };
-  });
-  list.querySelectorAll('.unsure-link').forEach(a => {
-    a.onclick = async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const i = parseInt(a.dataset.unsureIdx, 10);
-      const row = list.querySelector('tr[data-unsure-row-idx="' + i + '"]');
-      const target = list.querySelector('[data-unsure-list-idx="' + i + '"]');
-      const open = row.style.display !== 'none';
-      row.style.display = open ? 'none' : 'table-row';
-      if (open || target.dataset.loaded) return;
-      target.innerHTML = 'Loading…';
-      try{
-        const data = await callScript({action:'versions', master_id: results[i].master_id});
-        const versions = (data.versions||[]).slice(0,10);
-        target.innerHTML = (versions.length ? 'Other pressings of this release — tap one to use it instead:<br>' : 'No other pressings found.') +
-          versions.map((v,vi) => {
-            const bits = [v.released||v.year||'', v.format||'', v.country||'', v.catno?('#'+v.catno):''].filter(Boolean).join(' · ');
-            return `<div class="mb-item" style="cursor:pointer;" data-swap-vi="${vi}"><img src="${v.thumb||''}"><div>${escHtml(bits)}</div></div>`;
-          }).join('');
-        target.dataset.loaded = '1';
-        target.querySelectorAll('[data-swap-vi]').forEach(el => {
-          el.onclick = () => {
-            const v = versions[parseInt(el.dataset.swapVi, 10)];
-            if (isUpdatingExistingCard) applyDiscogsUpdate(v, results[i].artist, results[i].title);
-            else { lastOpenedFrom = 'discogs'; const parts = (results[i].title||'').split(' - '); const artist = parts.length>1?parts[0]:(results[i].artist||''); const title = parts.length>1?parts.slice(1).join(' - '):(results[i].title||''); selectCandidate(v, artist, title); }
-          };
-        });
-      }catch(e){ target.innerHTML = 'Could not load pressings.'; }
     };
   });
   list.style.display='block';
@@ -1527,12 +1414,7 @@ function computeStats(list){
     const artist = String(r.artist||'').trim();
     if(artist) s.byArtist[artist] = (s.byArtist[artist]||0) + 1;
     String(r.genre||'').split(',').map(g=>g.trim()).filter(Boolean).forEach(g=>{
-      // Case-insensitive merge so existing "rock"/"Rock" data doesn't split the stat —
-      // first-seen casing wins as the display label.
-      const key = g.toLowerCase();
-      if(!s._genreKeyToLabel) s._genreKeyToLabel = {};
-      const label = s._genreKeyToLabel[key] || (s._genreKeyToLabel[key] = g);
-      s.byGenre[label] = (s.byGenre[label]||0) + 1;
+      s.byGenre[g] = (s.byGenre[g]||0) + 1;
     });
   });
   return s;
@@ -1605,90 +1487,6 @@ $('exportCsvBtn').onclick = async ()=>{
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
   toast('Exported ' + list.length + ' records');
-};
-
-$('printSummaryBtn').onclick = ()=>{
-  if(collectionCache === null){ toast('Load your collection first', true); return; }
-  const list = collectionCache || [];
-  if(!list.length){ toast('Nothing to summarize yet', true); return; }
-
-  const byColl = {};
-  list.forEach(r=>{
-    const c = (r.collection||'').trim() || 'Unassigned';
-    (byColl[c] = byColl[c] || []).push(r);
-  });
-  const crateNames = Object.keys(byColl).sort();
-
-  let totalValue = 0, pricedCount = 0;
-  list.forEach(r=>{
-    const v = parseFloat(r.estimatedValue);
-    if(!isNaN(v) && v > 0){ totalValue += v; pricedCount++; }
-  });
-
-  const today = new Date().toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'});
-  const ownerLabel = (currentUser && (currentUser.displayName || currentUser.email)) || '';
-
-  let bodyHtml = '';
-  crateNames.forEach(crate=>{
-    const rows = byColl[crate];
-    let crateValue = 0;
-    rows.sort((a,b)=> (a.artist||'').localeCompare(b.artist||''));
-    bodyHtml += '<h2>' + escHtml(crate) + ' <span class="count">(' + rows.length + ')</span></h2>';
-    bodyHtml += '<table><thead><tr><th>Artist</th><th>Title</th><th>Year</th><th>Format</th><th>Media</th><th>Sleeve</th><th>Value</th></tr></thead><tbody>';
-    rows.forEach(r=>{
-      const v = parseFloat(r.estimatedValue);
-      if(!isNaN(v) && v > 0) crateValue += v;
-      bodyHtml += '<tr>' +
-        '<td>' + escHtml(r.artist||'') + '</td>' +
-        '<td>' + escHtml(r.title||'') + '</td>' +
-        '<td>' + escHtml(r.year||'') + '</td>' +
-        '<td>' + escHtml(r.format||'') + '</td>' +
-        '<td>' + escHtml(r.mediaCondition||'') + '</td>' +
-        '<td>' + escHtml(r.sleeveCondition||'') + '</td>' +
-        '<td>' + (!isNaN(v) && v > 0 ? '$' + v.toFixed(2) : '') + '</td>' +
-      '</tr>';
-    });
-    bodyHtml += '</tbody></table>';
-    bodyHtml += '<div class="crate-total">Crate value: $' + crateValue.toFixed(2) + '</div>';
-  });
-
-  const doc = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Crate Log — Collection Summary</title>
-<style>
-  body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; max-width: 900px; margin: 30px auto; padding: 0 20px; }
-  header { display:flex; justify-content:space-between; align-items:baseline; border-bottom: 2px solid #1a1a1a; padding-bottom: 10px; margin-bottom: 20px; }
-  header h1 { font-size: 22px; margin: 0; }
-  header .meta { font-size: 12px; color: #555; text-align: right; }
-  .summary-bar { display:flex; gap:30px; margin-bottom: 30px; font-size: 13px; }
-  .summary-bar b { font-size: 18px; display:block; }
-  h2 { font-size: 15px; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 28px; }
-  h2 .count { font-weight: normal; color: #666; font-size: 12px; }
-  table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 6px; }
-  th, td { text-align: left; padding: 4px 6px; border-bottom: 1px solid #e0e0e0; }
-  th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em; color: #666; border-bottom: 1px solid #999; }
-  td:last-child, th:last-child { text-align: right; }
-  .crate-total { text-align: right; font-size: 12px; font-weight: bold; margin-top: 4px; }
-  footer { margin-top: 40px; font-size: 10px; color: #888; border-top: 1px solid #ccc; padding-top: 8px; }
-  @media print { body { margin: 0; } h2 { page-break-after: avoid; } tr { page-break-inside: avoid; } }
-</style></head><body>
-<header>
-  <h1>Crate Log — Collection Summary</h1>
-  <div class="meta">${ownerLabel ? escHtml(ownerLabel) + '<br>' : ''}${today}</div>
-</header>
-<div class="summary-bar">
-  <div><b>${list.length}</b>Total Records</div>
-  <div><b>${crateNames.length}</b>Crates</div>
-  <div><b>$${totalValue.toFixed(2)}</b>Estimated Total Value</div>
-  <div><b>${pricedCount}</b>Records with a Value on File</div>
-</div>
-${bodyHtml}
-<footer>Generated by Crate Log on ${today}. Estimated values are self-reported / Discogs marketplace estimates at time of entry, not an appraisal.</footer>
-</body></html>`;
-
-  const w = window.open('', '_blank');
-  if(!w){ toast('Allow pop-ups to open the print view', true); return; }
-  w.document.write(doc);
-  w.document.close();
-  w.onload = ()=> w.print();
 };
 
 // Minimal RFC4180-ish CSV parser — handles quoted fields, embedded commas/newlines, escaped quotes
@@ -1766,12 +1564,262 @@ function applyBrowseSortAndFilter(){
   if(browseFavOnly) list = list.filter(r=> r.favourite === 'Yes');
   if(browseGenreFilter) list = list.filter(r=> String(r.genre||'').split(',').map(g=>g.trim()).includes(browseGenreFilter));
   if(browseFormatFilter) list = list.filter(r=> String(r.format||'').split(',').map(f=>f.trim()).includes(browseFormatFilter));
+
+  if(browseViewMode === 'crate'){
+    renderCrate3DView(list);
+    return;
+  }
+  if(browseViewMode === 'wall'){
+    renderRecordWallView(list);
+    return;
+  }
+  clearAmbientGlow();
+
   const dir = browseSortDir;
   if(browseSortMode === 'artist') list.sort((a,b)=> dir * (a.artist||'').localeCompare(b.artist||''));
   else if(browseSortMode === 'title') list.sort((a,b)=> dir * (a.title||'').localeCompare(b.title||''));
   else if(browseSortMode === 'year') list.sort((a,b)=> dir * ((parseInt(a.year,10)||0) - (parseInt(b.year,10)||0)));
   else if(browseSortMode === 'price') list.sort((a,b)=> dir * ((parseFloat(a.estimatedValue)||0) - (parseFloat(b.estimatedValue)||0)));
   renderBrowseResults(list);
+}
+
+function setBrowseViewMode(mode){
+  browseViewMode = mode;
+  try{ localStorage.setItem('crate-log-view-mode', mode); }catch(e){}
+  document.querySelectorAll('#viewModeToggle .chip').forEach(b => b.classList.toggle('active', b.dataset.view === mode));
+  $('collectionResultsList').style.display = mode === 'table' ? 'block' : 'none';
+  $('crateGroupedView').style.display = mode === 'crate' ? 'block' : 'none';
+  $('recordWallView').style.display = mode === 'wall' ? 'block' : 'none';
+  if(mode === 'table') clearAmbientGlow();
+  applyBrowseSortAndFilter();
+}
+try{ browseViewMode = localStorage.getItem('crate-log-view-mode') || 'table'; }catch(e){}
+
+// ---------- Ambient background glow (best-effort dominant color from cover art) ----------
+const colorCache = {};
+function clearAmbientGlow(){
+  $('ambientGlow').classList.remove('active');
+}
+function setAmbientGlowFromImage(url){
+  if(!url){ clearAmbientGlow(); return; }
+  if(colorCache[url]){ applyGlowColor(colorCache[url]); return; }
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = ()=>{
+    try{
+      const c = document.createElement('canvas');
+      c.width = 24; c.height = 24;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0, 24, 24);
+      const data = ctx.getImageData(0, 0, 24, 24).data;
+      let r=0,g=0,b=0,n=0;
+      for(let i=0;i<data.length;i+=4){ r+=data[i]; g+=data[i+1]; b+=data[i+2]; n++; }
+      r = Math.round(r/n); g = Math.round(g/n); b = Math.round(b/n);
+      const color = `rgba(${r},${g},${b},0.18)`;
+      colorCache[url] = color;
+      applyGlowColor(color);
+    }catch(e){
+      // Canvas taints on cross-origin images without permissive CORS headers (common with Discogs-hosted
+      // covers) — fall back to a neutral glow rather than erroring.
+      applyGlowColor('rgba(232,170,85,0.10)');
+    }
+  };
+  img.onerror = ()=> clearAmbientGlow();
+  img.src = url;
+}
+function applyGlowColor(color){
+  const el = $('ambientGlow');
+  el.style.setProperty('--glow-color', color);
+  el.classList.add('active');
+}
+
+// ---------- Record Wall ----------
+function renderRecordWallView(list){
+  clearAmbientGlow();
+  const wrap = $('recordWallView');
+  if(!list.length){ wrap.innerHTML = '<div class="scanhint">Nothing here yet.</div>'; return; }
+  let html = '<div class="wall-grid">';
+  list.forEach(r=>{
+    const thumb = r.coverImage || '';
+    html += `<div class="wall-item" data-row-id="${r.rowIndex}" data-cover="${escHtml(thumb)}">
+        ${thumb ? `<img loading="lazy" src="${escHtml(thumb)}" alt="">` : ''}
+        ${r.favourite === 'Yes' ? '<span class="wall-fav">★</span>' : ''}
+        <div class="wall-overlay">
+          <div class="w-artist">${escHtml(r.artist||'')}</div>
+          <div class="w-title">${escHtml(r.title||'Untitled')}</div>
+        </div>
+      </div>`;
+  });
+  html += '</div>';
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('.wall-item').forEach(el=>{
+    el.addEventListener('mouseenter', ()=> setAmbientGlowFromImage(el.dataset.cover));
+    el.onclick = ()=>{
+      const id = parseInt(el.dataset.rowId, 10);
+      const r = lastBrowseResults.find(x => x.rowIndex === id);
+      if(!r) return;
+      lastOpenedFrom = 'collection';
+      loadFromLogRecord(r);
+    };
+  });
+}
+
+// ---------- Collection "DNA" dashboard ----------
+const DNA_PALETTE = ['#E8AA55','#8E7CC3','#3E7D75','#B8607A','#9B8C3F','#5B8DBE','#C97B4A','#7DA88A'];
+function computeGenreDNA(records){
+  const counts = {};
+  records.forEach(r=>{
+    String(r.genre||'').split(',').map(g=>g.trim()).filter(Boolean).forEach(g=>{
+      counts[g] = (counts[g]||0) + 1;
+    });
+  });
+  const total = Object.values(counts).reduce((a,b)=>a+b, 0);
+  if(!total) return [];
+  let entries = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  let top = entries.slice(0, 7);
+  const rest = entries.slice(7).reduce((sum,[,c])=>sum+c, 0);
+  if(rest > 0) top.push(['Other', rest]);
+  return top.map(([name,count], i)=> ({ name, pct: Math.round(count/total*100), color: DNA_PALETTE[i % DNA_PALETTE.length] }));
+}
+function renderDNABar(records){
+  const dna = computeGenreDNA(records);
+  if(!dna.length) return '';
+  return '<div class="dna-bar">' + dna.map(d => `<div class="dna-seg" style="width:${d.pct}%; background:${d.color};" title="${escHtml(d.name)}: ${d.pct}%"></div>`).join('') + '</div>' +
+    '<div class="dna-legend">' + dna.map(d => `<span><span class="dna-dot" style="background:${d.color};"></span>${escHtml(d.name)} ${d.pct}%</span>`).join('') + '</div>';
+}
+
+// ---------- 3D "True Crate" view ----------
+let crate3dSelectedName = null;
+let crate3dStack = [];
+let crate3dFlipping = false;
+
+function renderCrate3DView(list){
+  const wrap = $('crateGroupedView');
+  if(!list.length){ wrap.innerHTML = '<div class="scanhint">Nothing here yet.</div>'; clearAmbientGlow(); return; }
+
+  const byCrate = {};
+  list.forEach(r=>{
+    const name = String(r.collection||'').trim() || 'Unassigned';
+    (byCrate[name] = byCrate[name] || []).push(r);
+  });
+  const orderedNames = collections.map(c=>c.name).filter(n => byCrate[n]);
+  Object.keys(byCrate).forEach(n => { if(!orderedNames.includes(n)) orderedNames.push(n); });
+
+  if(!crate3dSelectedName || !byCrate[crate3dSelectedName]) crate3dSelectedName = orderedNames[0];
+
+  let tabsHtml = '<div class="crate3d-tabs">';
+  orderedNames.forEach(name=>{
+    const crateInfo = collections.find(c=>c.name===name);
+    const color = crateInfo ? crateInfo.color : 'var(--dim)';
+    const active = name === crate3dSelectedName;
+    tabsHtml += `<button class="chip ${active?'active':''}" style="${active?`border-color:${color};color:${color};`:''}" data-crate="${escHtml(name)}">
+        <span class="crate-color-dot" style="background:${color}; margin-right:6px;"></span>${escHtml(name)} (${byCrate[name].length})
+      </button>`;
+  });
+  tabsHtml += '</div>';
+
+  const records = byCrate[crate3dSelectedName].slice().sort((a,b)=>
+    (a.artist||'').localeCompare(b.artist||'') || (a.title||'').localeCompare(b.title||'')
+  );
+
+  // Build the physical stack order: real records with visual-only letter divider cards inserted between groups
+  let lastLetter = null;
+  crate3dStack = [];
+  records.forEach(r=>{
+    const letter = (r.artist||'#').trim().charAt(0).toUpperCase() || '#';
+    if(letter !== lastLetter){
+      crate3dStack.push({ type:'divider', letter });
+      lastLetter = letter;
+    }
+    crate3dStack.push({ type:'record', record: r });
+  });
+
+  wrap.innerHTML = tabsHtml +
+    renderDNABar(records) +
+    `<div class="crate3d-stage" id="crate3dStage"><div class="crate3d-well"></div></div>
+     <div class="crate3d-controls">
+       <button class="secondary" id="crate3dPrevBtn">‹ Flip</button>
+       <button class="primary" id="crate3dOpenBtn" style="width:auto;">View This Record</button>
+     </div>
+     <div class="crate3d-info" id="crate3dInfo"></div>`;
+
+  wrap.querySelectorAll('.crate3d-tabs button').forEach(btn=>{
+    btn.onclick = ()=>{ crate3dSelectedName = btn.dataset.crate; renderCrate3DView(list); };
+  });
+  $('crate3dPrevBtn').onclick = crate3dFlip;
+  $('crate3dOpenBtn').onclick = crate3dOpenFront;
+  crate3dPaintStage();
+}
+
+function crate3dPaintStage(){
+  const stage = $('crate3dStage');
+  if(!stage) return;
+  stage.querySelectorAll('.crate3d-card').forEach(el=>el.remove());
+  const depth = [
+    {scale:1, y:0, z:0, op:1},
+    {scale:0.94, y:-14, z:-40, op:0.85},
+    {scale:0.88, y:-26, z:-80, op:0.6},
+    {scale:0.82, y:-36, z:-120, op:0.35}
+  ];
+  const infoEl = $('crate3dInfo');
+  const openBtn = $('crate3dOpenBtn');
+  const front = crate3dStack[0];
+  if(front && front.type === 'record'){
+    infoEl.textContent = (front.record.artist||'') + ' — ' + (front.record.title||'Untitled');
+    openBtn.style.display = 'inline-block';
+  } else if(front){
+    infoEl.textContent = 'Divider — "' + front.letter + '"';
+    openBtn.style.display = 'none';
+  } else {
+    infoEl.textContent = '';
+  }
+  crate3dStack.slice(0, 4).forEach((item, i)=>{
+    const d = depth[i];
+    const el = document.createElement('div');
+    el.className = 'crate3d-card' + (i===0 ? ' front' : '');
+    el.style.zIndex = 40 - i*10;
+    el.style.opacity = d.op;
+    el.style.transform = `translate(-50%, calc(-50% - ${-d.y}px)) scale(${d.scale}) translateZ(${d.z}px)`;
+    el.style.top = '50%'; el.style.left = '50%';
+    if(item.type === 'divider'){
+      el.classList.add('crate3d-divider');
+      el.textContent = item.letter;
+    } else {
+      const thumb = item.record.coverImage || '';
+      if(thumb) el.style.backgroundImage = `url('${thumb.replace(/'/g,"%27")}')`;
+      const label = document.createElement('div');
+      label.className = 'c3d-label';
+      label.textContent = (item.record.artist||'') + ' – ' + (item.record.title||'');
+      el.appendChild(label);
+      if(i === 0) setAmbientGlowFromImage(thumb);
+    }
+    if(i === 0){
+      el.onclick = crate3dFlip;
+    }
+    stage.appendChild(el);
+  });
+}
+
+function crate3dFlip(){
+  if(crate3dFlipping || crate3dStack.length < 2) return;
+  const stage = $('crate3dStage');
+  const frontEl = stage.querySelector('.crate3d-card.front');
+  if(!frontEl) return;
+  crate3dFlipping = true;
+  frontEl.classList.add('flipping');
+  setTimeout(()=>{
+    const moved = crate3dStack.shift();
+    crate3dStack.push(moved);
+    crate3dFlipping = false;
+    crate3dPaintStage();
+  }, 550);
+}
+
+function crate3dOpenFront(){
+  const front = crate3dStack[0];
+  if(!front || front.type !== 'record') return;
+  lastOpenedFrom = 'collection';
+  loadFromLogRecord(front.record);
 }
 
 const COMMON_GENRES = ['Rock','Pop','Jazz','Blues','Soul','Funk','Hip Hop','Electronic','House','Techno','Disco','Folk','Country','Classical','Reggae','Punk','Metal','Alternative','Indie','R&B','Ambient','Experimental','World','Soundtrack'];
@@ -1801,8 +1849,18 @@ function populateGenreFormatFilters(){
   if([...genreSel.options].some(o=>o.value===gCurrent)) genreSel.value = gCurrent;
   if([...formatSel.options].some(o=>o.value===fCurrent)) formatSel.value = fCurrent;
 }
-$('genreFilterSelect').addEventListener('change', ()=>{ browseGenreFilter = $('genreFilterSelect').value; applyBrowseSortAndFilter(); });
-$('formatFilterSelect').addEventListener('change', ()=>{ browseFormatFilter = $('formatFilterSelect').value; applyBrowseSortAndFilter(); });
+function toggleFilterRow(){
+  const row = $('filterRow');
+  const open = row.style.display !== 'none';
+  row.style.display = open ? 'none' : 'flex';
+  $('filterToggleBtn').classList.toggle('active', !open);
+}
+function updateFilterIcon(){
+  const active = !!(browseGenreFilter || browseFormatFilter);
+  $('filterToggleBtn').textContent = active ? '⚙ Filter •' : '⚙ Filter';
+}
+$('genreFilterSelect').addEventListener('change', ()=>{ browseGenreFilter = $('genreFilterSelect').value; updateFilterIcon(); applyBrowseSortAndFilter(); });
+$('formatFilterSelect').addEventListener('change', ()=>{ browseFormatFilter = $('formatFilterSelect').value; updateFilterIcon(); applyBrowseSortAndFilter(); });
 
 function setBrowseSort(mode){
   if(browseSortMode === mode){
@@ -1910,7 +1968,7 @@ function appendBrowseChunk(){
       '<td class="col-title">' + escHtml(r.title||'Untitled') + '</td>' +
       '<td>' + escHtml(r.year||'') + '</td>' +
       '<td>' + escHtml(r.format||'') + '</td>' +
-      '<td>' + crateChipHtml(r.collection) + '</td>' +
+      '<td>' + escHtml(r.collection||'') + '</td>' +
       '<td>' + gradeBadgeHtml(r.mediaCondition) + '</td>' +
       '<td class="col-price">' + priceStr + '</td>' +
       '<td class="col-action">›</td>';
@@ -2045,8 +2103,6 @@ function selectCandidate(r, artist, title){
   currentSelection = r;
   currentRowIndex = null;
   clearDraft();
-  setOwnerPhoto('');
-  $('valueTrendWrap').style.display = 'none';
   const cover = r.cover_image || r.thumb || '';
   $('cardCover').src = cover;
   $('cardCover').style.visibility = 'visible';
@@ -2074,7 +2130,7 @@ function selectCandidate(r, artist, title){
   setAlert('rareWarning', '', false);
   lastReleaseData = null;
   $('discogsInfoWrap').style.display = 'none';
-  $('discogsInfoList').innerHTML = '';
+  if($('discogsAccordion')) $('discogsAccordion').innerHTML = '';
   $('discStepperWrap').style.display = 'none';
   $('multiDiscToggle').style.display = 'inline-flex';
   $('discConditionRows').innerHTML = '';
@@ -2152,55 +2208,102 @@ function formatTracklist(tracklist){
   if(!tracklist || !tracklist.length) return '';
   return tracklist.map(t=> [t.position, t.title, t.duration ? ('('+t.duration+')') : ''].filter(Boolean).join(' ')).join('\n');
 }
-function buildDiscogsInfoFacts(data){
-  const facts = [];
-  if(data.released) facts.push({label:'Released', value: data.released});
-  if(data.country) facts.push({label:'Country', value: data.country});
-  (data.identifiers||[]).forEach(idf=>{
-    if(!idf.value) return;
-    const label = idf.type + (idf.description ? (' — ' + idf.description) : '');
-    facts.push({label: label || 'Identifier', value: idf.value});
-  });
-  if(data.discogsNotes) facts.push({label:'Discogs Notes', value: data.discogsNotes});
-  (data.videos||[]).forEach(v=>{
-    if(v.url) facts.push({label:'Video', value: (v.title||'Watch') + ' — ' + v.url});
-  });
-  return facts;
+const DISCOGS_ACCORDION_SECTIONS = [
+  { id:'release', label:'Release Details', build: data => {
+      const f = [];
+      if(data.released) f.push({label:'Released', value: data.released});
+      if(data.country) f.push({label:'Country', value: data.country});
+      return f;
+  }},
+  { id:'identifiers', label:'Identifiers', build: data => (data.identifiers||[]).filter(i=>i.value).map(idf => ({
+      label: idf.type + (idf.description ? (' — ' + idf.description) : '') || 'Identifier', value: idf.value
+  }))},
+  { id:'marketplace', label:'Marketplace', build: data => {
+      const f = [];
+      if(typeof data.lowestPrice === 'number') f.push({label:'Lowest Price', value: '$' + data.lowestPrice.toFixed(2)});
+      if(data.numForSale) f.push({label:'For Sale', value: data.numForSale + ' listings'});
+      if(typeof data.haveCount === 'number') f.push({label:'Have', value: String(data.haveCount)});
+      if(typeof data.wantCount === 'number') f.push({label:'Want', value: String(data.wantCount)});
+      return f;
+  }},
+  { id:'notes', label:'Discogs Notes', build: data => data.discogsNotes ? [{label:'Notes', value: data.discogsNotes}] : [] },
+  { id:'videos', label:'Videos', build: data => (data.videos||[]).filter(v=>v.url).map(v => ({label: v.title||'Watch', value: v.url})) }
+];
+
+function loadAccordionDefault(){
+  try{
+    const v = localStorage.getItem('crate-log-accordion-default');
+    if(v) return JSON.parse(v);
+  }catch(e){}
+  return { release: true }; // sensible out-of-the-box default: just the basics open
 }
+let discogsAccordionState = loadAccordionDefault();
+
 function renderDiscogsInfo(data){
-  const facts = buildDiscogsInfoFacts(data);
+  const sections = DISCOGS_ACCORDION_SECTIONS.map(s => ({ ...s, facts: s.build(data) })).filter(s => s.facts.length);
   const wrap = $('discogsInfoWrap');
-  if(!facts.length){ wrap.style.display = 'none'; return; }
+  if(!sections.length){ wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
   $('discogsInfoToggle').textContent = 'More info from Discogs ▾';
   $('discogsInfoList').style.display = 'none';
-  const listEl = $('discogsInfoList');
-  listEl.innerHTML = '';
-  facts.forEach(f=>{
-    const tag = f.label + ': ' + f.value;
-    const row = document.createElement('div');
-    row.className = 'info-fact';
-    const already = $('fNotes').value.split('\n').some(line => line.trim() === tag);
-    row.innerHTML = `<div><b>${f.label}:</b> ${f.value}</div><button type="button">${already ? '✓ Added' : '+ Add'}</button>`;
-    if(already) row.querySelector('button').classList.add('added');
-    row.querySelector('button').onclick = (e)=>{
-      const btn = e.currentTarget;
-      const notesEl = $('fNotes');
-      const lines = notesEl.value.split('\n');
-      const isIn = lines.some(line => line.trim() === tag);
-      if(isIn){
-        notesEl.value = lines.filter(line => line.trim() !== tag).join('\n').replace(/\n{3,}/g, '\n\n').trim();
-        btn.textContent = '+ Add';
-        btn.classList.remove('added');
-      } else {
-        notesEl.value = notesEl.value.trim() ? (notesEl.value.trim() + '\n' + tag) : tag;
-        btn.textContent = '✓ Added';
-        btn.classList.add('added');
-      }
+
+  const acc = $('discogsAccordion');
+  acc.innerHTML = sections.map(s => {
+    const isOpen = !!discogsAccordionState[s.id];
+    return `<div class="accordion-section ${isOpen ? 'open' : ''}" data-section="${s.id}">
+        <div class="accordion-header">
+          <div><span class="ah-label">${escHtml(s.label)}</span><span class="ah-count">${s.facts.length}</span></div>
+          <span class="ah-icon">${isOpen ? '−' : '+'}</span>
+        </div>
+        <div class="accordion-body"></div>
+      </div>`;
+  }).join('');
+
+  sections.forEach(s => {
+    const sectionEl = acc.querySelector(`.accordion-section[data-section="${s.id}"] .accordion-body`);
+    s.facts.forEach(f=>{
+      const tag = f.label + ': ' + f.value;
+      const row = document.createElement('div');
+      row.className = 'info-fact';
+      const already = $('fNotes').value.split('\n').some(line => line.trim() === tag);
+      row.innerHTML = `<div><b>${escHtml(f.label)}:</b> ${escHtml(String(f.value))}</div><button type="button">${already ? '✓ Added' : '+ Add'}</button>`;
+      if(already) row.querySelector('button').classList.add('added');
+      row.querySelector('button').onclick = (e)=>{
+        const btn = e.currentTarget;
+        const notesEl = $('fNotes');
+        const lines = notesEl.value.split('\n');
+        const isIn = lines.some(line => line.trim() === tag);
+        if(isIn){
+          notesEl.value = lines.filter(line => line.trim() !== tag).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+          btn.textContent = '+ Add';
+          btn.classList.remove('added');
+        } else {
+          notesEl.value = notesEl.value.trim() ? (notesEl.value.trim() + '\n' + tag) : tag;
+          btn.textContent = '✓ Added';
+          btn.classList.add('added');
+        }
+      };
+      sectionEl.appendChild(row);
+    });
+  });
+
+  acc.querySelectorAll('.accordion-header').forEach(header=>{
+    header.onclick = ()=>{
+      const section = header.closest('.accordion-section');
+      const id = section.dataset.section;
+      const nowOpen = !section.classList.contains('open');
+      section.classList.toggle('open', nowOpen);
+      header.querySelector('.ah-icon').textContent = nowOpen ? '−' : '+';
+      discogsAccordionState[id] = nowOpen;
     };
-    listEl.appendChild(row);
   });
 }
+$('saveAccordionDefaultBtn').onclick = ()=>{
+  try{
+    localStorage.setItem('crate-log-accordion-default', JSON.stringify(discogsAccordionState));
+    toast('Saved as your default layout');
+  }catch(e){ toast('Could not save', true); }
+};
 $('discogsInfoToggle').onclick = ()=>{
   const list = $('discogsInfoList');
   const open = list.style.display === 'block';
@@ -2270,7 +2373,7 @@ async function setupPressings(r){
     list.innerHTML = '<div class="scanhint">Loading…</div>';
     try{
       const data = await callScript({action:'versions', master_id: r.master_id});
-      const versions = (data.versions||[]).slice(0,10);
+      const versions = (data.results||[]).slice(0,10);
       list.innerHTML = (versions.length ? '<div class="scanhint" style="margin-bottom:6px;">Tap a pressing to swap it in — checks Country/Year/Catalog # for you.</div>' : '') +
         versions.map((v,i)=>{
           const bits = [v.released||v.year||'', v.format||'', v.country||'', v.catno?('#'+v.catno):''].filter(Boolean).join(' · ');
@@ -2533,39 +2636,6 @@ async function setupMoreByArtist(artist){
   };
 }
 
-// Snaps free-typed genre/format values to their existing canonical spelling/casing
-// (matched case-insensitively against COMMON_GENRES/COMMON_FORMATS and anything
-// already in the collection) so "rock" and "Rock" don't become two different
-// entries in Top Genres. Anything genuinely new is kept as typed, just trimmed
-// and title-cased for consistency, and folded into the picklist next reload.
-function buildCanonicalMap(knownList){
-  const map = new Map();
-  knownList.forEach(v => map.set(v.toLowerCase(), v));
-  return map;
-}
-function titleCase(s){
-  return s.replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase());
-}
-function normalizeTagList(raw, canonicalMap){
-  return raw.split(',')
-    .map(s => s.trim())
-    .filter(Boolean)
-    .map(s => canonicalMap.get(s.toLowerCase()) || titleCase(s))
-    .join(', ');
-}
-function normalizeGenreFormat(genre, format){
-  const knownGenres = new Set(COMMON_GENRES);
-  const knownFormats = new Set(COMMON_FORMATS);
-  (collectionCache||[]).forEach(r=>{
-    String(r.genre||'').split(',').map(g=>g.trim()).filter(Boolean).forEach(g=>knownGenres.add(g));
-    String(r.format||'').split(',').map(f=>f.trim()).filter(Boolean).forEach(f=>knownFormats.add(f));
-  });
-  return {
-    genre: normalizeTagList(genre, buildCanonicalMap(knownGenres)),
-    format: normalizeTagList(format, buildCanonicalMap(knownFormats))
-  };
-}
-
 function buildRecordPayload(){
   const activeColl = getActiveCollection();
   const discCond = collectDiscConditions();
@@ -2573,17 +2643,15 @@ function buildRecordPayload(){
   const discogsNote = buildDiscogsNote(lastReleaseData);
   if(discogsNote) notes = notes ? (notes + '\n\n' + discogsNote) : discogsNote;
   if(discCond.breakdown) notes = notes ? (notes + '\n\n' + discCond.breakdown) : discCond.breakdown;
-  const normalized = normalizeGenreFormat($('fGenre').value, $('fFormat').value);
   return {
     collection: activeColl.name,
     artist: $('fArtist').value, title: $('fTitle').value, year: $('fYear').value,
-    format: normalized.format, label: $('fLabel').value, catno: $('fCatno').value,
-    genre: normalized.genre, notes: notes,
+    format: $('fFormat').value, label: $('fLabel').value, catno: $('fCatno').value,
+    genre: $('fGenre').value, notes: notes,
     tracklist: $('fTracklist').value.trim(),
     barcode: $('fBarcode').value.trim(),
     estimatedValue: $('fValue').value.trim(),
     coverImage: currentSelection ? (currentSelection.cover_image||currentSelection.thumb||'') : ($('cardCover').src || ''),
-    ownerPhoto: currentOwnerPhoto || '',
     collectionColor: activeColl.color,
     sleevePresent: getSelectedPill('coverPills'),
     innerSleeve: discCond.worstInner,
@@ -2773,17 +2841,6 @@ function loadFromLogRecord(record){
   $('cardCover').src = record.coverImage || '';
   $('cardCover').style.visibility = 'visible';
   setAppBg(record.coverImage || null);
-  setOwnerPhoto(record.ownerPhoto || ''); // usually empty here — browse omits it; fetched below if this record has one
-  $('valueTrendWrap').style.display = 'none';
-  if(currentRowIndex){
-    callScript({action:'getRow', rowIndex: currentRowIndex}).then(rj=>{
-      // Only apply if still viewing the same record — user may have navigated away already
-      if(rj.status === 'ok' && currentRowIndex === record.rowIndex){
-        setOwnerPhoto(rj.values.ownerPhoto || '');
-      }
-    }).catch(()=>{});
-    loadValueTrend(currentRowIndex);
-  }
   $('fArtist').value = record.artist || '';
   $('fTitle').value = record.title || '';
   $('fYear').value = record.year || '';
@@ -2802,7 +2859,7 @@ function loadFromLogRecord(record){
   setAlert('rareWarning', '', false);
   lastReleaseData = null;
   $('discogsInfoWrap').style.display = 'none';
-  $('discogsInfoList').innerHTML = '';
+  if($('discogsAccordion')) $('discogsAccordion').innerHTML = '';
   $('valueHint').style.display = 'none';
   resetPills();
   selectPillValue('coverPills', record.sleevePresent);
@@ -2829,43 +2886,6 @@ function loadFromLogRecord(record){
   $('draftBanner').style.display = 'none';
   showEditor();
   toast('Loaded from library — click Save to update sheet');
-}
-
-// ---------- Value history / trend ----------
-async function loadValueTrend(rowIndex){
-  try{
-    const j = await callScript({action:'getValueHistory', rowIndex});
-    if(j.status !== 'ok' || currentRowIndex !== rowIndex) return;
-    const points = (j.history||[]).map(h => ({ value: parseFloat(h.value), date: h.capturedAt })).filter(p => !isNaN(p.value));
-    if(points.length < 2){ $('valueTrendWrap').style.display = 'none'; return; }
-    $('valueTrendWrap').style.display = 'block';
-    $('valueTrendWrap').innerHTML = renderSparkline(points);
-  }catch(e){}
-}
-function renderSparkline(points){
-  const vals = points.map(p=>p.value);
-  const min = Math.min(...vals), max = Math.max(...vals);
-  const range = (max - min) || 1;
-  const w = 200, h = 36, pad = 3;
-  const stepX = points.length > 1 ? (w - pad*2) / (points.length - 1) : 0;
-  const coords = points.map((p,i) => {
-    const x = pad + i * stepX;
-    const y = pad + (h - pad*2) * (1 - (p.value - min) / range);
-    return [x,y];
-  });
-  const path = coords.map((c,i) => (i===0?'M':'L') + c[0].toFixed(1) + ',' + c[1].toFixed(1)).join(' ');
-  const first = points[0].value, last = points[points.length-1].value;
-  const delta = last - first;
-  const deltaColor = delta > 0 ? '#7CB88F' : (delta < 0 ? '#D97757' : 'var(--dim)');
-  const deltaSign = delta > 0 ? '+' : '';
-  const firstDate = new Date(points[0].date).toLocaleDateString(undefined,{month:'short',year:'numeric'});
-  return '<div style="display:flex; align-items:center; gap:10px;">' +
-    '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" style="flex:0 0 auto;">' +
-      '<path d="' + path + '" fill="none" stroke="var(--amber)" stroke-width="1.5"/>' +
-    '</svg>' +
-    '<div><div style="color:' + deltaColor + '; font-weight:600;">' + deltaSign + delta.toFixed(2) + '</div>' +
-    '<div style="font-size:11px;">since ' + escHtml(firstDate) + '</div></div>' +
-  '</div>';
 }
 
 function scheduleDraftSave(){
@@ -2917,12 +2937,6 @@ function checkForDraft(){
 function restoreDraft(draft){
   currentSelection = null;
   currentRowIndex = draft.currentRowIndex || null;
-  setOwnerPhoto(''); // drafts don't carry the photo (kept out of localStorage on purpose)
-  if(currentRowIndex){
-    callScript({action:'getRow', rowIndex: currentRowIndex}).then(rj=>{
-      if(rj.status === 'ok' && currentRowIndex === draft.currentRowIndex) setOwnerPhoto(rj.values.ownerPhoto || '');
-    }).catch(()=>{});
-  }
   $('cardCover').src = draft.coverImage || '';
   $('cardCover').style.visibility = 'visible';
   setAppBg(draft.coverImage || null);
@@ -2986,7 +3000,7 @@ function populateShareCrateSelect(){
 }
 
 $('createShareBtn').onclick = async ()=>{
-  if(!isLoggedIn()){ toast('Log in first', true); return; }
+  if(!accessKey){ toast('Set your Access Key in Settings first', true); return; }
   const crateName = $('shareCrateSelect').value;
   const label = $('shareLabelInput').value.trim();
   $('createShareBtn').disabled = true;
@@ -3008,7 +3022,7 @@ $('createShareBtn').onclick = async ()=>{
 };
 
 async function refreshActiveShares(){
-  if(!isLoggedIn()) return;
+  if(!accessKey) return;
   const wrap = $('activeSharesList');
   if(!wrap) return;
   try{
@@ -3038,122 +3052,9 @@ async function revokeShareById(shareId){
   }catch(e){ toast('Request failed', true); }
 }
 
-// ---------- Permission-based sharing (between logged-in users) ----------
-function populateGrantCrateSelect(){
-  const sel = $('grantCrateSelect');
-  if(!sel) return;
-  const current = sel.value;
-  sel.innerHTML = '<option value="">Everything</option>' + collections.map(c => `<option value="${escHtml(c.name)}">${escHtml(c.name)}</option>`).join('');
-  if([...sel.options].some(o=>o.value===current)) sel.value = current;
-}
-
-$('grantAccessBtn').onclick = async ()=>{
-  if(!isLoggedIn()){ toast('Log in first', true); return; }
-  const email = $('grantEmailInput').value.trim();
-  const crateName = $('grantCrateSelect').value;
-  if(!email){ toast('Enter their email', true); return; }
-  $('grantAccessBtn').disabled = true;
-  try{
-    const j = await callScript({action:'grantAccess', email, crateName});
-    if(j.status === 'ok'){
-      toast('Access granted to ' + j.grantedTo);
-      $('grantEmailInput').value = '';
-      refreshGrantedUsers();
-    } else {
-      toast(j.message || 'Could not grant access', true);
-    }
-  }catch(e){ toast('Request failed — check connection', true); }
-  $('grantAccessBtn').disabled = false;
-};
-
-async function refreshGrantedUsers(){
-  if(!isLoggedIn()) return;
-  const wrap = $('grantedUsersList');
-  if(!wrap) return;
-  try{
-    const j = await callScript({action:'listGrantedUsers'});
-    const grants = j.grants || [];
-    if(!grants.length){ wrap.innerHTML = ''; return; }
-    wrap.innerHTML = '<div style="font-size:12px; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;">People With Access</div>' +
-      grants.map(g => {
-        return '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:6px 0; border-bottom:1px solid var(--line); font-size:12px;">' +
-          '<div style="min-width:0;">' +
-            '<div style="color:var(--text); font-weight:600;">' + escHtml(g.displayName) + ' <span style="color:var(--dim); font-weight:400;">(' + escHtml(g.email) + ')</span></div>' +
-            '<div style="color:var(--dim);">' + escHtml(g.crateName || 'Everything') + '</div>' +
-          '</div>' +
-          '<button class="secondary" style="width:auto; padding:4px 10px; font-size:11px; margin:0; flex:0 0 auto;" onclick="revokeAccessById(\'' + g.id + '\')">Revoke</button>' +
-        '</div>';
-      }).join('');
-  }catch(e){}
-}
-
-async function revokeAccessById(permissionId){
-  if(!confirm('Remove this person\u2019s access?')) return;
-  try{
-    const j = await callScript({action:'revokeAccess', permissionId});
-    if(j.status === 'ok'){ toast('Access removed'); refreshGrantedUsers(); }
-    else toast(j.message || 'Could not remove access', true);
-  }catch(e){ toast('Request failed', true); }
-}
-
-async function refreshGrantsToMe(){
-  if(!isLoggedIn()) return;
-  const wrap = $('grantsToMeList');
-  if(!wrap) return;
-  try{
-    const j = await callScript({action:'listGrantsToMe'});
-    const grants = j.grants || [];
-    if(!grants.length){ wrap.innerHTML = '<div class="scanhint">None yet.</div>'; return; }
-    wrap.innerHTML = grants.map(g =>
-      '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:6px 0; border-bottom:1px solid var(--line); font-size:12px;">' +
-        '<div style="min-width:0;">' +
-          '<div style="color:var(--text); font-weight:600;">' + escHtml(g.ownerName) + '</div>' +
-          '<div style="color:var(--dim);">' + escHtml(g.crateName || 'Everything') + '</div>' +
-        '</div>' +
-        '<button class="secondary" style="width:auto; padding:4px 10px; font-size:11px; margin:0; flex:0 0 auto;" onclick="viewGrantedCrate(\'' + g.ownerUserId + '\',\'' + escHtml(g.ownerName).replace(/'/g,"\\'") + '\',\'' + escHtml(g.crateName||'').replace(/'/g,"\\'") + '\')">View</button>' +
-      '</div>'
-    ).join('');
-  }catch(e){}
-}
-
-async function viewGrantedCrate(ownerUserId, ownerName, crateName){
-  $('settingsModal').classList.remove('show');
-  try{
-    const j = await callScript({action:'browseGranted', ownerUserId, crateName});
-    if(j.status !== 'ok'){ toast(j.message || 'Could not load that crate', true); return; }
-    viewingGranted = { ownerUserId, ownerName, crateName };
-    renderGrantedResults(j.results || []);
-  }catch(e){ toast('Request failed — check connection', true); }
-}
-
-function exitGrantedView(){
-  viewingGranted = null;
-  $('grantedView').style.display = 'none';
-  $('dashboardView').style.display = 'block';
-  $('fabContainer').classList.add('visible');
-}
-
-function renderGrantedResults(list){
-  $('dashboardView').style.display = 'none';
-  $('fabContainer').classList.remove('visible');
-  $('grantedView').style.display = 'block';
-  $('grantedHeading').textContent = '👤 ' + viewingGranted.ownerName + (viewingGranted.crateName ? ' — ' + viewingGranted.crateName : ' — everything');
-  const wrap = $('grantedResultsList');
-  if(!list.length){ wrap.innerHTML = '<div class="scanhint">Nothing here yet.</div>'; return; }
-  wrap.innerHTML = list.map(r =>
-    '<div style="display:flex; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid var(--line);">' +
-      '<img src="' + (r.coverImage || '') + '" onerror="this.style.display=\'none\'" style="width:44px;height:44px;object-fit:cover;border-radius:6px;background:#111;flex:0 0 auto;">' +
-      '<div style="flex:1; min-width:0;">' +
-        '<div style="font-weight:600; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + escHtml(r.artist||'') + ' — ' + escHtml(r.title||'') + '</div>' +
-        '<div style="font-size:12px; color:var(--dim);">' + escHtml(r.year||'') + (r.format ? ' · ' + escHtml(r.format) : '') + (r.genre ? ' · ' + escHtml(r.genre) : '') + '</div>' +
-      '</div>' +
-    '</div>'
-  ).join('');
-}
-
 // ---------- Borrow requests (owner side) ----------
 async function refreshBorrowRequests(){
-  if(!isLoggedIn()) return;
+  if(!accessKey) return;
   try{
     const j = await callScript({action:'listBorrowRequests'});
     const list = j.requests || [];
@@ -3264,21 +3165,20 @@ $('submitBorrowBtn').onclick = async ()=>{
   $('submitBorrowBtn').disabled = false;
 };
 
-(async ()=>{
-  await loadSettings();
-  if(shareIdParam){
-    initSharedView();
-  } else if(isLoggedIn()){
-    loadCollections();
-    loadLog();
-    checkForDraft();
-    setTimeout(() => runBrowse(''), 500);
-    setTimeout(() => refreshBorrowRequests(), 800);
-    setTimeout(() => refreshGrantsToMe(), 800);
-  }
-  // If not logged in, loadSettings() shows accessGateModal and submitAuth()
-  // kicks off the same loads once login/signup succeeds.
-})();
+loadSettings();
+if(shareIdParam){
+  initSharedView();
+} else {
+  loadCollections();
+  loadLog();
+  checkForDraft();
+  document.querySelectorAll('#viewModeToggle .chip').forEach(b => b.classList.toggle('active', b.dataset.view === browseViewMode));
+  $('collectionResultsList').style.display = browseViewMode === 'table' ? 'block' : 'none';
+  $('crateGroupedView').style.display = browseViewMode === 'crate' ? 'block' : 'none';
+  $('recordWallView').style.display = browseViewMode === 'wall' ? 'block' : 'none';
+  setTimeout(() => runBrowse(''), 500);
+  setTimeout(() => refreshBorrowRequests(), 800);
+}
 </script>
 </body>
 </html>
