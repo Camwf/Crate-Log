@@ -43,7 +43,10 @@
   #appBg { position: fixed; inset: -60px; background-size: cover; background-position: center; filter: blur(12px) brightness(0.35); z-index: -1; opacity: 0; transition: opacity 0.8s ease, background-image 0.5s ease; pointer-events: none; }
   #appBg.show { opacity: 1; }
   h1, h2, h3, .label, .oswald { font-family: 'Oswald', sans-serif; letter-spacing: 0.02em; }
-  header { display: flex; align-items: center; justify-content: space-between; padding: 24px 16px 16px; max-width: var(--app-max-w); margin: 0 auto; position: relative; z-index: 1;}
+  header { position: sticky; top: 0; z-index: 500; background: rgba(13,11,9,0.90); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); padding: 16px 16px 14px; max-width: var(--app-max-w); margin: 0 auto; border-bottom: 1px solid var(--line); }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .header-search-row { display: flex; gap: 8px; }
+  .header-search-row input[type=text] { margin: 0; }
   header h1 { font-size: 26px; margin: 0; font-weight: 600; display: flex; align-items: center; gap: 10px;}
   header h1 span.highlight { color: var(--amber); transition: color 0.3s; }
   .disc { width: 18px; height: 18px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #555 0 2px, var(--amber) 2px 4px, #111 4px 100%); display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.5); animation: spin-slow 9s linear infinite; }
@@ -53,31 +56,28 @@
   .panel { background: var(--surface); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; margin: 0 auto 24px; max-width: var(--app-max-w); box-shadow: 0 12px 40px rgba(0,0,0,0.4); position: relative; z-index: 1;}
   .panel.full-width { max-width: none; border-radius: 0; border-left: none; border-right: none; }
   .panel-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-bottom: 20px; user-select: none; }
-  .panel-header h3 { margin: 0; font-size: 16px; color: var(--amber); font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;}
+  .panel-header h3 { margin: 0; font-size: 16px; color: var(--text); font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;}
   .panel-header .toggle-icon { display: inline-block; color: var(--dim); transition: transform 0.3s ease; font-size: 12px; }
   .panel.collapsed .panel-body { display: none; }
   .panel.collapsed .panel-header { margin-bottom: 0; }
   .panel.collapsed .panel-header .toggle-icon { transform: rotate(-90deg); }
   .crate-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
   .crate-tabs::-webkit-scrollbar { display: none; }
-  .tab { flex: 0 0 auto; padding: 10px 20px; border-radius: 30px; border: 1px solid var(--line); background: rgba(0,0,0,0.3); color: var(--dim); font-family: 'Oswald', sans-serif; font-size: 14px; cursor: pointer; white-space: nowrap; transition: all 0.3s ease; }
   .tab.active { font-weight: 600; color: #111; border-color: transparent; }
   .tab.addtab { background: transparent; border-style: dashed; color: var(--dim); }
   .tab.addtab:hover { color: var(--amber); border-color: var(--amber); }
   .chiprow { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
   .chip { background: var(--surface2); border: 1px solid transparent; color: var(--dim); border-radius: 20px; padding: 6px 14px; font-size: 13px; cursor: pointer; transition: 0.2s; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);}
   .chip:hover { background: rgba(255,255,255,0.1); color: var(--text); border-color: var(--line); }
-  .chip.active { background: var(--amber); color: #111; border-color: transparent; font-weight: 600; }
+  .chip.active { background: rgba(232,170,85,0.12); color: var(--amber); border-color: rgba(232,170,85,0.4); font-weight: 600; }
   .field { margin-bottom: 16px; }
   .field label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--dim); margin-bottom: 8px; font-weight: 600; }
   .row2 { display: grid; grid-template-columns: 1fr; gap: 16px; }
   .grid-2 { display: grid; grid-template-columns: 1fr; gap: 16px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr; gap: 16px; }
   .grid-4 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media(min-width: 768px) {
     .row2 { grid-template-columns: 3fr 1fr; }
     .grid-2 { grid-template-columns: 1fr 1fr; }
-    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
     .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
   }
   input[type=text], textarea { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); color: var(--text); border-radius: var(--radius-sm); padding: 14px 16px; font-size: 15px; font-family: 'Inter', sans-serif; transition: all 0.2s ease; }
@@ -95,7 +95,6 @@
   .steplabel { font-family: 'Oswald', sans-serif; font-size: 11px; color: var(--dim); text-align: center; text-transform: uppercase; letter-spacing: 0.05em; }
   .field-warn { color: var(--red); font-size: 13px; margin: -8px 0 12px; display: none; font-weight: 600; }
   .field-warn.show { display: block; }
-  .disclink { color: var(--amber); font-size: 13px; text-decoration: underline; cursor: pointer; }
   .stepper { display: flex; align-items: center; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); padding: 4px; width: fit-content; margin: 0 auto;}
   .stepper button { width: 36px; height: 36px; border-radius: 6px; border: none; background: transparent; color: var(--text); font-size: 18px; cursor: pointer; transition: 0.2s; }
   .stepper button:hover { background: rgba(255,255,255,0.1); }
@@ -164,9 +163,7 @@
   .fab-inner { max-width: var(--app-max-w); margin: 0 auto; display: flex; gap: 16px; }
   .fab-inner .primary { flex: 2; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
   .fab-inner .secondary { flex: 1; }
-  .spinner { width: 40px; height: 40px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--amber); margin: 30px auto; animation: spin 1s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); background: var(--ok); color: #111; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 600; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 1000; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+  .toast { position: fixed; bottom: 92px; left: 50%; transform: translate(-50%, 20px); background: var(--ok); color: #111; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 600; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 1000; box-shadow: 0 8px 24px rgba(0,0,0,0.5); max-width: calc(100vw - 32px); }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
   .toast.err { background: var(--red); color: #fff; }
   .table-wrapper { overflow-x: auto; width: 100%; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2); }
@@ -186,20 +183,7 @@
   .stats-cols h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--dim); margin: 0 0 8px; font-weight: 600; }
   .stat-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text); }
   .stat-row span:last-child { color: var(--dim); font-weight: 600; }
-  .crate-section { margin-bottom: 28px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-  .crate-section-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--line); }
-  .crate-section-header h4 { margin: 0; font-family: 'Oswald', sans-serif; font-size: 16px; font-weight: 600; letter-spacing: 0.02em; display:flex; align-items:center; gap:8px; }
   .crate-color-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink:0; }
-  .crate-section-count { font-size: 12px; color: var(--dim); }
-  .subcrate-letter { padding: 6px 16px 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); background: rgba(255,255,255,0.015); }
-  .crate-record-row { display: flex; align-items: center; gap: 12px; padding: 8px 16px; cursor: pointer; border-top: 1px solid rgba(255,255,255,0.04); }
-  .crate-record-row:hover { background: rgba(255,255,255,0.03); }
-  .crate-record-row img { width: 34px; height: 34px; border-radius: 4px; object-fit: cover; background: rgba(255,255,255,0.05); flex-shrink: 0; }
-  .crate-record-row .cr-main { flex: 1; min-width: 0; }
-  .crate-record-row .cr-artist { font-weight: 600; font-size: 13.5px; color: var(--text); }
-  .crate-record-row .cr-title { font-size: 12.5px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .crate-record-row .cr-year { font-size: 11px; color: var(--dim); flex-shrink: 0; }
-  .crate-section-empty { padding: 16px; text-align: center; color: var(--dim); font-size: 13px; }
 
   /* Rethought filter dropdowns */
   .filter-row { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
@@ -247,23 +231,24 @@
 
   /* 3D True Crate view */
   .crate3d-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
-  .crate3d-wrap { display: flex; align-items: stretch; gap: 6px; }
-  .crate3d-stage { position: relative; perspective: 1400px; height: 340px; flex: 1; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; touch-action: pan-y; }
-  .crate3d-rolodex { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: 26px; max-height: 340px; overflow-y: auto; flex-shrink: 0; }
-  .rolodex-letter { background: none; border: none; color: var(--dim); font-size: 10px; font-weight: 700; padding: 2px 0; width: 100%; cursor: pointer; letter-spacing: 0.02em; border-radius: 3px; }
+  .crate3d-stage { position: relative; perspective: 1400px; height: 340px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; touch-action: none; }
+  .crate3d-rolodex { display: flex; gap: 10px; overflow-x: auto; padding: 6px 4px 14px; margin-bottom: 8px; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+  .rolodex-letter { background: rgba(255,255,255,0.03); border: 1px solid var(--line); color: var(--dim); font-size: 11px; font-weight: 700; padding: 6px 10px; cursor: pointer; letter-spacing: 0.02em; border-radius: 14px; flex-shrink: 0; user-select: none; touch-action: pan-x; }
   .rolodex-letter:hover { color: var(--text); background: rgba(255,255,255,0.06); }
-  .rolodex-letter.active { color: var(--amber); background: rgba(232,170,85,0.12); }
+  .rolodex-letter.active { color: var(--amber); background: rgba(232,170,85,0.12); border-color: rgba(232,170,85,0.4); }
   .crate3d-well { position: absolute; bottom: 0; width: 220px; height: 30px; left: 50%; transform: translateX(-50%) rotateX(75deg); background: radial-gradient(ellipse, rgba(0,0,0,0.6), transparent 70%); }
   .crate3d-card {
     position: absolute; width: 210px; height: 210px; border-radius: 4px; transform-style: preserve-3d;
     box-shadow: 0 10px 24px rgba(0,0,0,0.55); transition: transform 0.55s cubic-bezier(.4,.1,.3,1), opacity 0.5s;
     background-size: cover; background-position: center; cursor: pointer;
   }
+  .crate3d-card.dragging { transition: none; }
   .crate3d-card::after {
     content: ''; position: absolute; inset: 0; border-radius: 4px;
     background: linear-gradient(115deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 26%, rgba(255,255,255,0) 74%, rgba(255,255,255,0.08) 100%);
     pointer-events: none;
   }
+  .crate3d-shade { position: absolute; inset: 0; border-radius: 4px; background: #000; pointer-events: none; transition: opacity 0.55s; }
   .crate3d-card.flipping { transform: rotateX(-115deg) translateY(160px) translateZ(60px) !important; opacity: 0; }
   .crate3d-card.entering { animation: crate3d-enter 0.35s ease; }
   @keyframes crate3d-enter { from { opacity: 0; transform: translate(-50%,-50%) scale(0.9) translateX(-40px); } }
@@ -280,6 +265,30 @@
   .crate3d-controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
   .crate3d-controls button { width: auto; padding: 8px 16px; margin: 0; }
   .crate3d-info { text-align: center; color: var(--dim); font-size: 12px; margin-bottom: 16px; }
+
+  /* Contextual search transition */
+  .fade-panel { transition: opacity 0.25s ease, transform 0.25s ease; }
+  .fade-panel.fading-out { opacity: 0; transform: translateY(6px); pointer-events: none; }
+  #discogsResultsWrap.fade-panel { opacity: 1; }
+
+  /* Sticky filter/view row, sits just under the sticky header */
+  #viewModeToggle { position: sticky; top: var(--header-height, 118px); z-index: 100; background: rgba(13,11,9,0.92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 8px 0; margin-left: -2px; }
+
+  /* Empty state component */
+  .empty-state { text-align: center; padding: 48px 20px; }
+  .empty-state svg { width: 56px; height: 56px; opacity: 0.25; margin-bottom: 14px; }
+  .empty-state h4 { margin: 0 0 6px; font-family: 'Oswald', sans-serif; font-size: 16px; color: var(--text); font-weight: 600; }
+  .empty-state p { margin: 0 0 18px; color: var(--dim); font-size: 13px; }
+  .empty-state button { width: auto; padding: 10px 22px; margin: 0; }
+
+  /* Skeleton loaders */
+  @keyframes skeleton-pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+  .skeleton { background: rgba(255,255,255,0.06); border-radius: 4px; animation: skeleton-pulse 1.3s ease-in-out infinite; }
+  .skeleton-row { display: flex; align-items: center; gap: 12px; padding: 8px 16px; }
+  .skeleton-row .skeleton-thumb { width: 36px; height: 36px; border-radius: 4px; flex-shrink: 0; }
+  .skeleton-row .skeleton-lines { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+  .skeleton-row .skeleton-line { height: 10px; border-radius: 3px; }
+  .skeleton-row .skeleton-line.short { width: 40%; }
 
   /* Discogs detail accordion */
   .accordion-section { border: 1px solid var(--line); border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
@@ -349,9 +358,33 @@
 </head>
 <body>
 <div id="appBg"></div>
-<header>
-  <h1><span class="disc" id="logoDisc"></span>Crate <span class="highlight" id="logoText">Log</span></h1>
-  <button class="icon-btn" id="settingsBtn" title="Settings">⚙</button>
+<header id="appHeader">
+  <div class="header-top">
+    <h1><span class="disc" id="logoDisc"></span>Crate <span class="highlight" id="logoText">Log</span></h1>
+    <button class="icon-btn" id="settingsBtn" title="Settings">⚙</button>
+  </div>
+  <div class="header-search-row">
+    <input type="text" id="unifiedSearchInput" placeholder="Artist, Title, Barcode, Label...">
+    <button class="chip" id="searchModeToggleBtn" title="Search options" onclick="event.stopPropagation(); toggleSearchModeRow();" style="flex:0 0 auto;">🔍 Collection</button>
+    <button class="secondary" id="clearSearchBtn" style="display:none; width:auto; padding:0 14px; margin:0; flex:0 0 auto;" onclick="clearUnifiedSearch();">Clear</button>
+  </div>
+  <button class="primary" id="discogsSearchBtn" style="display:none; margin-top:8px;">Search Discogs</button>
+  <div id="searchModeToggle" style="margin-top:10px; display:none; border:1px solid var(--line); border-radius:10px; padding:12px; background:var(--bg);">
+    <div class="chiprow" style="margin:0 0 12px;">
+      <button class="chip active" data-mode="collection">Search Collection</button>
+      <button class="chip" data-mode="discogs">Search Discogs</button>
+      <button class="chip" data-mode="both">Both</button>
+    </div>
+    <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--dim); margin-bottom:8px;">🚩 Flag Thresholds</div>
+    <div class="row2">
+      <div class="field" style="margin:0;"><label style="font-size:11px;">Expensive if over</label>
+        <input type="text" id="expensiveThresholdQuick" inputmode="decimal" placeholder="50">
+      </div>
+      <div class="field" style="margin:0;"><label style="font-size:11px;">Rare if fewer than</label>
+        <input type="text" id="rareThresholdQuick" inputmode="numeric" placeholder="100">
+      </div>
+    </div>
+  </div>
 </header>
 <div class="panel" id="draftBanner" style="display:none; align-items:center; justify-content:space-between; gap:12px; border-color:var(--amber);">
   <span id="draftBannerText" style="font-size:14px; flex:1;"></span>
@@ -383,44 +416,15 @@
   </div>
 </div>
 <div id="dashboardView">
-  <div class="panel" id="searchPanel">
-    <div class="panel-header" onclick="this.closest('.panel').classList.toggle('collapsed')">
-      <h3 id="discogsSearchHeading">🔍 Search</h3>
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <button class="secondary" id="clearSearchBtn" style="display:none; padding:4px 10px; font-size:11px; margin:0;" onclick="event.stopPropagation(); clearUnifiedSearch();">Clear</button>
-        <span class="toggle-icon">▼</span>
-      </div>
-    </div>
-    <div class="panel-body">
-      <div class="row2">
-        <input type="text" id="unifiedSearchInput" placeholder="Artist, Title, Barcode, Label...">
-        <button class="chip" id="searchModeToggleBtn" title="Search options" onclick="event.stopPropagation(); toggleSearchModeRow();" style="flex:0 0 auto;">🔍 Collection</button>
-        <button class="primary" id="discogsSearchBtn" style="display:none;">Search Discogs</button>
-      </div>
-      <div id="searchModeToggle" style="margin:10px 0 4px; display:none; border:1px solid var(--line); border-radius:10px; padding:12px;">
-        <div class="chiprow" style="margin:0 0 12px;">
-          <button class="chip active" data-mode="collection">Search Collection</button>
-          <button class="chip" data-mode="discogs">Search Discogs</button>
-          <button class="chip" data-mode="both">Both</button>
-        </div>
-        <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--dim); margin-bottom:8px;">🚩 Flag Thresholds</div>
-        <div class="row2">
-          <div class="field" style="margin:0;"><label style="font-size:11px;">Expensive if over</label>
-            <input type="text" id="expensiveThresholdQuick" inputmode="decimal" placeholder="50">
-          </div>
-          <div class="field" style="margin:0;"><label style="font-size:11px;">Rare if fewer than</label>
-            <input type="text" id="rareThresholdQuick" inputmode="numeric" placeholder="100">
-          </div>
-        </div>
-      </div>      <div id="loadingPanel" style="display:none; text-align: center; padding: 30px 20px;">
-        <div class="spinner"></div>
-        <div style="color: var(--dim); font-size: 14px;">Searching Discogs Database...</div>
-      </div>
-      <div id="discogsResultsWrap" style="display:none;">
-        <h3 style="font-size:14px; color:var(--amber); text-transform:uppercase; letter-spacing:0.05em; margin:20px 0 12px;">On Discogs</h3>
-        <div id="discogsResultsList"></div>
-      </div>
-    </div>
+  <div id="loadingPanel" style="display:none;">
+    <div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div>
+    <div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div>
+    <div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div>
+    <div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div>
+  </div>
+  <div id="discogsResultsWrap" class="fade-panel" style="display:none;">
+    <h3 id="discogsResultsHeading" style="font-size:14px; color:var(--text); text-transform:uppercase; letter-spacing:0.05em; margin:4px 0 12px;">On Discogs</h3>
+    <div id="discogsResultsList"></div>
   </div>
   <div class="panel" id="collectionPanel">
     <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 16px; gap:12px; flex-wrap:wrap;">
@@ -437,6 +441,7 @@
       <input type="color" id="quickAddCrateColor" value="#8FA9A0">
       <button class="secondary" onclick="submitQuickAddCrate()">Add</button>
     </div>
+    <div id="browseFadeWrap" class="fade-panel">
     <div class="chiprow" id="viewModeToggle" style="margin-bottom:10px; align-items:center;">
       <button class="chip active" data-view="table" onclick="setBrowseViewMode('table')">▤ Table</button>
       <button class="chip" data-view="crate" onclick="setBrowseViewMode('crate')">🗃 Crate</button>
@@ -459,6 +464,7 @@
     <div id="collectionResultsList"></div>
     <div id="crateGroupedView" style="display:none;"></div>
     <div id="recordWallView" style="display:none;"></div>
+    </div>
   </div>
   <div id="ambientGlow"></div>
   <div class="panel collapsed" id="statsPanel">
@@ -766,6 +772,50 @@ let appsScriptUrl = "";
 const $ = id => document.getElementById(id);
 const getActiveCollection = () => collections.find(c => c.id === activeCollectionId) || collections[0];
 const escHtml = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const EMPTY_STATE_ICON = `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="32" r="26"/><circle cx="32" cy="32" r="6"/><path d="M32 6v10M32 48v10M6 32h10M48 32h10"/></svg>`;
+function emptyStateHtml({ headline, body, ctaLabel, ctaOnclick }){
+  return `<div class="empty-state">
+      ${EMPTY_STATE_ICON}
+      <h4>${escHtml(headline)}</h4>
+      ${body ? `<p>${escHtml(body)}</p>` : ''}
+      ${ctaLabel ? `<button class="primary" onclick="${ctaOnclick}">${escHtml(ctaLabel)}</button>` : ''}
+    </div>`;
+}
+
+function focusAddRecord(){
+  setSearchMode('both');
+  $('unifiedSearchInput').focus();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function clearAllBrowseFilters(){
+  browseFilters = [];
+  browseFavOnly = false;
+  browseGenreFilter = '';
+  browseFormatFilter = '';
+  $('genreFilterSelect').value = '';
+  $('formatFilterSelect').value = '';
+  updateFilterIcon();
+  renderBrowseFilters();
+  clearUnifiedSearch();
+}
+function browseEmptyStateHtml(){
+  const hasActiveFilter = browseFilters.length || browseFavOnly || browseGenreFilter || browseFormatFilter || $('unifiedSearchInput').value.trim();
+  if(hasActiveFilter){
+    return emptyStateHtml({
+      headline: 'No matches',
+      body: 'Nothing fits the current search or filters.',
+      ctaLabel: 'Clear filters',
+      ctaOnclick: 'clearAllBrowseFilters()'
+    });
+  }
+  return emptyStateHtml({
+    headline: 'Nothing here yet',
+    body: 'Search Discogs to log your first record.',
+    ctaLabel: 'Add your first record',
+    ctaOnclick: 'focusAddRecord()'
+  });
+}
 
 function uid(){ return 'c' + Date.now() + Math.floor(Math.random()*1000); }
 
@@ -1129,7 +1179,8 @@ function clearUnifiedSearch(){
   $('discogsResultsList').innerHTML = '';
   $('unifiedSearchInput').value = '';
   $('clearSearchBtn').style.display = 'none';
-  runBrowse('');
+  $('browseFadeWrap').classList.add('fading-out');
+  runBrowse('').then(()=> requestAnimationFrame(()=> $('browseFadeWrap').classList.remove('fading-out')));
 }
 
 function showDashboard(clearSearch = true) {
@@ -1173,12 +1224,14 @@ function syncSearchModeUI(mode){
   document.querySelectorAll('#searchModeToggle .chip').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
   $('discogsSearchBtn').style.display = (mode === 'discogs' || mode === 'both') ? 'block' : 'none';
   $('searchModeToggleBtn').textContent = SEARCH_MODE_LABELS[mode] || SEARCH_MODE_LABELS.collection;
+  if(typeof syncHeaderHeight === 'function') setTimeout(syncHeaderHeight, 10);
 }
 function toggleSearchModeRow(){
   const row = $('searchModeToggle');
   const opening = row.style.display === 'none';
   row.style.display = opening ? 'block' : 'none';
   if(opening){ $('expensiveThresholdQuick').value = expensiveThreshold; $('rareThresholdQuick').value = rareThreshold; }
+  setTimeout(syncHeaderHeight, 10);
 }
 function saveQuickThresholds(){
   expensiveThreshold = parseFloat($('expensiveThresholdQuick').value) || 50;
@@ -1223,7 +1276,10 @@ $('unifiedSearchInput').addEventListener('input', ()=>{
   const q = $('unifiedSearchInput').value.trim();
   $('clearSearchBtn').style.display = q ? 'inline-block' : 'none';
   if(searchMode !== 'discogs'){
-    searchDebounce = setTimeout(()=> runBrowse(q), 300);
+    $('browseFadeWrap').classList.add('fading-out');
+    searchDebounce = setTimeout(()=>{
+      runBrowse(q).then(()=> requestAnimationFrame(()=> $('browseFadeWrap').classList.remove('fading-out')));
+    }, 300);
   }
 });
 $('unifiedSearchInput').addEventListener('keydown', e=>{
@@ -1242,11 +1298,11 @@ async function runSearch(payload){
     const data = await callScript({action:'search', ...payload});
     $('loadingPanel').style.display='none';
     if (isUpdatingExistingCard) {
-      $('discogsSearchHeading').textContent = '⚠️ Select Pressing to Fill Blanks for: ' + payload.query;
-      $('discogsSearchHeading').style.color = 'var(--amber)';
+      $('discogsResultsHeading').textContent = '⚠️ Select Pressing to Fill Blanks for: ' + payload.query;
+      $('discogsResultsHeading').style.color = 'var(--amber)';
     } else {
-      $('discogsSearchHeading').textContent = '🔍 Search';
-      $('discogsSearchHeading').style.color = 'var(--amber)';
+      $('discogsResultsHeading').textContent = 'On Discogs';
+      $('discogsResultsHeading').style.color = 'var(--text)';
     }
     $('clearSearchBtn').style.display = 'inline-block';
     renderSearchResults(data.results || []);
@@ -1276,8 +1332,8 @@ function startUpdateFromDiscogs(e, idx) {
 
 async function applyDiscogsUpdate(r, artist, title) {
   isUpdatingExistingCard = false;
-  $('discogsSearchHeading').textContent = '🔍 Search';
-  $('discogsSearchHeading').style.color = 'var(--amber)';
+  $('discogsResultsHeading').textContent = 'On Discogs';
+  $('discogsResultsHeading').style.color = 'var(--text)';
   lastOpenedFrom = 'discogs';
   showEditor();
   window.scrollTo({top:0, behavior:'smooth'});
@@ -1666,7 +1722,7 @@ function applyGlowColor(color){
 function renderRecordWallView(list){
   clearAmbientGlow();
   const wrap = $('recordWallView');
-  if(!list.length){ wrap.innerHTML = '<div class="scanhint">Nothing here yet.</div>'; return; }
+  if(!list.length){ wrap.innerHTML = browseEmptyStateHtml(); return; }
   let html = '<div class="wall-grid">';
   list.forEach(r=>{
     const thumb = r.coverImage || '';
@@ -1724,7 +1780,7 @@ let crate3dFlipping = false;
 
 function renderCrate3DView(list){
   const wrap = $('crateGroupedView');
-  if(!list.length){ wrap.innerHTML = '<div class="scanhint">Nothing here yet.</div>'; clearAmbientGlow(); return; }
+  if(!list.length){ wrap.innerHTML = browseEmptyStateHtml(); clearAmbientGlow(); return; }
 
   const byCrate = {};
   list.forEach(r=>{
@@ -1765,10 +1821,8 @@ function renderCrate3DView(list){
 
   wrap.innerHTML = tabsHtml +
     renderDNABar(records) +
-    `<div class="crate3d-wrap">
-       <div class="crate3d-stage" id="crate3dStage"><div class="crate3d-well"></div></div>
-       <div class="crate3d-rolodex" id="crate3dRolodex"></div>
-     </div>
+    `<div class="crate3d-stage" id="crate3dStage"><div class="crate3d-well"></div></div>
+     <div class="crate3d-rolodex" id="crate3dRolodex"></div>
      <div class="crate3d-controls">
        <button class="secondary" id="crate3dPrevBtn">‹ Prev</button>
        <button class="secondary" id="crate3dSkipBtn">Skip Letter ⏭</button>
@@ -1787,41 +1841,141 @@ function renderCrate3DView(list){
   $('crate3dSkipBtn').onclick = crate3dSkip;
   $('crate3dOpenBtn').onclick = crate3dOpenFront;
 
-  // Swipe (touch) and scroll-wheel navigation
-  const stage = $('crate3dStage');
-  let touchStartX = null;
-  stage.addEventListener('touchstart', e=>{ touchStartX = e.touches[0].clientX; }, {passive:true});
-  stage.addEventListener('touchend', e=>{
-    if(touchStartX === null) return;
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    touchStartX = null;
-    if(Math.abs(dx) < 40) return;
-    if(dx < 0) crate3dNext(); else crate3dPrev();
-  }, {passive:true});
-  let wheelLock = false;
-  stage.addEventListener('wheel', e=>{
-    e.preventDefault();
-    if(wheelLock) return;
-    wheelLock = true;
-    if(e.deltaY > 0 || e.deltaX > 0) crate3dNext(); else crate3dPrev();
-    setTimeout(()=> wheelLock = false, 350);
-  }, {passive:false});
-
+  crate3dBindStageGestures($('crate3dStage'));
   renderCrate3dRolodex();
   crate3dPaintStage();
 }
 
+// Fluid touch: the front card follows the thumb in real time, then either completes
+// the flip or springs back to rest depending on how far/fast it was dragged.
+function crate3dBindStageGestures(stage){
+  let dragging = false, startX = 0, startY = 0, dx = 0, dy = 0, lastX = 0, lastT = 0, velocity = 0, axis = null;
+
+  function restingTransform(){
+    return 'translate(-50%, -50%) scale(1) translateZ(0)';
+  }
+  function frontCard(){ return stage.querySelector('.crate3d-card.front'); }
+
+  stage.addEventListener('touchstart', e=>{
+    if(crate3dFlipping) return;
+    const el = frontCard();
+    if(!el) return;
+    dragging = true;
+    startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+    lastX = startX; lastT = Date.now(); velocity = 0;
+    dx = 0; dy = 0; axis = null;
+    el.classList.add('dragging');
+  }, {passive:true});
+
+  stage.addEventListener('touchmove', e=>{
+    if(!dragging) return;
+    const el = frontCard();
+    if(!el) return;
+    const x = e.touches[0].clientX, y = e.touches[0].clientY;
+    dx = x - startX; dy = y - startY;
+    if(!axis && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+    if(axis) e.preventDefault();
+    const now = Date.now();
+    if(now > lastT){ velocity = (x - lastX) / (now - lastT); lastX = x; lastT = now; }
+
+    if(axis === 'y' && dy < 0){
+      // Dragging up toward the detail view — lift and fade the card as a preview of "opening"
+      const lift = Math.min(1, Math.abs(dy) / 200);
+      el.style.transform = `${restingTransform()} translateY(${dy}px) scale(${1 - lift*0.08})`;
+      el.style.opacity = String(1 - lift*0.5);
+      el.querySelector('.crate3d-shade').style.opacity = 0;
+    } else if(axis === 'x'){
+      const rotY = Math.max(-28, Math.min(28, dx / 6));
+      const tiltForward = Math.min(1, Math.abs(dx) / 220);
+      el.style.transform = `${restingTransform()} translateX(${dx}px) rotateY(${rotY}deg) rotateX(${-tiltForward*20}deg)`;
+      el.querySelector('.crate3d-shade').style.opacity = Math.max(0, 0.35 - tiltForward*0.35);
+    }
+  }, {passive:false});
+
+  stage.addEventListener('touchend', e=>{
+    if(!dragging) return;
+    dragging = false;
+    const el = frontCard();
+    if(!el){ return; }
+    el.classList.remove('dragging');
+    const isTap = Math.abs(dx) < 10 && Math.abs(dy) < 10;
+    const isSwipeUp = axis === 'y' && (dy < -60 || velocity < -0.6) ? true : (axis === 'y' && dy < -30);
+
+    if(isTap || isSwipeUp){
+      e.preventDefault(); // stop the ghost click from also firing
+      el.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+      el.style.transform = restingTransform();
+      el.style.opacity = '1';
+      setTimeout(()=>{ el.style.transition = ''; }, 210);
+      crate3dOpenFront();
+      return;
+    }
+
+    if(axis === 'x'){
+      const committed = Math.abs(dx) > 70 || Math.abs(velocity) > 0.6;
+      e.preventDefault();
+      if(committed){
+        if(dx < 0 || velocity < -0.6) crate3dNext(el);
+        else crate3dPrev();
+      } else {
+        el.style.transition = 'transform 0.35s cubic-bezier(.34,1.56,.64,1)';
+        el.style.transform = restingTransform();
+        el.querySelector('.crate3d-shade').style.opacity = 0;
+        setTimeout(()=>{ el.style.transition = ''; }, 360);
+      }
+    } else {
+      // Small upward drag that didn't clear the swipe-up threshold — spring back down
+      el.style.transition = 'transform 0.3s cubic-bezier(.34,1.56,.64,1), opacity 0.3s';
+      el.style.transform = restingTransform();
+      el.style.opacity = '1';
+      setTimeout(()=>{ el.style.transition = ''; }, 310);
+    }
+  }, {passive:false});
+
+  // Desktop: a plain click (mouse, no drag) opens the record; use Prev/Next/scroll to flip
+  stage.addEventListener('click', e=>{
+    const el = e.target.closest('.crate3d-card.front');
+    if(el) crate3dOpenFront();
+  });
+
+  // Desktop scroll-wheel navigation
+  let wheelLock = false;
+  stage.addEventListener('wheel', e=>{
+    e.preventDefault();
+    if(wheelLock || crate3dFlipping) return;
+    wheelLock = true;
+    if(e.deltaY > 0 || e.deltaX > 0) crate3dNext(); else crate3dPrev();
+    setTimeout(()=> wheelLock = false, 350);
+  }, {passive:false});
+}
+
+// Horizontal, drag-scrubbable letter index along the bottom of the stage (mobile-friendly —
+// a vertical strip of 26 tiny letters is a fat-finger risk, this spreads them out instead)
 function renderCrate3dRolodex(){
   const el = $('crate3dRolodex');
   if(!el) return;
   const letters = crate3dStack.filter(item => item.type === 'divider').map(item => item.letter);
   el.innerHTML = letters.map(l => `<button class="rolodex-letter" data-letter="${escHtml(l)}">${escHtml(l)}</button>`).join('');
+  const jumpToLetter = (letter)=>{
+    const idx = crate3dStack.findIndex(item => item.type === 'divider' && item.letter === letter);
+    if(idx >= 0) crate3dRotateTo(idx);
+  };
   el.querySelectorAll('.rolodex-letter').forEach(btn=>{
-    btn.onclick = ()=>{
-      const idx = crate3dStack.findIndex(item => item.type === 'divider' && item.letter === btn.dataset.letter);
-      if(idx >= 0) crate3dRotateTo(idx);
-    };
+    btn.onclick = ()=> jumpToLetter(btn.dataset.letter);
   });
+  // Drag-scrub across the letters, like running a thumb along a real crate divider row
+  let lastScrubbed = null;
+  const scrubAt = (clientX)=>{
+    const target = document.elementFromPoint(clientX, el.getBoundingClientRect().top + el.offsetHeight/2);
+    const btn = target && target.closest ? target.closest('.rolodex-letter') : null;
+    if(btn && btn.dataset.letter !== lastScrubbed){
+      lastScrubbed = btn.dataset.letter;
+      jumpToLetter(lastScrubbed);
+      if(navigator.vibrate) navigator.vibrate(5);
+    }
+  };
+  el.addEventListener('touchstart', e=>{ lastScrubbed = null; scrubAt(e.touches[0].clientX); }, {passive:true});
+  el.addEventListener('touchmove', e=>{ scrubAt(e.touches[0].clientX); }, {passive:true});
 }
 
 function crate3dCurrentLetter(){
@@ -1836,15 +1990,17 @@ function crate3dCurrentLetter(){
   return null;
 }
 
+// Renders exactly the visible stack depth (4 cards) — old DOM nodes are fully discarded on
+// every repaint, so the crate never accumulates more than 4 card elements at once.
 function crate3dPaintStage(){
   const stage = $('crate3dStage');
   if(!stage) return;
   stage.querySelectorAll('.crate3d-card').forEach(el=>el.remove());
   const depth = [
-    {scale:1, y:0, z:0, op:1},
-    {scale:0.94, y:-14, z:-40, op:0.85},
-    {scale:0.88, y:-26, z:-80, op:0.6},
-    {scale:0.82, y:-36, z:-120, op:0.35}
+    {scale:1, y:0, z:0, op:1, shade:0},
+    {scale:0.94, y:-14, z:-40, op:0.85, shade:0.3},
+    {scale:0.88, y:-26, z:-80, op:0.6, shade:0.6},
+    {scale:0.82, y:-36, z:-120, op:0.35, shade:0.85}
   ];
   const infoEl = $('crate3dInfo');
   const openBtn = $('crate3dOpenBtn');
@@ -1878,9 +2034,10 @@ function crate3dPaintStage(){
       el.appendChild(label);
       if(i === 0) setAmbientGlowFromImage(thumb);
     }
-    if(i === 0){
-      el.onclick = crate3dNext;
-    }
+    const shade = document.createElement('div');
+    shade.className = 'crate3d-shade';
+    shade.style.opacity = d.shade;
+    el.appendChild(shade);
     stage.appendChild(el);
   });
   const activeLetter = crate3dCurrentLetter();
@@ -1889,12 +2046,13 @@ function crate3dPaintStage(){
   });
 }
 
-function crate3dNext(){
+function crate3dNext(preDraggedEl){
   if(crate3dFlipping || crate3dStack.length < 2) return;
   const stage = $('crate3dStage');
-  const frontEl = stage.querySelector('.crate3d-card.front');
+  const frontEl = preDraggedEl || stage.querySelector('.crate3d-card.front');
   if(!frontEl) return;
   crate3dFlipping = true;
+  frontEl.style.transition = '';
   frontEl.classList.add('flipping');
   setTimeout(()=>{
     const moved = crate3dStack.shift();
@@ -3239,7 +3397,7 @@ async function initSharedView(){
 function renderSharedResults(list){
   sharedResultsCache = list;
   const wrap = $('sharedResultsList');
-  if(!list.length){ wrap.innerHTML = '<div class="scanhint">Nothing here yet.</div>'; return; }
+  if(!list.length){ wrap.innerHTML = browseEmptyStateHtml(); return; }
   wrap.innerHTML = list.map(r =>
     '<div style="display:flex; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid var(--line);">' +
       '<img src="' + (r.coverImage || '') + '" onerror="this.style.display=\'none\'" style="width:44px;height:44px;object-fit:cover;border-radius:6px;background:#111;flex:0 0 auto;">' +
@@ -3293,6 +3451,13 @@ if(shareIdParam){
   $('collectionResultsList').style.display = browseViewMode === 'table' ? 'block' : 'none';
   $('crateGroupedView').style.display = browseViewMode === 'crate' ? 'block' : 'none';
   $('recordWallView').style.display = browseViewMode === 'wall' ? 'block' : 'none';
+function syncHeaderHeight(){
+  const h = $('appHeader');
+  if(h) document.documentElement.style.setProperty('--header-height', h.offsetHeight + 'px');
+}
+window.addEventListener('resize', syncHeaderHeight);
+syncHeaderHeight();
+setTimeout(syncHeaderHeight, 300); // fonts/layout can shift height slightly after first paint
   setTimeout(() => runBrowse(''), 500);
   setTimeout(() => refreshBorrowRequests(), 800);
 }
