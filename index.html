@@ -368,7 +368,6 @@
     <button class="chip" id="searchModeToggleBtn" title="Search options" onclick="event.stopPropagation(); toggleSearchModeRow();" style="flex:0 0 auto;">🔍 Collection</button>
     <button class="secondary" id="clearSearchBtn" style="display:none; width:auto; padding:0 14px; margin:0; flex:0 0 auto;" onclick="clearUnifiedSearch();">Clear</button>
   </div>
-  <button class="primary" id="discogsSearchBtn" style="display:none; margin-top:8px;">Search Discogs</button>
   <div id="searchModeToggle" style="margin-top:10px; display:none; border:1px solid var(--line); border-radius:10px; padding:12px; background:var(--bg);">
     <div class="chiprow" style="margin:0 0 12px;">
       <button class="chip active" data-mode="collection">Search Collection</button>
@@ -416,14 +415,14 @@
   </div>
 </div>
 <div id="dashboardView">
-  <div id="loadingPanel" style="display:none;">
+  <div class="panel" id="loadingPanel" style="display:none;">
     <div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div>
     <div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div>
     <div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div>
     <div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div>
   </div>
-  <div id="discogsResultsWrap" class="fade-panel" style="display:none;">
-    <h3 id="discogsResultsHeading" style="font-size:14px; color:var(--text); text-transform:uppercase; letter-spacing:0.05em; margin:4px 0 12px;">On Discogs</h3>
+  <div class="panel fade-panel" id="discogsResultsWrap" style="display:none;">
+    <h3 id="discogsResultsHeading" style="font-size:14px; color:var(--text); text-transform:uppercase; letter-spacing:0.05em; margin:0 0 12px;">On Discogs</h3>
     <div id="discogsResultsList"></div>
   </div>
   <div class="panel" id="collectionPanel">
@@ -745,6 +744,7 @@ let lastRenderedDiscsTotal = 0;
 let collectionCache = null;
 let browseFilters = [];
 let currentSelection = null;
+let currentRecordDiscogsId = '';
 let currentDiscogsUrl = "";
 let lastOpenedFrom = 'collection';
 let expensiveThreshold = 50;
@@ -1222,7 +1222,6 @@ try{ searchMode = localStorage.getItem('crate-log-search-mode') || 'collection';
 const SEARCH_MODE_LABELS = { collection: '🔍 Collection', discogs: '🔍 Discogs', both: '🔍 Both' };
 function syncSearchModeUI(mode){
   document.querySelectorAll('#searchModeToggle .chip').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
-  $('discogsSearchBtn').style.display = 'block'; // always available — don't bury Discogs search behind the mode picker
   $('searchModeToggleBtn').textContent = SEARCH_MODE_LABELS[mode] || SEARCH_MODE_LABELS.collection;
   if(typeof syncHeaderHeight === 'function') setTimeout(syncHeaderHeight, 10);
 }
@@ -1249,14 +1248,17 @@ function setSearchMode(mode){
   searchMode = mode;
   try{ localStorage.setItem('crate-log-search-mode', mode); }catch(e){}
   syncSearchModeUI(mode);
+  const q = $('unifiedSearchInput').value.trim();
   if(mode === 'discogs'){
+    $('browseFadeWrap').classList.add('fading-out');
+    runBrowse('').then(()=> requestAnimationFrame(()=> $('browseFadeWrap').classList.remove('fading-out')));
+  } else {
+    runBrowse(q);
+  }
+  if(q && (mode === 'discogs' || mode === 'both')){ isUpdatingExistingCard = false; runSearch({query: q}); }
+  else if(mode === 'collection'){
     $('discogsResultsWrap').style.display = 'none';
     $('discogsResultsList').innerHTML = '';
-    runBrowse('');
-  } else {
-    const q = $('unifiedSearchInput').value.trim();
-    if(q && mode === 'both'){ isUpdatingExistingCard = false; runSearch({query: q}); }
-    runBrowse(q);
   }
 }
 document.querySelectorAll('#searchModeToggle .chip').forEach(b=>{
@@ -1264,26 +1266,29 @@ document.querySelectorAll('#searchModeToggle .chip').forEach(b=>{
 });
 syncSearchModeUI(searchMode); // safe at load — no network calls yet
 
-$('discogsSearchBtn').onclick = ()=>{
-  isUpdatingExistingCard = false;
-  const q = $('unifiedSearchInput').value.trim();
-  if(!q){ toast('Type something to search', true); return; }
-  runSearch({query: q});
-};
-
+// One debounce drives everything: live-filters the collection always, and auto-searches
+// Discogs too once you've typed a couple of characters, when the mode allows it — no button,
+// no separate trigger, it just searches as you type.
 $('unifiedSearchInput').addEventListener('input', ()=>{
   clearTimeout(searchDebounce);
   const q = $('unifiedSearchInput').value.trim();
   $('clearSearchBtn').style.display = q ? 'inline-block' : 'none';
   if(searchMode !== 'discogs'){
     $('browseFadeWrap').classList.add('fading-out');
-    searchDebounce = setTimeout(()=>{
-      runBrowse(q).then(()=> requestAnimationFrame(()=> $('browseFadeWrap').classList.remove('fading-out')));
-    }, 300);
   }
+  searchDebounce = setTimeout(()=>{
+    if(searchMode !== 'discogs'){
+      runBrowse(q).then(()=> requestAnimationFrame(()=> $('browseFadeWrap').classList.remove('fading-out')));
+    }
+    if((searchMode === 'discogs' || searchMode === 'both')){
+      if(q.length >= 2){ isUpdatingExistingCard = false; runSearch({query: q}); }
+      else { $('discogsResultsWrap').style.display = 'none'; $('discogsResultsList').innerHTML = ''; }
+    }
+  }, 450);
 });
 $('unifiedSearchInput').addEventListener('keydown', e=>{
   if(e.key === 'Enter') {
+    clearTimeout(searchDebounce);
     isUpdatingExistingCard = false;
     const q = $('unifiedSearchInput').value.trim();
     if(q) runSearch({query: q});
@@ -1545,7 +1550,7 @@ const CSV_FIELD_MAP = {
   coverImage: 'Cover Image', sleevePresent: 'Album Cover', innerSleeve: 'Inner Sleeve', outerSleeve: 'Outer Sleeve',
   discsTotal: 'Discs Expected', discsPresent: 'Discs Present', discsMissing: 'Discs Missing',
   mediaCondition: 'Media Grade', sleeveCondition: 'Sleeve Grade', favourite: 'Favourite',
-  dateAdded: 'Date Added'
+  discogsId: 'Discogs Release ID', dateAdded: 'Date Added'
 };
 
 function csvEscape(v){
@@ -2377,6 +2382,7 @@ document.addEventListener('keydown', (e)=>{
 
 function selectCandidate(r, artist, title){
   currentSelection = r;
+  currentRecordDiscogsId = r.id || '';
   currentRowIndex = null;
   clearDraft();
   const cover = r.cover_image || r.thumb || '';
@@ -2609,6 +2615,7 @@ async function applyPressingSwap(v){
   toast('Swapping to this pressing...');
   try{
     const data = await callScript({action:'release', id: v.id});
+    currentRecordDiscogsId = v.id;
     // Force-overwrite — this is a correction, not a fill-in-the-blanks
     if(v.format) $('fFormat').value = v.format;
     const labelStr = v.label ? (Array.isArray(v.label) ? v.label[0] : v.label) : '';
@@ -2937,7 +2944,8 @@ function buildRecordPayload(){
     discsMissing: Math.max(0, discsTotal - discsPresent),
     mediaCondition: discCond.worstMedia,
     sleeveCondition: getSelectedPill('sleeveCondPills'),
-    favourite: currentFavourite ? 'Yes' : ''
+    favourite: currentFavourite ? 'Yes' : '',
+    discogsId: currentRecordDiscogsId || ''
   };
 }
 function checkRequiredOrWarn(){
@@ -3112,6 +3120,7 @@ function renderLog(log){
 function loadFromLogRecord(record){
   if(!record) return;
   currentSelection = null;
+  currentRecordDiscogsId = record.discogsId || '';
   currentRowIndex = record.rowIndex || null;
   clearDraft();
   $('cardCover').src = record.coverImage || '';
@@ -3162,6 +3171,14 @@ function loadFromLogRecord(record){
   $('draftBanner').style.display = 'none';
   showEditor();
   toast('Loaded from library — click Save to update sheet');
+  if(currentRecordDiscogsId){
+    callScript({action:'release', id: currentRecordDiscogsId}).then(data=>{
+      if(currentRecordDiscogsId && data && !data.status){ // still viewing this record, and got real data back
+        lastReleaseData = data;
+        renderDiscogsInfo(data);
+      }
+    }).catch(()=>{ /* quietly skip — the rest of the record view still works fine without it */ });
+  }
 }
 
 function scheduleDraftSave(){
