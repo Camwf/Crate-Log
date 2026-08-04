@@ -1222,7 +1222,7 @@ try{ searchMode = localStorage.getItem('crate-log-search-mode') || 'collection';
 const SEARCH_MODE_LABELS = { collection: '🔍 Collection', discogs: '🔍 Discogs', both: '🔍 Both' };
 function syncSearchModeUI(mode){
   document.querySelectorAll('#searchModeToggle .chip').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
-  $('discogsSearchBtn').style.display = (mode === 'discogs' || mode === 'both') ? 'block' : 'none';
+  $('discogsSearchBtn').style.display = 'block'; // always available — don't bury Discogs search behind the mode picker
   $('searchModeToggleBtn').textContent = SEARCH_MODE_LABELS[mode] || SEARCH_MODE_LABELS.collection;
   if(typeof syncHeaderHeight === 'function') setTimeout(syncHeaderHeight, 10);
 }
@@ -1283,9 +1283,10 @@ $('unifiedSearchInput').addEventListener('input', ()=>{
   }
 });
 $('unifiedSearchInput').addEventListener('keydown', e=>{
-  if(e.key === 'Enter' && (searchMode === 'discogs' || searchMode === 'both')) {
+  if(e.key === 'Enter') {
     isUpdatingExistingCard = false;
-    runSearch({query: $('unifiedSearchInput').value.trim()});
+    const q = $('unifiedSearchInput').value.trim();
+    if(q) runSearch({query: q});
   }
 });
 
