@@ -61,8 +61,6 @@
   .panel.collapsed .panel-body { display: none; }
   .panel.collapsed .panel-header { margin-bottom: 0; }
   .panel.collapsed .panel-header .toggle-icon { transform: rotate(-90deg); }
-  .crate-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
-  .crate-tabs::-webkit-scrollbar { display: none; }
   .tab.active { font-weight: 600; color: #111; border-color: transparent; }
   .tab.addtab { background: transparent; border-style: dashed; color: var(--dim); }
   .tab.addtab:hover { color: var(--amber); border-color: var(--amber); }
@@ -266,6 +264,16 @@
   .crate3d-controls button { width: auto; padding: 8px 16px; margin: 0; }
   .crate3d-info { text-align: center; color: var(--dim); font-size: 12px; margin-bottom: 16px; }
 
+  /* Icon button notification badge (e.g. pending borrow requests) */
+  .icon-btn { position: relative; }
+  .icon-badge { position: absolute; top: -2px; right: -2px; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 8px; background: var(--amber); color: #111; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg); }
+  .icon-btn.has-alert { border-color: var(--amber); color: var(--amber); }
+
+  /* Small popout menus anchored under a trigger icon/chip (crate management, share, borrow) */
+  .popout-panel { border: 1px solid var(--line); border-radius: 10px; padding: 14px; background: var(--bg); margin-top: 8px; margin-bottom: 12px; }
+  .popout-panel h4 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--dim); font-weight: 600; }
+  .popout-panel small.hint { display: block; color: var(--dim); margin-bottom: 12px; font-size: 12px; }
+
   /* Contextual search transition */
   .fade-panel { transition: opacity 0.25s ease, transform 0.25s ease; }
   .fade-panel.fading-out { opacity: 0; transform: translateY(6px); pointer-events: none; }
@@ -361,7 +369,14 @@
 <header id="appHeader">
   <div class="header-top">
     <h1><span class="disc" id="logoDisc"></span>Crate <span class="highlight" id="logoText">Log</span></h1>
-    <button class="icon-btn" id="settingsBtn" title="Settings">⚙</button>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <button class="icon-btn" id="borrowBtn" title="Borrow Requests" onclick="toggleBorrowPopout()">📬<span id="borrowBadge" class="icon-badge" style="display:none;"></span></button>
+      <button class="icon-btn" id="settingsBtn" title="Settings">⚙</button>
+    </div>
+  </div>
+  <div id="borrowPopout" class="popout-panel" style="display:none;">
+    <h4>📬 Borrow Requests</h4>
+    <div id="borrowRequestsList"></div>
   </div>
   <div class="header-search-row">
     <input type="text" id="unifiedSearchInput" placeholder="Artist, Title, Barcode, Label...">
@@ -428,17 +443,38 @@
   <div class="panel" id="collectionPanel">
     <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 16px; gap:12px; flex-wrap:wrap;">
       <h3 style="margin: 0; font-size: 20px; color: var(--text); font-weight: 600;">Collection</h3>
-      <div style="display:flex; gap:8px;">
+    </div>
+    <div class="chiprow" id="collectionFilterChips" style="margin-bottom: 12px;"></div>
+    <div class="popout-panel" id="manageCratesPopout" style="display:none;">
+      <h4>✎ Manage Crates</h4>
+      <small class="hint">Your own way of grouping records — could be people, genres, shelves, whatever makes sense to you.</small>
+      <div id="collEditList"></div>
+      <div class="addcollrow">
+        <input type="text" id="newCollName" placeholder="New crate name">
+        <input type="color" id="newCollColor" value="#B08C5C">
+        <button class="secondary" id="addCollBtn">Add</button>
+      </div>
+      <small class="hint" style="margin-top:10px; margin-bottom:0;">Adding/Renaming only relabels the chips — records already saved keep the name they were saved under.</small>
+    </div>
+    <div class="popout-panel" id="sharePopout" style="display:none;">
+      <h4>🔗 Share & Export</h4>
+      <small class="hint">Gives someone a read-only link — they can look, but can't add or edit anything. They can request to borrow a specific record instead.</small>
+      <div class="field">
+        <label>Which crate</label>
+        <select id="shareCrateSelect"><option value="">Everything</option></select>
+      </div>
+      <div class="field">
+        <label>Label (optional, helps you remember why you shared it)</label>
+        <input type="text" id="shareLabelInput" placeholder="e.g. For Jordan">
+      </div>
+      <button class="secondary" style="width:100%;" id="createShareBtn">Create Share Link</button>
+      <div id="shareLinkResult" style="display:none; margin-top:12px; padding:12px; background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:8px; font-size:13px;"></div>
+      <div id="activeSharesList" style="margin-top:14px;"></div>
+      <div style="border-top:1px solid var(--line); margin-top:16px; padding-top:14px; display:flex; gap:8px;">
         <button class="secondary" id="exportCsvBtn" style="width:auto; padding:8px 14px; font-size:12px; margin:0;">Export CSV</button>
         <button class="secondary" id="importCsvBtn" style="width:auto; padding:8px 14px; font-size:12px; margin:0;">Import CSV</button>
         <input type="file" id="importCsvFile" accept=".csv" style="display:none;">
       </div>
-    </div>
-    <div class="chiprow" id="collectionFilterChips" style="margin-bottom: 12px;"></div>
-    <div class="addcollrow" id="quickAddCrateRow" style="display:none; margin-bottom:12px;">
-      <input type="text" id="quickAddCrateName" placeholder="New crate name" onkeydown="if(event.key==='Enter') submitQuickAddCrate();">
-      <input type="color" id="quickAddCrateColor" value="#8FA9A0">
-      <button class="secondary" onclick="submitQuickAddCrate()">Add</button>
     </div>
     <div id="browseFadeWrap" class="fade-panel">
     <div class="chiprow" id="viewModeToggle" style="margin-bottom:10px; align-items:center;">
@@ -468,53 +504,13 @@
   <div id="ambientGlow"></div>
   <div class="panel collapsed" id="statsPanel">
     <div class="panel-header" onclick="this.closest('.panel').classList.toggle('collapsed'); refreshStatsIfOpen();">
-      <h3>📊 Collection Stats</h3>
-      <span class="toggle-icon">▼</span>
-    </div>
-    <div class="panel-body" id="statsBody"></div>
-  </div>
-  <div class="panel collapsed" id="manageCratesPanel">
-    <div class="panel-header" onclick="this.closest('.panel').classList.toggle('collapsed')">
-      <h3>🗃 Manage Crates</h3>
+      <h3>📊 Crate Stats</h3>
       <span class="toggle-icon">▼</span>
     </div>
     <div class="panel-body">
-      <small style="display:block;color:var(--dim);margin-bottom:12px;">Your own way of grouping records — could be people, genres, shelves, whatever makes sense to you. Reorder, rename, recolor, or remove a crate here.</small>
-      <div id="collEditList"></div>
-      <div class="addcollrow">
-        <input type="text" id="newCollName" placeholder="New crate name">
-        <input type="color" id="newCollColor" value="#8FA9A0">
-        <button class="secondary" id="addCollBtn">Add</button>
-      </div>
-      <small style="display:block;color:var(--dim);margin-top:10px">Adding/Renaming only relabels the chips — records already saved keep the name they were saved under.</small>
+      <select id="statsCrateSelect" class="pill-select" style="margin-bottom:16px; width:100%;"><option value="">All Crates</option></select>
+      <div id="statsBody"></div>
     </div>
-  </div>
-  <div class="panel collapsed" id="sharePanel">
-    <div class="panel-header" onclick="this.closest('.panel').classList.toggle('collapsed'); populateShareCrateSelect(); refreshActiveShares();">
-      <h3>🔗 Share & Access</h3>
-      <span class="toggle-icon">▼</span>
-    </div>
-    <div class="panel-body">
-      <small style="display:block;color:var(--dim);margin-bottom:12px;">Gives someone a read-only link — they can look, but can't add or edit anything. They can request to borrow a specific record instead.</small>
-      <div class="field">
-        <label>Which crate</label>
-        <select id="shareCrateSelect"><option value="">Everything</option></select>
-      </div>
-      <div class="field">
-        <label>Label (optional, helps you remember why you shared it)</label>
-        <input type="text" id="shareLabelInput" placeholder="e.g. For Jordan">
-      </div>
-      <button class="secondary" style="width:100%;" id="createShareBtn">Create Share Link</button>
-      <div id="shareLinkResult" style="display:none; margin-top:12px; padding:12px; background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:8px; font-size:13px;"></div>
-      <div id="activeSharesList" style="margin-top:14px;"></div>
-    </div>
-  </div>
-  <div class="panel collapsed" id="borrowPanel">
-    <div class="panel-header" onclick="this.closest('.panel').classList.toggle('collapsed'); refreshBorrowRequests();">
-      <h3>📬 Borrow Requests <span id="borrowBadge" style="display:none; background:var(--amber); color:var(--bg); font-size:11px; padding:1px 7px; border-radius:10px; margin-left:6px; font-weight:700;"></span></h3>
-      <span class="toggle-icon">▼</span>
-    </div>
-    <div class="panel-body" id="borrowRequestsList"></div>
   </div>
   <div class="panel collapsed" id="logPanel">
     <div class="panel-header" onclick="this.closest('.panel').classList.toggle('collapsed')">
@@ -762,7 +758,7 @@ let browseViewMode = 'table';
 const DEFAULT_APPS_SCRIPT_URL = "https://crate-log-proxy.cameron-w-franklyn.workers.dev/";
 
 const DEFAULT_COLLECTIONS = [
-  {id:"wishlist", name:"Wishlist", color:"#A98FA3"}
+  {id:"wishlist", name:"Wishlist", color:"#A87C63"}
 ];
 let collections = DEFAULT_COLLECTIONS.slice();
 let activeCollectionId = "wishlist";
@@ -916,28 +912,9 @@ function renderBrowseFilters(){
     html += `<button class="chip ${isActive ? 'active' : ''}" style="${style}" onclick="toggleBrowseFilter('${c.id}')">${escHtml(c.name)}</button>`;
   });
   html += `<button class="chip ${browseFavOnly ? 'active' : ''}" onclick="toggleFavFilter()">★ Favourites</button>`;
-  html += `<button class="chip" id="quickAddCrateBtn" title="Add a crate" onclick="toggleQuickAddCrate()">+</button>`;
+  html += `<button class="chip" id="manageCratesBtn" title="Add, rename, reorder or recolor crates" onclick="toggleManageCratesPopout()">✎ Manage</button>`;
+  html += `<button class="chip" id="shareCratesBtn" title="Share a crate, export/import CSV" onclick="toggleSharePopout()">🔗 Share</button>`;
   wrap.innerHTML = html;
-}
-
-function toggleQuickAddCrate(){
-  const row = $('quickAddCrateRow');
-  const open = row.style.display !== 'none';
-  row.style.display = open ? 'none' : 'flex';
-  if(!open){ $('quickAddCrateName').value = ''; $('quickAddCrateName').focus(); }
-}
-function submitQuickAddCrate(){
-  const name = $('quickAddCrateName').value.trim();
-  if(!name){ toast('Give the crate a name', true); return; }
-  if(collections.some(c => c.name.toLowerCase() === name.toLowerCase())){ toast('You already have a crate called that', true); return; }
-  const id = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || ('crate-' + Date.now());
-  collections.push({ id, name, color: $('quickAddCrateColor').value });
-  persistCollections();
-  renderBrowseFilters();
-  renderCollEditList();
-  populateShareCrateSelect();
-  toggleQuickAddCrate();
-  toast('Added "' + name + '"');
 }
 
 window.toggleFavFilter = function(){
@@ -1491,8 +1468,20 @@ async function runBrowse(query){
 
 function refreshStatsIfOpen(){
   const panel = $('statsPanel');
-  if(panel && !panel.classList.contains('collapsed')) renderStats();
+  if(panel && !panel.classList.contains('collapsed')){
+    populateStatsCrateSelect();
+    renderStats();
+  }
 }
+
+function populateStatsCrateSelect(){
+  const sel = $('statsCrateSelect');
+  if(!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">All Crates</option>' + collections.map(c => `<option value="${escHtml(c.name)}">${escHtml(c.name)}</option>`).join('');
+  if([...sel.options].some(o=>o.value===current)) sel.value = current;
+}
+if($('statsCrateSelect')) $('statsCrateSelect').addEventListener('change', renderStats);
 
 function computeStats(list){
   const s = { total: list.length, totalValue: 0, pricedCount: 0, favCount: 0, byCollection: {}, byArtist: {}, byGenre: {} };
@@ -1525,8 +1514,11 @@ function statRowsHtml(entries){
 function renderStats(){
   const body = $('statsBody');
   if(!body) return;
-  const list = collectionCache || [];
-  if(!list.length){ body.innerHTML = '<div class="scanhint">No records logged yet.</div>'; return; }
+  const full = collectionCache || [];
+  const scopeCrate = $('statsCrateSelect') ? $('statsCrateSelect').value : '';
+  const list = scopeCrate ? full.filter(r => String(r.collection||'').trim() === scopeCrate) : full;
+  if(!full.length){ body.innerHTML = '<div class="scanhint">No records logged yet.</div>'; return; }
+  if(!list.length){ body.innerHTML = '<div class="scanhint">Nothing in this crate yet.</div>'; return; }
   const s = computeStats(list);
   const collRows = Object.entries(s.byCollection).sort((a,b)=> b[1]-a[1]);
   body.innerHTML =
@@ -1536,7 +1528,7 @@ function renderStats(){
       '<div class="stat-card"><div class="stat-num">' + s.favCount + '</div><div class="stat-label">Favourites</div></div>' +
     '</div>' +
     '<div class="stats-cols">' +
-      '<div><h4>By Crate</h4>' + statRowsHtml(collRows) + '</div>' +
+      (scopeCrate ? '' : '<div><h4>By Crate</h4>' + statRowsHtml(collRows) + '</div>') +
       '<div><h4>Top Artists</h4>' + statRowsHtml(topEntries(s.byArtist, 6)) + '</div>' +
       '<div><h4>Top Genres</h4>' + statRowsHtml(topEntries(s.byGenre, 6)) + '</div>' +
     '</div>';
@@ -1756,7 +1748,7 @@ function renderRecordWallView(list){
 }
 
 // ---------- Collection "DNA" dashboard ----------
-const DNA_PALETTE = ['#C9AD6E','#A98FA3','#7CA8A0','#B78A93','#8FA98F','#7C93A8','#C08B72','#B39B7C'];
+const DNA_PALETTE = ['#B08C5C','#A87C63','#8C7A5C','#9C7A6E','#6E7A6E','#A69078','#8A6F5C','#7C8570'];
 function computeGenreDNA(records){
   const counts = {};
   records.forEach(r=>{
@@ -2135,6 +2127,23 @@ function toggleFilterRow(){
   const open = row.style.display !== 'none';
   row.style.display = open ? 'none' : 'flex';
   $('filterToggleBtn').classList.toggle('active', !open);
+}
+function toggleManageCratesPopout(){
+  const el = $('manageCratesPopout');
+  const opening = el.style.display === 'none';
+  $('sharePopout').style.display = 'none';
+  $('shareCratesBtn').classList.remove('active');
+  el.style.display = opening ? 'block' : 'none';
+  $('manageCratesBtn').classList.toggle('active', opening);
+}
+function toggleSharePopout(){
+  const el = $('sharePopout');
+  const opening = el.style.display === 'none';
+  $('manageCratesPopout').style.display = 'none';
+  $('manageCratesBtn').classList.remove('active');
+  el.style.display = opening ? 'block' : 'none';
+  $('shareCratesBtn').classList.toggle('active', opening);
+  if(opening){ populateShareCrateSelect(); refreshActiveShares(); }
 }
 function updateFilterIcon(){
   const active = !!(browseGenreFilter || browseFormatFilter);
@@ -3346,6 +3355,14 @@ async function revokeShareById(shareId){
 }
 
 // ---------- Borrow requests (owner side) ----------
+function toggleBorrowPopout(){
+  const el = $('borrowPopout');
+  const opening = el.style.display === 'none';
+  el.style.display = opening ? 'block' : 'none';
+  if(opening) refreshBorrowRequests();
+  setTimeout(syncHeaderHeight, 10);
+}
+
 async function refreshBorrowRequests(){
   if(!accessKey) return;
   try{
@@ -3354,9 +3371,10 @@ async function refreshBorrowRequests(){
     const pending = list.filter(r => r.status === 'pending');
     const badge = $('borrowBadge');
     if(badge){
-      if(pending.length){ badge.style.display='inline-block'; badge.textContent = pending.length; }
+      if(pending.length){ badge.style.display='flex'; badge.textContent = pending.length; }
       else { badge.style.display = 'none'; }
     }
+    if($('borrowBtn')) $('borrowBtn').classList.toggle('has-alert', pending.length > 0);
     const wrap = $('borrowRequestsList');
     if(!wrap) return;
     if(!list.length){ wrap.innerHTML = '<div class="scanhint">No borrow requests yet.</div>'; return; }
