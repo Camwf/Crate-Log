@@ -78,9 +78,6 @@
     .grid-2 { grid-template-columns: 1fr 1fr; }
     .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
   }
-  @media(max-width: 767px) {
-    #viewModeToggle button[data-view="table"] { display: none; }
-  }
   input[type=text], textarea { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); color: var(--text); border-radius: var(--radius-sm); padding: 14px 16px; font-size: 15px; font-family: 'Inter', sans-serif; transition: all 0.2s ease; }
   input[type=text]:focus, textarea:focus { border-color: var(--amber); outline: none; background: rgba(0,0,0,0.5); box-shadow: 0 0 0 3px var(--amber-dim); }
   input[type=text]::placeholder, textarea::placeholder { color: rgba(255,255,255,0.3); }
@@ -500,14 +497,6 @@
       <select id="formatFilterSelect" class="pill-select"><option value="">All Formats</option></select>
     </div>
     <div class="browse-summary" id="browseSummary"></div>
-    <div id="bulkToolbar" class="bulk-toolbar-overlay">
-      <span id="bulkCount" style="font-size:13px; color:var(--text); font-weight:600;"></span>
-      <select id="bulkMoveSelect" style="width:auto; min-width:140px;"></select>
-      <button class="secondary" id="bulkMoveBtn" style="width:auto; padding:6px 12px; font-size:12px; margin:0;">Move</button>
-      <button class="secondary" id="bulkFavBtn" style="width:auto; padding:6px 12px; font-size:12px; margin:0;">★ Favourite</button>
-      <button class="secondary" id="bulkDeleteBtn" style="width:auto; padding:6px 12px; font-size:12px; margin:0; border-color:var(--red); color:var(--red);">Delete</button>
-      <button class="secondary" id="bulkClearBtn" style="width:auto; padding:6px 12px; font-size:12px; margin:0 0 0 auto;">Clear Selection</button>
-    </div>
     <div id="collectionResultsList"></div>
     <div id="crateGroupedView" style="display:none;"></div>
     <div id="recordWallView" style="display:none;"></div>
@@ -655,6 +644,14 @@
   </div>
 </div>
 <div class="toast" id="toast"></div>
+<div id="bulkToolbar" class="bulk-toolbar-overlay">
+  <span id="bulkCount" style="font-size:13px; color:var(--text); font-weight:600;"></span>
+  <select id="bulkMoveSelect" style="width:auto; min-width:140px;"></select>
+  <button class="secondary" id="bulkMoveBtn" style="width:auto; padding:6px 12px; font-size:12px; margin:0;">Move</button>
+  <button class="secondary" id="bulkFavBtn" style="width:auto; padding:6px 12px; font-size:12px; margin:0;">★ Favourite</button>
+  <button class="secondary" id="bulkDeleteBtn" style="width:auto; padding:6px 12px; font-size:12px; margin:0; border-color:var(--red); color:var(--red);">Delete</button>
+  <button class="secondary" id="bulkClearBtn" style="width:auto; padding:6px 12px; font-size:12px; margin:0 0 0 auto;">Clear Selection</button>
+</div>
 <div class="fab-container" id="fabContainer">
   <div class="fab-inner">
     <button class="secondary" id="discardBtn">Discard</button>
@@ -1692,7 +1689,6 @@ function setBrowseViewMode(mode){
   applyBrowseSortAndFilter();
 }
 try{ browseViewMode = localStorage.getItem('crate-log-view-mode') || 'table'; }catch(e){}
-if(window.innerWidth < 768 && browseViewMode === 'table') browseViewMode = 'wall';
 
 // ---------- Ambient background glow (best-effort dominant color from cover art) ----------
 const colorCache = {};
