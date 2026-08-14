@@ -438,7 +438,36 @@
     <button class="secondary" style="width:100%; margin-top:8px;" id="cancelBorrowBtn">Cancel</button>
   </div>
 </div>
-<div id="dashboardView">
+<div id="loginGateView" style="display:none;">
+  <div class="panel" style="max-width:400px; margin-top:60px;">
+    <div style="text-align:center; margin-bottom:20px;">
+      <span class="disc" style="width:32px;height:32px;display:inline-block;"></span>
+      <h3 style="margin:12px 0 4px;">Crate <span class="highlight">Log</span></h3>
+      <p style="color:var(--dim); font-size:13px; margin:0;">Your own vinyl collection, cataloged and searchable.</p>
+    </div>
+    <div class="chiprow" id="authModeToggle" style="justify-content:center; margin-bottom:18px;">
+      <button class="chip active" data-authmode="signup" onclick="setAuthMode('signup')">New here</button>
+      <button class="chip" data-authmode="login" onclick="setAuthMode('login')">I have a key</button>
+    </div>
+    <div id="signupForm">
+      <div class="field">
+        <label>Your name</label>
+        <input type="text" id="signupName" placeholder="e.g. Jordan" onkeydown="if(event.key==='Enter') doSignup();">
+      </div>
+      <button class="primary" style="width:100%;" id="signupBtn" onclick="doSignup()">Create My Collection</button>
+      <small style="display:block;color:var(--dim);margin-top:10px;text-align:center;">Sets up a brand new, completely private collection just for you.</small>
+    </div>
+    <div id="loginForm" style="display:none;">
+      <div class="field">
+        <label>Your Access Key</label>
+        <input type="text" id="loginKey" placeholder="Paste the key you were given" onkeydown="if(event.key==='Enter') doLogin();">
+      </div>
+      <button class="primary" style="width:100%;" id="loginBtn" onclick="doLogin()">Log In</button>
+    </div>
+    <div id="authError" style="display:none; color:var(--red); font-size:13px; margin-top:12px; text-align:center;"></div>
+  </div>
+</div>
+<div id="dashboardView" style="display:none;">
   <div class="panel" id="loadingPanel" style="display:none;">
     <div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div>
     <div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div>
@@ -697,13 +726,9 @@
       <input type="text" id="appsScriptUrl" placeholder="https://crate-log-proxy....workers.dev/">
       <small style="display:block;color:var(--dim);margin-top:6px;">The Cloudflare Worker URL — same for everyone using this app.</small>
     </div>
-    <div class="field">
-      <label>Your Access Key</label>
-      <input type="text" id="accessKey" placeholder="Paste the personal key you were given">
-      <small style="display:block;color:var(--dim);margin-top:6px;">Each person has their own — this is what keeps your collection separate from everyone else's.</small>
-    </div>
     <button class="primary" id="saveSettingsBtn">Save Settings</button>
     <button class="secondary" style="width:100%;margin-top:8px" id="testConnBtn">Test Connection</button>
+    <button class="secondary" style="width:100%;margin-top:8px; border-color:var(--red); color:var(--red);" id="logoutBtn">Log Out</button>
   </div>
 </div>
 <div class="modal" id="crateOnboardModal">
@@ -1096,7 +1121,6 @@ async function loadSettings(){
   $('appsScriptUrl').value = appsScriptUrl;
   $('expensiveThreshold').value = expensiveThreshold;
   $('rareThreshold').value = rareThreshold;
-  $('accessKey').value = accessKey;
   if(!appsScriptUrl || appsScriptUrl.indexOf('REPLACE_WITH') === 0){
     setTimeout(()=> $('settingsModal').classList.add('show'), 400);
   }
@@ -1105,12 +1129,10 @@ async function saveSettings(){
   appsScriptUrl = $('appsScriptUrl').value.trim();
   expensiveThreshold = parseFloat($('expensiveThreshold').value) || 50;
   rareThreshold = parseInt($('rareThreshold').value, 10) || 100;
-  accessKey = $('accessKey').value.trim();
   try{
     localStorage.setItem('crate-log-settings', JSON.stringify({appsScriptUrl, expensiveThreshold, rareThreshold, accessKey}));
     toast('Settings saved');
     $('settingsModal').classList.remove('show');
-    loadCollections(); // pull this account's crates now that the key may have changed
   }catch(e){ toast('Could not save settings', true); }
 }
 
@@ -1139,6 +1161,19 @@ $('testConnBtn').onclick = async ()=>{
   }catch(e){ toast('Connection failed', true); }
 };
 
+$('logoutBtn').onclick = ()=>{
+  if(!confirm('Log out? You\u2019ll need your access key to log back in.')) return;
+  accessKey = '';
+  persistAuth();
+  $('settingsModal').classList.remove('show');
+  $('dashboardView').style.display = 'none';
+  $('editorView').style.display = 'none';
+  $('appHeader').style.display = 'none';
+  $('loginKey').value = '';
+  setAuthMode('login');
+  $('loginGateView').style.display = 'block';
+};
+
 $('createUserBtn').onclick = async ()=>{
   const adminKey = $('adminKeyInput').value.trim();
   const displayName = $('newUserName').value.trim();
@@ -1154,7 +1189,7 @@ $('createUserBtn').onclick = async ()=>{
       $('newUserResult').innerHTML =
         '<div style="color:var(--dim);margin-bottom:6px;">Access key for <strong style="color:var(--text);">' + escHtml(j.displayName) + '</strong> — send this to them:</div>' +
         '<div style="font-family:monospace; font-size:13px; word-break:break-all; color:var(--amber); user-select:all;">' + escHtml(j.accessKey) + '</div>' +
-        '<div style="color:var(--dim); margin-top:8px; font-size:12px;">They paste this into their own Settings → Your Access Key, along with the same Backend URL.</div>';
+        '<div style="color:var(--dim); margin-top:8px; font-size:12px;">They can just visit the app and tap "New here" instead — this key is only needed if you want to hand them an account you set up yourself. If you do give them this, they tap "I have a key" on the login screen and paste it in.</div>';
       $('newUserName').value = '';
     } else {
       toast(j.message || 'Could not create user', true);
@@ -1292,6 +1327,10 @@ async function runSearch(payload){
   try{
     const data = await callScript({action:'search', ...payload});
     $('loadingPanel').style.display='none';
+    if(data.status === 'error'){
+      toast('Discogs search failed: ' + (data.message || 'unknown error'), true);
+      return;
+    }
     if (isUpdatingExistingCard) {
       $('discogsResultsHeading').textContent = '⚠️ Select Pressing to Fill Blanks for: ' + payload.query;
       $('discogsResultsHeading').style.color = 'var(--amber)';
@@ -1307,7 +1346,7 @@ async function runSearch(payload){
     }
   }catch(e){
     $('loadingPanel').style.display='none';
-    toast('Lookup failed', true);
+    toast('Lookup failed — check your Backend URL and connection', true);
   }
 }
 
@@ -3488,10 +3527,10 @@ $('submitBorrowBtn').onclick = async ()=>{
   $('submitBorrowBtn').disabled = false;
 };
 
-loadSettings();
-if(shareIdParam){
-  initSharedView();
-} else {
+function startApp(){
+  $('appHeader').style.display = '';
+  $('loginGateView').style.display = 'none';
+  $('dashboardView').style.display = 'block';
   loadCollections();
   loadLog();
   checkForDraft();
@@ -3499,15 +3538,78 @@ if(shareIdParam){
   $('collectionResultsList').style.display = browseViewMode === 'table' ? 'block' : 'none';
   $('crateGroupedView').style.display = browseViewMode === 'crate' ? 'block' : 'none';
   $('recordWallView').style.display = browseViewMode === 'wall' ? 'block' : 'none';
+  syncHeaderHeight();
+  setTimeout(syncHeaderHeight, 300); // fonts/layout can shift height slightly after first paint
+  setTimeout(() => runBrowse(''), 500);
+  setTimeout(() => refreshBorrowRequests(), 800);
+}
 function syncHeaderHeight(){
   const h = $('appHeader');
   if(h) document.documentElement.style.setProperty('--header-height', h.offsetHeight + 'px');
 }
 window.addEventListener('resize', syncHeaderHeight);
-syncHeaderHeight();
-setTimeout(syncHeaderHeight, 300); // fonts/layout can shift height slightly after first paint
-  setTimeout(() => runBrowse(''), 500);
-  setTimeout(() => refreshBorrowRequests(), 800);
+
+function setAuthMode(mode){
+  document.querySelectorAll('#authModeToggle .chip').forEach(b => b.classList.toggle('active', b.dataset.authmode === mode));
+  $('signupForm').style.display = mode === 'signup' ? 'block' : 'none';
+  $('loginForm').style.display = mode === 'login' ? 'block' : 'none';
+  $('authError').style.display = 'none';
+}
+function showAuthError(msg){
+  $('authError').textContent = msg;
+  $('authError').style.display = 'block';
+}
+function persistAuth(){
+  try{ localStorage.setItem('crate-log-settings', JSON.stringify({appsScriptUrl, expensiveThreshold, rareThreshold, accessKey})); }catch(e){}
+}
+async function doSignup(){
+  const name = $('signupName').value.trim();
+  if(!name){ showAuthError('Enter your name first'); return; }
+  if(!appsScriptUrl){ showAuthError('This app isn\u2019t configured with a backend yet — ask whoever set it up.'); return; }
+  $('signupBtn').disabled = true;
+  try{
+    const res = await fetch(appsScriptUrl, {method:'POST', body: JSON.stringify({action:'signup', displayName: name})});
+    const j = await res.json();
+    if(j.status === 'ok'){
+      accessKey = j.accessKey;
+      persistAuth();
+      startApp();
+    } else {
+      showAuthError(j.message || 'Could not create your account');
+    }
+  }catch(e){ showAuthError('Could not reach the server — check your connection'); }
+  $('signupBtn').disabled = false;
+}
+async function doLogin(){
+  const key = $('loginKey').value.trim();
+  if(!key){ showAuthError('Paste your access key first'); return; }
+  if(!appsScriptUrl){ showAuthError('This app isn\u2019t configured with a backend yet — ask whoever set it up.'); return; }
+  $('loginBtn').disabled = true;
+  try{
+    const res = await fetch(appsScriptUrl, {method:'POST', body: JSON.stringify({action:'getCrates', accessKey: key})});
+    const j = await res.json();
+    if(j.status === 'ok'){
+      accessKey = key;
+      persistAuth();
+      startApp();
+    } else {
+      showAuthError(j.message || 'That key wasn\u2019t recognized');
+    }
+  }catch(e){ showAuthError('Could not reach the server — check your connection'); }
+  $('loginBtn').disabled = false;
+}
+document.querySelectorAll('#authModeToggle .chip').forEach(b=>{
+  b.onclick = ()=> setAuthMode(b.dataset.authmode);
+});
+
+loadSettings();
+if(shareIdParam){
+  initSharedView();
+} else if(accessKey){
+  startApp();
+} else {
+  $('appHeader').style.display = 'none';
+  $('loginGateView').style.display = 'block';
 }
 </script>
 </body>
