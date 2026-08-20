@@ -341,6 +341,12 @@
   .popout-panel { border: 1px solid var(--line); border-radius: 10px; padding: 14px; background: var(--bg); margin-top: 8px; margin-bottom: 12px; }
   .popout-panel h4 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--dim); font-weight: 600; }
   .popout-panel small.hint { display: block; color: var(--dim); margin-bottom: 12px; font-size: 12px; }
+  .popout-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .popout-x { background: rgba(var(--overlay-rgb),0.05); border: 1px solid var(--line); color: var(--dim); width: 26px; height: 26px; border-radius: 50%; font-size: 13px; line-height: 1; cursor: pointer; flex-shrink: 0; padding: 0; }
+  .popout-x:hover { color: var(--text); border-color: var(--dim); }
+  .popout-subrow { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--dim); cursor: pointer; padding: 8px 0 2px; user-select: none; }
+  .popout-caret { transition: transform 0.2s; }
+  .popout-caret.open { transform: rotate(180deg); }
   .bulk-toolbar-overlay {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 150;
     display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
@@ -438,6 +444,74 @@
   .addcollrow { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
   .addcollrow input[type=text] { flex: 1; padding: 10px 12px; }
   .addcollrow input[type=color] { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--line); background: none; padding: 0; cursor: pointer; flex: 0 0 auto; }
+
+  /* ================= Polish pass ================= */
+
+  /* Accessible focus ring everywhere, without disturbing existing :focus box-shadows on inputs */
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid var(--amber); outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+  }
+  ::selection { background: var(--amber-dim); color: var(--text); }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(var(--overlay-rgb),0.15); border-radius: 8px; border: 2px solid transparent; background-clip: content-box; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(var(--overlay-rgb),0.25); background-clip: content-box; }
+
+  /* Panels ease in rather than popping, view switches feel considered */
+  @keyframes panel-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  #dashboardView > .panel, #editorView .panel, #loginGateView .panel { animation: panel-rise 0.35s cubic-bezier(0.16,1,0.3,1) both; }
+
+  button.primary, button.secondary, .chip, .icon-btn, .pill { -webkit-tap-highlight-color: transparent; }
+  button.primary { box-shadow: 0 1px 0 rgba(255,255,255,0.15) inset, 0 10px 24px -10px rgba(232,170,85,0.45); }
+  button.primary:hover { box-shadow: 0 1px 0 rgba(255,255,255,0.2) inset, 0 14px 28px -10px rgba(232,170,85,0.55); }
+
+  /* ---- Header: compact unified search bar ---- */
+  .search-shell { display: flex; align-items: center; gap: 6px; background: var(--input-bg); border: 1px solid rgba(var(--overlay-rgb),0.08); border-radius: 999px; padding: 4px 4px 4px 16px; transition: border-color 0.2s, box-shadow 0.2s; }
+  .search-shell:focus-within { border-color: var(--amber); box-shadow: 0 0 0 3px var(--amber-dim); }
+  .search-shell svg.search-ic { flex: 0 0 auto; opacity: 0.5; }
+  .search-shell input[type=text] { border: none; background: none; padding: 10px 8px; border-radius: 0; box-shadow: none !important; }
+  .search-shell input[type=text]:focus { border: none; background: none; }
+  .search-mode-btn { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid transparent; color: var(--dim); border-radius: 999px; padding: 8px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s; font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.03em; }
+  .search-mode-btn:hover { color: var(--text); }
+  .search-mode-btn.has-value { color: var(--amber); background: var(--amber-dim); }
+  .search-clear-btn { flex: 0 0 auto; background: none; border: none; color: var(--dim); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  .search-clear-btn:hover { color: var(--text); background: rgba(var(--overlay-rgb),0.08); }
+  header .header-top { margin-bottom: 12px; }
+  header h1 { letter-spacing: 0.01em; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+
+  /* ---- Settings modal: sectioned accordion ---- */
+  .settings-section { border: 1px solid var(--line); border-radius: var(--radius-sm); margin-bottom: 12px; overflow: hidden; background: rgba(var(--overlay-rgb),0.015); }
+  .settings-section-header { display: flex; align-items: center; gap: 10px; padding: 14px 16px; cursor: pointer; user-select: none; }
+  .settings-section-header .ss-icon { font-size: 16px; flex: 0 0 auto; width: 20px; text-align: center; }
+  .settings-section-header .ss-title { font-family: 'Oswald', sans-serif; font-size: 13.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; flex: 1; }
+  .settings-section-header .ss-sub { font-size: 11.5px; color: var(--dim); font-weight: 400; text-transform: none; letter-spacing: 0; display: block; margin-top: 2px; }
+  .settings-section-header .toggle-icon { color: var(--dim); font-size: 11px; transition: transform 0.25s ease; }
+  .settings-section.open .settings-section-header .toggle-icon { transform: rotate(180deg); }
+  .settings-section-body { padding: 0 16px 16px; display: none; }
+  .settings-section.open .settings-section-body { display: block; }
+  .settings-section.danger .settings-section-header .ss-icon { color: var(--red); }
+  #settingsModal h3:first-of-type { margin-top: 0; }
+  #settingsModal .modalbox { padding: 24px 20px; }
+
+  /* ---- Editor: tabbed sections ---- */
+  .editor-tabs { display: flex; gap: 6px; margin-bottom: 22px; border-bottom: 1px solid var(--line); position: sticky; top: calc(var(--header-height, 118px) + 0px); background: var(--bg); z-index: 5; padding-top: 2px; }
+  @media(min-width: 860px) { .editor-tabs { position: static; background: none; } }
+  .editor-tab { flex: 1; background: none; border: none; border-bottom: 2px solid transparent; color: var(--dim); font-family: 'Oswald', sans-serif; font-size: 12.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; padding: 12px 6px; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+  .editor-tab:hover { color: var(--text); }
+  .editor-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+  .editor-tab .et-flag { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--red); margin-left: 5px; vertical-align: middle; }
+  .tab-pane { display: none; animation: panel-rise 0.25s ease both; }
+  .tab-pane.active { display: block; }
+
+  /* ---- Onboarding / login gate ---- */
+  #loginGateView { display: flex; min-height: calc(100vh - 40px); align-items: center; justify-content: center; padding: 20px; }
+  #loginGateView .panel { margin-top: 0 !important; box-shadow: 0 24px 64px rgba(0,0,0,0.5); }
+  .onboard-disc { width: 44px; height: 44px; margin: 0 auto 14px; box-shadow: 0 6px 20px rgba(0,0,0,0.5); }
+  #crateOnboardModal .modalbox { text-align: left; }
 </style>
 </head>
 <body>
@@ -445,7 +519,7 @@
 <header id="appHeader">
   <div class="header-top">
     <h1><span class="disc" id="logoDisc"></span>Crate <span class="highlight" id="logoText">Log</span></h1>
-    <div style="display:flex; gap:8px; align-items:center;">
+    <div class="header-actions">
       <button class="icon-btn" id="borrowBtn" title="Borrow Requests" onclick="toggleBorrowPopout()">📬<span id="borrowBadge" class="icon-badge" style="display:none;"></span></button>
       <button class="icon-btn" id="settingsBtn" title="Settings">⚙</button>
     </div>
@@ -454,24 +528,33 @@
     <h4>📬 Borrow Requests</h4>
     <div id="borrowRequestsList"></div>
   </div>
-  <div class="header-search-row">
-    <input type="text" id="unifiedSearchInput" placeholder="Artist, Title, Barcode, Label...">
-    <button class="chip" id="searchModeToggleBtn" title="Search options" onclick="event.stopPropagation(); toggleSearchModeRow();" style="flex:0 0 auto;">🔍 Collection</button>
-    <button class="secondary" id="clearSearchBtn" style="display:none; width:auto; padding:0 14px; margin:0; flex:0 0 auto;" onclick="clearUnifiedSearch();">Clear</button>
+  <div class="search-shell">
+    <svg class="search-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="unifiedSearchInput" placeholder="Artist, title, barcode, label…">
+    <button class="search-clear-btn" id="clearSearchBtn" style="display:none;" title="Clear search" onclick="clearUnifiedSearch();">✕</button>
+    <button class="search-mode-btn" id="searchModeToggleBtn" title="Search options" onclick="event.stopPropagation(); toggleSearchModeRow();">🔍 Collection</button>
   </div>
-  <div id="searchModeToggle" style="margin-top:10px; display:none; border:1px solid var(--line); border-radius:10px; padding:12px; background:var(--bg);">
-    <div class="chiprow" style="margin:0 0 12px;">
-      <button class="chip active" data-mode="collection">Search Collection</button>
-      <button class="chip" data-mode="discogs">Search Discogs</button>
+  <div id="searchModeToggle" class="popout-panel" style="margin-top:10px; display:none;">
+    <div class="popout-header">
+      <h4 style="margin:0;">Search Options</h4>
+      <button type="button" class="popout-x" onclick="toggleSearchModeRow()">✕</button>
+    </div>
+    <div class="chiprow" style="margin:0 0 10px;">
+      <button class="chip active" data-mode="collection">Collection</button>
+      <button class="chip" data-mode="discogs">Discogs</button>
       <button class="chip" data-mode="both">Both</button>
     </div>
-    <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--dim); margin-bottom:8px;">🚩 Flag Thresholds</div>
-    <div class="row2">
-      <div class="field" style="margin:0;"><label style="font-size:11px;">Expensive if over</label>
-        <input type="text" id="expensiveThresholdQuick" inputmode="decimal" placeholder="50">
-      </div>
-      <div class="field" style="margin:0;"><label style="font-size:11px;">Rare if fewer than</label>
-        <input type="text" id="rareThresholdQuick" inputmode="numeric" placeholder="100">
+    <div class="popout-subrow" onclick="toggleFlagThresholds()">
+      <span>🚩 Flag thresholds</span><span class="popout-caret" id="flagThresholdsCaret">▾</span>
+    </div>
+    <div id="flagThresholdsBody" style="display:none; margin-top:8px;">
+      <div class="row2">
+        <div class="field" style="margin:0;"><label style="font-size:11px;">Expensive over</label>
+          <input type="text" id="expensiveThresholdQuick" inputmode="decimal" placeholder="50">
+        </div>
+        <div class="field" style="margin:0;"><label style="font-size:11px;">Rare under</label>
+          <input type="text" id="rareThresholdQuick" inputmode="numeric" placeholder="100">
+        </div>
       </div>
     </div>
   </div>
@@ -506,11 +589,11 @@
   </div>
 </div>
 <div id="loginGateView" style="display:none;">
-  <div class="panel" style="max-width:400px; margin-top:60px;">
-    <div style="text-align:center; margin-bottom:20px;">
-      <span class="disc" style="width:32px;height:32px;display:inline-block;"></span>
-      <h3 style="margin:12px 0 4px;">Crate <span class="highlight">Log</span></h3>
-      <p style="color:var(--dim); font-size:13px; margin:0;">Your own vinyl collection, cataloged and searchable.</p>
+  <div class="panel" style="max-width:400px; width:100%;">
+    <div style="text-align:center; margin-bottom:24px;">
+      <span class="disc onboard-disc" style="display:inline-block;"></span>
+      <h3 style="margin:0 0 6px; font-size:22px;">Crate <span class="highlight">Log</span></h3>
+      <p style="color:var(--dim); font-size:13.5px; margin:0;">Your vinyl collection, catalogued and searchable — wherever you keep it.</p>
     </div>
     <div class="chiprow" id="authModeToggle" style="justify-content:center; margin-bottom:18px;">
       <button class="chip active" data-authmode="signup" onclick="setAuthMode('signup')">New here</button>
@@ -519,11 +602,11 @@
     <div id="signupForm">
       <div class="field">
         <label>Your name</label>
-        <input type="text" id="signupName" placeholder="e.g. Jordan">
+        <input type="text" id="signupName" placeholder="e.g. Bob Dylan">
       </div>
       <div class="field">
         <label>Username</label>
-        <input type="text" id="signupUsername" placeholder="e.g. jordan" autocapitalize="off" autocorrect="off">
+        <input type="text" id="signupUsername" placeholder="e.g. BobbyD68" autocapitalize="off" autocorrect="off">
       </div>
       <div class="field">
         <label>Password</label>
@@ -571,7 +654,10 @@
     </div>
     <div class="chiprow" id="collectionFilterChips" style="margin-bottom: 12px;"></div>
     <div class="popout-panel" id="manageCratesPopout" style="display:none;">
-      <h4>✎ Manage Crates</h4>
+      <div class="popout-header">
+        <h4 style="margin:0;">✎ Manage Crates</h4>
+        <button type="button" class="popout-x" onclick="toggleManageCratesPopout()">✕</button>
+      </div>
       <small class="hint">Your own way of grouping records — could be people, genres, shelves, whatever makes sense to you.</small>
       <div id="collEditList"></div>
       <div class="addcollrow">
@@ -582,7 +668,10 @@
       <small class="hint" style="margin-top:10px; margin-bottom:0;">Adding/Renaming only relabels the chips — records already saved keep the name they were saved under.</small>
     </div>
     <div class="popout-panel" id="sharePopout" style="display:none;">
-      <h4>🔗 Share & Export</h4>
+      <div class="popout-header">
+        <h4 style="margin:0;">🔗 Share &amp; Export</h4>
+        <button type="button" class="popout-x" onclick="toggleSharePopout()">✕</button>
+      </div>
       <small class="hint">Gives someone a read-only link — they can look, but can't add or edit anything. They can request to borrow a specific record instead.</small>
       <div class="field">
         <label>Which crate</label>
@@ -681,6 +770,13 @@
         <button class="fav-btn" type="button" id="favBtn">☆ Listen Later / Favourite</button>
       </div>
       <div class="editor-main">
+        <div class="editor-tabs" role="tablist">
+          <button type="button" class="editor-tab active" data-tab="details" onclick="switchEditorTab('details')">1. Details</button>
+          <button type="button" class="editor-tab" data-tab="condition" onclick="switchEditorTab('condition')">2. Discs &amp; Notes</button>
+          <button type="button" class="editor-tab" data-tab="info" onclick="switchEditorTab('info')">3. Discogs Info</button>
+        </div>
+
+        <div class="tab-pane active" data-tab-content="details">
         <div class="grid-2">
           <div class="field"><label>Artist</label><input type="text" id="fArtist"></div>
           <div class="field"><label>Title</label><input type="text" id="fTitle"></div>
@@ -702,6 +798,9 @@
           </div>
         </div>
         <div class="field"><label>Genre / Style</label><input type="text" id="fGenre" list="genreDatalist"></div>
+        </div>
+
+        <div class="tab-pane" data-tab-content="condition">
         <div class="field" id="discStepperWrap" style="display:none; margin-bottom: 20px;">
           <label>Discs in this Set</label>
           <div class="grid-2" style="background: var(--well-1); padding: 16px; border-radius: 8px;">
@@ -731,6 +830,9 @@
           <textarea id="fTracklist" placeholder="Fills in automatically once a release is selected" style="min-height: 120px; font-family: monospace; font-size: 13px;"></textarea>
         </div>
         <div class="field"><label>Notes</label><textarea id="fNotes" placeholder="Story, quirks, deadwax matrix numbers, etc"></textarea></div>
+        </div>
+
+        <div class="tab-pane" data-tab-content="info">
         <div class="moreby" id="discogsInfoWrap" style="display:none; margin-bottom:16px;">
           <button class="moreby-toggle" id="discogsInfoToggle">More info from Discogs ▾</button>
           <div class="scanhint" style="margin:4px 0 8px;">Pulled from Discogs, not stored unless you add it below.</div>
@@ -747,6 +849,9 @@
           <button class="moreby-toggle" id="morebyToggle">More by this artist ▾</button>
           <div id="morebyList" style="display:none; margin-top:10px;"></div>
         </div>
+        <div class="empty-tab-hint" id="infoTabEmptyHint" style="color:var(--dim); font-size:13px; text-align:center; padding:24px 0;">Nothing here yet — this fills in once you've picked a release from Discogs search.</div>
+        </div>
+
         <hr style="border:0; border-bottom:1px solid rgba(var(--overlay-rgb), 0.05); margin: 30px 0;">
         <div class="alert alert-dup" id="dupWarningBottom"><span class="alert-icon">📀</span><span></span></div>
         <div class="alert alert-artist" id="artistWarningBottom"><span class="alert-icon">🎤</span><span></span></div>
@@ -779,67 +884,100 @@
 <div class="modal" id="settingsModal">
   <div class="modalbox">
     <button class="closebtn" id="closeSettings">✕</button>
-    <h3>Settings</h3>
-    <div class="chiprow" id="themeToggle" style="margin-bottom:20px;">
-      <button class="chip" data-theme="dark" onclick="setTheme('dark')">🌙 Dark</button>
-      <button class="chip" data-theme="light" onclick="setTheme('light')">☀️ Light</button>
-      <button class="chip active" data-theme="system" onclick="setTheme('system')">🖥 Match Device</button>
-    </div>
-    <div class="row2">
-      <div class="field"><label>Flag as expensive if over</label>
-        <input type="text" id="expensiveThreshold" inputmode="decimal" placeholder="50">
-      </div>
-      <div class="field"><label>Flag as rare if fewer than</label>
-        <input type="text" id="rareThreshold" inputmode="numeric" placeholder="100">
-      </div>
-    </div>
-    <small style="display:block;color:var(--dim);margin:-6px 0 20px;">"Rare" is based on how many Discogs users own a copy.</small>
+    <h3 style="margin-bottom:18px;">Settings</h3>
 
-    <div class="panel-header" style="cursor:pointer;padding:0;" onclick="$('adminSection').style.display = $('adminSection').style.display === 'none' ? 'block' : 'none';">
-      <h3 style="margin:0;">Add a user (admin only)</h3>
-      <span class="toggle-icon">▼</span>
-    </div>
-    <div id="adminSection" style="display:none; margin-top:12px;">
-      <div class="field">
-        <label>Admin Key</label>
-        <input type="text" id="adminKeyInput" placeholder="Only you know this">
+    <div class="settings-section open">
+      <div class="settings-section-header" onclick="this.closest('.settings-section').classList.toggle('open')">
+        <span class="ss-icon">🎨</span>
+        <span class="ss-title">Appearance &amp; flags<span class="ss-sub">Theme and what counts as expensive or rare</span></span>
+        <span class="toggle-icon">▾</span>
       </div>
-      <div class="field">
-        <label>New user's name</label>
-        <input type="text" id="newUserName" placeholder="e.g. Jordan">
+      <div class="settings-section-body">
+        <div class="chiprow" id="themeToggle" style="margin-bottom:20px;">
+          <button class="chip" data-theme="dark" onclick="setTheme('dark')">🌙 Dark</button>
+          <button class="chip" data-theme="light" onclick="setTheme('light')">☀️ Light</button>
+          <button class="chip active" data-theme="system" onclick="setTheme('system')">🖥 Match Device</button>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Flag as expensive if over</label>
+            <input type="text" id="expensiveThreshold" inputmode="decimal" placeholder="50">
+          </div>
+          <div class="field"><label>Flag as rare if fewer than</label>
+            <input type="text" id="rareThreshold" inputmode="numeric" placeholder="100">
+          </div>
+        </div>
+        <small style="display:block;color:var(--dim);margin:-6px 0 0;">"Rare" is based on how many Discogs users own a copy.</small>
       </div>
-      <button class="secondary" style="width:100%;" id="createUserBtn">Generate Access Key</button>
-      <div id="newUserResult" style="display:none; margin-top:12px; padding:12px; background:rgba(var(--overlay-rgb),0.03); border:1px solid var(--line); border-radius:8px; font-size:13px;"></div>
     </div>
 
-    <h3 style="margin-top:28px;">Account</h3>
-    <div id="credentialsSetup">
-      <small style="display:block;color:var(--dim);margin-bottom:12px;">Set a username &amp; password so you can log in normally on other devices instead of needing your access key.</small>
-      <div class="field">
-        <label>Username</label>
-        <input type="text" id="newUsername" placeholder="e.g. jordan" autocapitalize="off" autocorrect="off">
+    <div class="settings-section open">
+      <div class="settings-section-header" onclick="this.closest('.settings-section').classList.toggle('open')">
+        <span class="ss-icon">👤</span>
+        <span class="ss-title">Account<span class="ss-sub">Log in with a username &amp; password instead of a key</span></span>
+        <span class="toggle-icon">▾</span>
       </div>
-      <div class="field">
-        <label>Password</label>
-        <input type="password" id="newPassword" placeholder="At least 6 characters">
+      <div class="settings-section-body">
+        <div id="credentialsSetup">
+          <small style="display:block;color:var(--dim);margin-bottom:12px;">Set a username &amp; password so you can log in normally on other devices instead of needing your access key.</small>
+          <div class="field">
+            <label>Username</label>
+            <input type="text" id="newUsername" placeholder="e.g. jordan" autocapitalize="off" autocorrect="off">
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input type="password" id="newPassword" placeholder="At least 6 characters">
+          </div>
+          <button class="secondary" style="width:100%;" id="setCredentialsBtn">Set Username &amp; Password</button>
+        </div>
       </div>
-      <button class="secondary" style="width:100%;" id="setCredentialsBtn">Set Username &amp; Password</button>
     </div>
 
-    <h3 style="margin-top:28px;">Connection</h3>
-    <div class="field">
-      <label>Backend URL</label>
-      <input type="text" id="appsScriptUrl" placeholder="https://crate-log-proxy....workers.dev/">
-      <small style="display:block;color:var(--dim);margin-top:6px;">The Cloudflare Worker URL — same for everyone using this app.</small>
+    <div class="settings-section">
+      <div class="settings-section-header" onclick="this.closest('.settings-section').classList.toggle('open')">
+        <span class="ss-icon">🔌</span>
+        <span class="ss-title">Connection<span class="ss-sub">The Cloudflare Worker this app talks to</span></span>
+        <span class="toggle-icon">▾</span>
+      </div>
+      <div class="settings-section-body">
+        <div class="field">
+          <label>Backend URL</label>
+          <input type="text" id="appsScriptUrl" placeholder="https://crate-log-proxy....workers.dev/">
+          <small style="display:block;color:var(--dim);margin-top:6px;">The Cloudflare Worker URL — same for everyone using this app.</small>
+        </div>
+        <button class="primary" id="saveSettingsBtn">Save Settings</button>
+        <button class="secondary" style="width:100%;margin-top:8px" id="testConnBtn">Test Connection</button>
+      </div>
     </div>
-    <button class="primary" id="saveSettingsBtn">Save Settings</button>
-    <button class="secondary" style="width:100%;margin-top:8px" id="testConnBtn">Test Connection</button>
-    <button class="secondary" style="width:100%;margin-top:8px; border-color:var(--red); color:var(--red);" id="logoutBtn">Log Out</button>
+
+    <div class="settings-section">
+      <div class="settings-section-header" onclick="this.closest('.settings-section').classList.toggle('open')">
+        <span class="ss-icon">🛠</span>
+        <span class="ss-title">Add a user<span class="ss-sub">Admin only — generate someone an access key</span></span>
+        <span class="toggle-icon">▾</span>
+      </div>
+      <div class="settings-section-body">
+        <div id="adminSection">
+          <div class="field">
+            <label>Admin Key</label>
+            <input type="text" id="adminKeyInput" placeholder="Only you know this">
+          </div>
+          <div class="field">
+            <label>New user's name</label>
+            <input type="text" id="newUserName" placeholder="e.g. Jordan">
+          </div>
+          <button class="secondary" style="width:100%;" id="createUserBtn">Generate Access Key</button>
+          <div id="newUserResult" style="display:none; margin-top:12px; padding:12px; background:rgba(var(--overlay-rgb),0.03); border:1px solid var(--line); border-radius:8px; font-size:13px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="secondary" style="width:100%;margin-top:18px; border-color:var(--red); color:var(--red);" id="logoutBtn">Log Out</button>
   </div>
 </div>
 <div class="modal" id="crateOnboardModal">
   <div class="modalbox" style="max-width:420px;">
-    <h3 style="margin-top:0;">Set up your crates</h3>
+    <div style="text-align:center; margin-bottom:8px;"><span class="disc onboard-disc" style="display:inline-block; margin-bottom:10px;"></span></div>
+    <h3 style="margin-top:0; text-align:center;">Set up your crates</h3>
     <p style="color:var(--dim); font-size:14px; line-height:1.5;">
       Crates are how you group your records — could be by person, genre, shelf, format,
       whatever makes sense to you. You've got one to start (<strong style="color:var(--text);">Wishlist</strong>),
@@ -870,8 +1008,8 @@ let toastTimer = null;
 let currentRowIndex = null;
 let searchDebounce = null;
 let browseFavOnly = false;
-let browseSortMode = '';
-let collapsedLetterGroups = new Set();
+let browseSortMode = 'artist';
+let expandedLetterGroups = new Set();
 let browseRenderList = [];
 let browseRenderedCount = 0;
 let browseSelectedIndex = -1;
@@ -1258,6 +1396,9 @@ function openZoomModal(src) {
 }
 $('cardCover').onclick = ()=> openZoomModal($('cardCover').src);
 $('closeZoom').onclick = ()=> $('zoomModal').classList.remove('show');
+document.querySelectorAll('.modal').forEach(m=>{
+  m.addEventListener('click', (e)=>{ if(e.target === m) m.classList.remove('show'); });
+});
 $('zoomModal').onclick = (e)=>{ if(e.target.id === 'zoomModal') $('zoomModal').classList.remove('show'); };
 $('saveSettingsBtn').onclick = saveSettings;
 $('testConnBtn').onclick = async ()=>{
@@ -1296,7 +1437,7 @@ $('logoutBtn').onclick = ()=>{
   $('appHeader').style.display = 'none';
   $('loginKey').value = '';
   setAuthMode('login');
-  $('loginGateView').style.display = 'block';
+  $('loginGateView').style.display = 'flex';
 };
 
 $('createUserBtn').onclick = async ()=>{
@@ -1343,10 +1484,33 @@ function showDashboard(clearSearch = true) {
   setAppBg(null);
 }
 
+function switchEditorTab(name){
+  document.querySelectorAll('.editor-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.dataset.tabContent === name));
+  if(name === 'info'){
+    const anyVisible = ['discogsInfoWrap','pressingsWrap','morebyWrap'].some(id => $(id) && $(id).style.display !== 'none');
+    const hint = $('infoTabEmptyHint');
+    if(hint) hint.style.display = anyVisible ? 'none' : 'block';
+  }
+}
+function flagEditorTabsForMissingFields(){
+  const tabsWithMissing = new Set();
+  document.querySelectorAll('#cardPanel .tab-pane').forEach(pane => {
+    if(pane.querySelector('.field.missing')) tabsWithMissing.add(pane.dataset.tabContent);
+  });
+  document.querySelectorAll('.editor-tab').forEach(b => {
+    const existing = b.querySelector('.et-flag');
+    if(existing) existing.remove();
+    if(tabsWithMissing.has(b.dataset.tab) && !b.classList.contains('active')){
+      b.insertAdjacentHTML('beforeend', '<span class="et-flag"></span>');
+    }
+  });
+}
 function showEditor() {
   $('dashboardView').style.display = 'none';
   $('editorView').style.display = 'block';
   $('fabContainer').classList.add('visible');
+  switchEditorTab('details');
   if (lastOpenedFrom === 'discogs') {
     $('backToDashboardBtn').textContent = '← Back to Search Results';
   } else {
@@ -1372,13 +1536,26 @@ const SEARCH_MODE_LABELS = { collection: '🔍 Collection', discogs: '🔍 Disco
 function syncSearchModeUI(mode){
   document.querySelectorAll('#searchModeToggle .chip').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
   $('searchModeToggleBtn').textContent = SEARCH_MODE_LABELS[mode] || SEARCH_MODE_LABELS.collection;
+  $('searchModeToggleBtn').classList.toggle('has-value', mode !== 'collection');
   if(typeof syncHeaderHeight === 'function') setTimeout(syncHeaderHeight, 10);
 }
 function toggleSearchModeRow(){
   const row = $('searchModeToggle');
   const opening = row.style.display === 'none';
   row.style.display = opening ? 'block' : 'none';
-  if(opening){ $('expensiveThresholdQuick').value = expensiveThreshold; $('rareThresholdQuick').value = rareThreshold; }
+  if(opening){
+    $('expensiveThresholdQuick').value = expensiveThreshold;
+    $('rareThresholdQuick').value = rareThreshold;
+    $('flagThresholdsBody').style.display = 'none';
+    $('flagThresholdsCaret').classList.remove('open');
+  }
+  setTimeout(syncHeaderHeight, 10);
+}
+function toggleFlagThresholds(){
+  const body = $('flagThresholdsBody');
+  const opening = body.style.display === 'none';
+  body.style.display = opening ? 'block' : 'none';
+  $('flagThresholdsCaret').classList.toggle('open', opening);
   setTimeout(syncHeaderHeight, 10);
 }
 function saveQuickThresholds(){
@@ -1430,10 +1607,10 @@ $('unifiedSearchInput').addEventListener('input', ()=>{
       runBrowse(q).then(()=> requestAnimationFrame(()=> $('browseFadeWrap').classList.remove('fading-out')));
     }
     if((searchMode === 'discogs' || searchMode === 'both')){
-      if(q.length >= 2){ isUpdatingExistingCard = false; runSearch({query: q}); }
+      if(q.length >= 3){ isUpdatingExistingCard = false; runSearch({query: q}); }
       else { $('discogsResultsWrap').style.display = 'none'; $('discogsResultsList').innerHTML = ''; }
     }
-  }, 450);
+  }, 700);
 });
 $('unifiedSearchInput').addEventListener('keydown', e=>{
   if(e.key === 'Enter') {
@@ -1444,34 +1621,61 @@ $('unifiedSearchInput').addEventListener('keydown', e=>{
   }
 });
 
+const discogsSearchCache = new Map(); // avoids re-hitting Discogs for a query you've already searched this session
+let lastDiscogsRequestAt = 0;
+const DISCOGS_MIN_GAP_MS = 1200;
+
 async function runSearch(payload){
   if(!appsScriptUrl){ toast('Set up your Apps Script URL in Settings first', true); $('settingsModal').classList.add('show'); return; }
   if(!payload.query){ toast('Type something to search', true); return; }
+
+  const cacheKey = JSON.stringify(payload);
+  if(discogsSearchCache.has(cacheKey)){
+    renderDiscogsResultsFromCache(discogsSearchCache.get(cacheKey), payload);
+    return;
+  }
+
+  const sinceLast = Date.now() - lastDiscogsRequestAt;
+  if(sinceLast < DISCOGS_MIN_GAP_MS){
+    clearTimeout(discogsThrottleTimer);
+    discogsThrottleTimer = setTimeout(()=> runSearch(payload), DISCOGS_MIN_GAP_MS - sinceLast);
+    return;
+  }
+  lastDiscogsRequestAt = Date.now();
+
   $('discogsResultsWrap').style.display='none';
   $('loadingPanel').style.display='block';
   try{
     const data = await callScript({action:'search', ...payload});
     $('loadingPanel').style.display='none';
     if(data.status === 'error'){
-      toast('Discogs search failed: ' + (data.message || 'unknown error'), true);
+      const rateLimited = /429|rate.?limit/i.test(data.message || '');
+      toast(rateLimited ? 'Discogs is rate-limiting requests — wait a few seconds and try again' : ('Discogs search failed: ' + (data.message || 'unknown error')), true);
       return;
     }
-    if (isUpdatingExistingCard) {
-      $('discogsResultsHeading').textContent = '⚠️ Select Pressing to Fill Blanks for: ' + payload.query;
-      $('discogsResultsHeading').style.color = 'var(--amber)';
-    } else {
-      $('discogsResultsHeading').textContent = 'On Discogs';
-      $('discogsResultsHeading').style.color = 'var(--text)';
-    }
-    $('clearSearchBtn').style.display = 'inline-block';
-    renderSearchResults(data.results || []);
-    $('discogsResultsWrap').style.display = 'block';
-    if(!data.results || !data.results.length){
-      toast('No matches found on Discogs', true);
-    }
+    discogsSearchCache.set(cacheKey, data.results || []);
+    renderDiscogsResultsFromCache(data.results || [], payload);
   }catch(e){
     $('loadingPanel').style.display='none';
     toast('Lookup failed — check your Backend URL and connection', true);
+  }
+}
+let discogsThrottleTimer = null;
+
+function renderDiscogsResultsFromCache(results, payload){
+  $('loadingPanel').style.display='none';
+  if (isUpdatingExistingCard) {
+    $('discogsResultsHeading').textContent = '⚠️ Select Pressing to Fill Blanks for: ' + payload.query;
+    $('discogsResultsHeading').style.color = 'var(--amber)';
+  } else {
+    $('discogsResultsHeading').textContent = 'On Discogs';
+    $('discogsResultsHeading').style.color = 'var(--text)';
+  }
+  $('clearSearchBtn').style.display = 'inline-block';
+  renderSearchResults(results);
+  $('discogsResultsWrap').style.display = 'block';
+  if(!results.length){
+    toast('No matches found on Discogs', true);
   }
 }
 
@@ -2178,6 +2382,12 @@ function renderCrate3dRolodex(){
   };
   el.addEventListener('touchstart', e=>{ lastScrubbed = null; scrubAt(e.touches[0].clientX); }, {passive:true});
   el.addEventListener('touchmove', e=>{ scrubAt(e.touches[0].clientX); }, {passive:true});
+
+  // Mouse equivalent — click-and-drag across the letters works the same as a touch scrub
+  let mouseDown = false;
+  el.addEventListener('mousedown', e=>{ mouseDown = true; lastScrubbed = null; scrubAt(e.clientX); });
+  window.addEventListener('mousemove', e=>{ if(mouseDown) scrubAt(e.clientX); });
+  window.addEventListener('mouseup', ()=>{ mouseDown = false; });
 }
 
 function crate3dCurrentLetter(){
@@ -2385,7 +2595,7 @@ function renderAlphaNavHtml(letters, onclickFn){
 }
 
 function jumpToLetterGroup(letter){
-  collapsedLetterGroups.delete(letter);
+  expandedLetterGroups.add(letter);
   const header = document.querySelector(`.letter-group-header[data-letter="${letter}"]`);
   if(!header) return;
   header.classList.remove('collapsed');
@@ -2401,7 +2611,7 @@ function toggleLetterGroup(letter){
   const nowCollapsed = !header.classList.contains('collapsed');
   header.classList.toggle('collapsed', nowCollapsed);
   body.classList.toggle('collapsed', nowCollapsed);
-  if(nowCollapsed) collapsedLetterGroups.add(letter); else collapsedLetterGroups.delete(letter);
+  if(nowCollapsed) expandedLetterGroups.delete(letter); else expandedLetterGroups.add(letter);
 }
 
 function renderBrowseResults(results){
@@ -2496,7 +2706,7 @@ function renderGroupedTableBody(results, groupField){
   });
   const frag = document.createDocumentFragment();
   groups.forEach(g=>{
-    const isCollapsed = collapsedLetterGroups.has(g.letter);
+    const isCollapsed = !expandedLetterGroups.has(g.letter);
     const headerRow = document.createElement('tr');
     headerRow.innerHTML = `<td colspan="11" style="padding:0;"><div class="letter-group-header${isCollapsed ? ' collapsed' : ''}" data-letter="${g.letter}">
         <span class="lg-letter">${g.letter}</span><span class="lg-count">${g.items.length}</span><span class="lg-caret">▾</span>
@@ -3258,12 +3468,20 @@ function checkRequiredOrWarn(){
   if(missing.length){
     $('saveWarn').textContent = '⚠ Missing: ' + missing.join(', ');
     $('saveWarn').classList.add('show');
+    flagEditorTabsForMissingFields();
     const firstMissing = document.querySelector('#cardPanel .field.missing');
-    if(firstMissing) firstMissing.scrollIntoView({behavior:'smooth', block:'center'});
+    if(firstMissing){
+      const pane = firstMissing.closest('.tab-pane');
+      if(pane && pane.dataset.tabContent && !pane.classList.contains('active')){
+        switchEditorTab(pane.dataset.tabContent);
+      }
+      firstMissing.scrollIntoView({behavior:'smooth', block:'center'});
+    }
     toast('Fill in ' + missing.join(', ') + ' before saving', true);
     return false;
   }
   clearMissingFlags();
+  flagEditorTabsForMissingFields();
   return true;
 }
 
@@ -3907,7 +4125,7 @@ if(shareIdParam){
   startApp();
 } else {
   $('appHeader').style.display = 'none';
-  $('loginGateView').style.display = 'block';
+  $('loginGateView').style.display = 'flex';
 }
 </script>
 </body>
