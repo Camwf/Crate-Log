@@ -520,6 +520,19 @@
   .editor-back-bottom { width: 100%; margin-top: 20px; }
 
   #crateOnboardModal .modalbox { text-align: left; }
+
+  /* ---- On the Table ---- */
+  .table-row-badge { display:inline-flex; align-items:center; justify-content:center; font-size:12px; margin-left:4px; opacity:0.85; }
+  #tablePopout .ot-item { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); }
+  #tablePopout .ot-item:last-child { border-bottom: none; }
+  #tablePopout .ot-thumb { width:36px; height:36px; border-radius:4px; object-fit:cover; flex:0 0 auto; background:var(--well-1); }
+  #tablePopout .ot-info { flex:1; min-width:0; }
+  #tablePopout .ot-title { font-size:13px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #tablePopout .ot-sub { font-size:11.5px; color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #tablePopout .ot-played-check { flex:0 0 auto; width:18px; height:18px; cursor:pointer; accent-color: var(--amber); }
+  #tablePopout .ot-putback { flex:0 0 auto; background:none; border:1px solid var(--line); color:var(--dim); border-radius:6px; padding:5px 10px; font-size:11px; cursor:pointer; white-space:nowrap; }
+  #tablePopout .ot-putback:hover { color: var(--text); border-color: var(--amber); }
+  #tablePopout .ot-item.played .ot-title, #tablePopout .ot-item.played .ot-sub { opacity: 0.45; text-decoration: line-through; }
 </style>
 </head>
 <body>
@@ -528,9 +541,17 @@
   <div class="header-top">
     <h1><span class="disc" id="logoDisc"></span>Crate <span class="highlight" id="logoText">Log</span></h1>
     <div class="header-actions">
+      <button class="icon-btn" id="tableBtn" title="On the Table" onclick="toggleTablePopout()">🎧<span id="tableBadge" class="icon-badge" style="display:none;"></span></button>
       <button class="icon-btn" id="borrowBtn" title="Borrow Requests" onclick="toggleBorrowPopout()">📬<span id="borrowBadge" class="icon-badge" style="display:none;"></span></button>
       <button class="icon-btn" id="settingsBtn" title="Settings">⚙</button>
     </div>
+  </div>
+  <div id="tablePopout" class="popout-panel" style="display:none;">
+    <h4 style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+      <span>🎧 On the Table</span>
+      <button class="secondary" id="putBackAllBtn" style="width:auto; padding:5px 12px; font-size:11px; margin:0;">Put Everything Back</button>
+    </h4>
+    <div id="onTableList"></div>
   </div>
   <div id="borrowPopout" class="popout-panel" style="display:none;">
     <h4>📬 Borrow Requests</h4>
@@ -882,6 +903,7 @@
   <select id="bulkMoveSelect" style="width:auto; min-width:140px;"></select>
   <button class="secondary" id="bulkMoveBtn" style="width:auto; padding:6px 12px; font-size:12px; margin:0;">Move</button>
   <button class="secondary" id="bulkFavBtn" style="width:auto; padding:6px 12px; font-size:12px; margin:0;">★ Favourite</button>
+  <button class="secondary" id="bulkPullBtn" style="width:auto; padding:6px 12px; font-size:12px; margin:0;">🎧 Pull to Table</button>
   <button class="secondary" id="bulkDeleteBtn" style="width:auto; padding:6px 12px; font-size:12px; margin:0; border-color:var(--red); color:var(--red);">Delete</button>
   <button class="secondary" id="bulkClearBtn" style="width:auto; padding:6px 12px; font-size:12px; margin:0 0 0 auto;">Clear Selection</button>
 </div>
@@ -1857,6 +1879,7 @@ async function runBrowse(query){
   }
   lastBrowseResults = list;
   applyBrowseSortAndFilter();
+  refreshOnTableBadge();
 }
 
 function refreshStatsIfOpen(){
@@ -2763,7 +2786,7 @@ function buildBrowseRow(r, idx){
   tr.innerHTML =
     '<td class="col-check"><input type="checkbox" class="row-check" data-id="' + r.rowIndex + '" ' + (selectedRowIds.has(r.rowIndex) ? 'checked' : '') + '></td>' +
     '<td class="col-art">' + (thumb ? `<img class="table-thumb" loading="lazy" src="${escHtml(thumb)}" alt="" onclick="event.stopPropagation(); openZoomModal('${escHtml(thumb)}')">` : '') + '</td>' +
-    '<td class="col-fav">' + (r.favourite === 'Yes' ? '<span class="browse-fav">★</span>' : '') + '</td>' +
+    '<td class="col-fav">' + (r.favourite === 'Yes' ? '<span class="browse-fav">★</span>' : '') + (r.pulledAt ? '<span class="table-row-badge" title="On the table">🎧</span>' : '') + '</td>' +
     '<td class="col-artist">' + escHtml(r.artist||'') + '</td>' +
     '<td class="col-title">' + escHtml(r.title||'Untitled') + '</td>' +
     '<td>' + escHtml(r.year||'') + '</td>' +
@@ -3931,6 +3954,112 @@ async function setBorrowStatus(id, status){
     else toast(j.message || 'Could not update', true);
   }catch(e){ toast('Request failed', true); }
 }
+
+// ---------- On the Table ----------
+// One running queue, not per-crate — pulling a record here never changes its actual
+// crate assignment, it's just a flag (pulledAt) so "put back" is always safe and
+// nothing needs to be remembered. Rendered entirely from collectionCache since the
+// data's already loaded client-side; only mutations go to the Worker.
+function toggleTablePopout(){
+  const el = $('tablePopout');
+  const opening = el.style.display === 'none';
+  el.style.display = opening ? 'block' : 'none';
+  if(opening) renderOnTableList();
+  setTimeout(syncHeaderHeight, 10);
+}
+
+function getOnTableRecords(){
+  if(!collectionCache) return [];
+  return collectionCache
+    .filter(r => r.pulledAt)
+    .sort((a,b) => String(a.pulledAt).localeCompare(String(b.pulledAt)));
+}
+
+function refreshOnTableBadge(){
+  const list = getOnTableRecords();
+  const badge = $('tableBadge');
+  if(badge){
+    if(list.length){ badge.style.display='flex'; badge.textContent = list.length; }
+    else { badge.style.display = 'none'; }
+  }
+  if($('tableBtn')) $('tableBtn').classList.toggle('has-alert', list.length > 0);
+  if($('tablePopout') && $('tablePopout').style.display !== 'none') renderOnTableList();
+}
+
+function renderOnTableList(){
+  const wrap = $('onTableList');
+  if(!wrap) return;
+  const list = getOnTableRecords();
+  if(!list.length){ wrap.innerHTML = '<div class="scanhint">Nothing on the table right now.</div>'; return; }
+  wrap.innerHTML = list.map(r =>
+    '<div class="ot-item' + (r.played === 'Yes' ? ' played' : '') + '">' +
+      '<input type="checkbox" class="ot-played-check" title="Mark as played" ' + (r.played === 'Yes' ? 'checked' : '') + ' onchange="setOnTablePlayed(' + r.rowIndex + ', this.checked)">' +
+      (r.coverImage ? '<img class="ot-thumb" loading="lazy" src="' + escHtml(r.coverImage) + '" alt="">' : '<div class="ot-thumb"></div>') +
+      '<div class="ot-info">' +
+        '<div class="ot-title">' + escHtml(r.artist||'') + ' — ' + escHtml(r.title||'Untitled') + '</div>' +
+        '<div class="ot-sub">' + escHtml(r.collection||'') + '</div>' +
+      '</div>' +
+      '<button class="ot-putback" onclick="putBackOne(' + r.rowIndex + ')">Put Back</button>' +
+    '</div>'
+  ).join('');
+}
+
+async function pullSelectedToTable(ids){
+  try{
+    const j = await callScript({action:'bulkPullToTable', ids});
+    if(j.status === 'ok'){
+      toast('Pulled ' + ids.length + ' record(s) to the table 🎧');
+      collectionCache = null;
+      runBrowse('');
+    } else {
+      toast(j.message || 'Could not pull records', true);
+    }
+  }catch(e){ toast('Request failed — check connection', true); }
+}
+
+async function putBackIds(ids){
+  if(!ids.length) return;
+  try{
+    const j = await callScript({action:'bulkPutBack', ids});
+    if(j.status === 'ok'){
+      toast('Put ' + ids.length + ' record(s) back');
+      collectionCache = null;
+      runBrowse('');
+    } else {
+      toast(j.message || 'Could not update records', true);
+    }
+  }catch(e){ toast('Request failed — check connection', true); }
+}
+
+function putBackOne(id){ putBackIds([id]); }
+
+$('putBackAllBtn').onclick = ()=>{
+  const ids = getOnTableRecords().map(r => r.rowIndex);
+  if(!ids.length) return;
+  putBackIds(ids);
+};
+
+async function setOnTablePlayed(id, played){
+  try{
+    const j = await callScript({action:'bulkSetPlayed', ids:[id], played});
+    if(j.status === 'ok'){
+      const rec = collectionCache && collectionCache.find(r => r.rowIndex === id);
+      if(rec) rec.played = played ? 'Yes' : '';
+      renderOnTableList();
+    } else {
+      toast(j.message || 'Could not update', true);
+    }
+  }catch(e){ toast('Request failed', true); }
+}
+
+$('bulkPullBtn').onclick = async ()=>{
+  const ids = [...selectedRowIds];
+  if(!ids.length) return;
+  $('bulkPullBtn').disabled = true;
+  await pullSelectedToTable(ids);
+  selectedRowIds.clear();
+  $('bulkPullBtn').disabled = false;
+};
 
 // ---------- Shared view (public, read-only visitor) ----------
 const shareIdParam = new URLSearchParams(location.search).get('share');
