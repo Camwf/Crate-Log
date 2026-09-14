@@ -36,7 +36,9 @@
     --text: #F4EFE6;
     --dim: #A89D8D;
     --amber: #E8AA55;
-    --amber-dim: rgba(232, 170, 85, 0.15);
+    --amber-rgb: 232, 170, 85;
+    --amber-dim: rgba(var(--amber-rgb),0.15);
+    --on-amber: #111;
     --red: #D25E4A;
     --red-dim: rgba(210, 94, 74, 0.15);
     --ok: #79B596;
@@ -57,24 +59,26 @@
     --well-3: rgba(0,0,0,0.5);
   }
   html.light-mode {
-    --bg: #F3ECDD;
-    --bg-rgb: 243, 236, 221;
-    --surface-rgb: 255, 252, 245;
-    --surface-hover-rgb: 250, 244, 232;
-    --surface2-rgb: 236, 227, 208;
+    --bg: #FAF8F4;
+    --bg-rgb: 250, 248, 244;
+    --surface-rgb: 255, 255, 255;
+    --surface-hover-rgb: 250, 247, 242;
+    --surface2-rgb: 240, 236, 231;
     --overlay-rgb: 0, 0, 0;
     --surface: rgba(var(--surface-rgb), 0.85);
     --surface-hover: rgba(var(--surface-hover-rgb), 0.9);
     --surface2: rgba(var(--surface2-rgb), 0.65);
     --line: rgba(var(--overlay-rgb), 0.1);
-    --text: #2A2318;
-    --dim: #7A6F5D;
-    --amber: #C9862E;
-    --amber-dim: rgba(201, 134, 46, 0.14);
-    --red: #B23D2C;
-    --red-dim: rgba(178, 61, 44, 0.12);
-    --ok: #3F7A5A;
-    --ok-dim: rgba(63, 122, 90, 0.14);
+    --text: #241C1E;
+    --dim: #6E6266;
+    --amber: #7D2A3B;
+    --amber-rgb: 125, 42, 59;
+    --amber-dim: rgba(125, 42, 59, 0.12);
+    --on-amber: #FBF3F0;
+    --red: #C1443A;
+    --red-dim: rgba(193, 68, 58, 0.12);
+    --ok: #2F6B4A;
+    --ok-dim: rgba(47, 107, 74, 0.14);
     --purple: #6B5798;
     --purple-dim: rgba(107, 87, 152, 0.14);
     --c-mint: #4F6F5F;
@@ -116,7 +120,7 @@
   .chiprow { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
   .chip { background: var(--surface2); border: 1px solid transparent; color: var(--dim); border-radius: 20px; padding: 6px 14px; font-size: 13px; cursor: pointer; transition: 0.2s; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);}
   .chip:hover { background: rgba(var(--overlay-rgb),0.1); color: var(--text); border-color: var(--line); }
-  .chip.active { background: rgba(232,170,85,0.12); color: var(--amber); border-color: rgba(232,170,85,0.4); font-weight: 600; }
+  .chip.active { background: rgba(var(--amber-rgb),0.12); color: var(--amber); border-color: rgba(var(--amber-rgb),0.4); font-weight: 600; }
   .field { margin-bottom: 16px; }
   .field label { display: block; font-size: 11.5px; letter-spacing: 0.01em; color: var(--dim); margin-bottom: 8px; font-weight: 700; }
   .row2 { display: grid; grid-template-columns: 1fr; gap: 16px; }
@@ -147,10 +151,11 @@
   .stepper button { width: 36px; height: 36px; border-radius: 6px; border: none; background: transparent; color: var(--text); font-size: 18px; cursor: pointer; transition: 0.2s; }
   .stepper button:hover { background: rgba(var(--overlay-rgb),0.1); }
   .stepper .stepval { font-family: 'Oswald', sans-serif; font-size: 16px; text-align: center; padding: 0 20px; font-weight: 600;}
-  button.primary { background: var(--amber); color: #111; border: none; border-radius: var(--radius-sm); padding: 14px 20px; font-family: 'Oswald', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.02em; }
-  button.primary:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 8px 16px rgba(232, 170, 85, 0.2); }
+  button.primary { background: var(--amber); color: var(--on-amber); border: none; border-radius: var(--radius-sm); padding: 14px 20px; font-family: 'Oswald', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.02em; }
+  button.primary:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 8px 16px rgba(var(--amber-rgb),0.2); }
   button.primary:active { transform: translateY(0); }
   button.primary:disabled { opacity: 0.6; cursor: default; transform: none; box-shadow: none; }
+  button.secondary:disabled { opacity: 0.5; cursor: default; }
   button.secondary { background: rgba(var(--overlay-rgb),0.03); border: 1px solid var(--line); color: var(--text); border-radius: var(--radius-sm); padding: 12px 16px; font-family: 'Oswald', sans-serif; font-size: 14px; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.02em; }
   button.secondary:hover { background: rgba(var(--overlay-rgb),0.08); border-color: var(--dim); }
   .fav-btn { width: 100%; background: transparent; border: 1px dashed var(--dim); color: var(--dim); border-radius: var(--radius-sm); padding: 14px; font-family: 'Oswald', sans-serif; font-size: 15px; cursor: pointer; transition: 0.2s; margin-top: 8px;}
@@ -188,7 +193,7 @@
   .alert { padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 14px; font-weight: 500; align-items: flex-start; gap: 10px; line-height: 1.4; display: none; }
   .alert.show { display: flex; }
   .alert-icon { font-size: 16px; }
-  .alert-dup { background: var(--amber-dim); border: 1px solid rgba(232, 170, 85, 0.3); color: var(--amber); }
+  .alert-dup { background: var(--amber-dim); border: 1px solid rgba(var(--amber-rgb),0.3); color: var(--amber); }
   .alert-rare { background: var(--ok-dim); border: 1px solid rgba(121, 181, 150, 0.3); color: var(--ok); }
   .alert-artist { background: var(--purple-dim); border: 1px solid rgba(142, 124, 195, 0.3); color: var(--purple); }
   .infolink { color: var(--dim); font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin-bottom: 12px; transition: 0.2s; }
@@ -249,7 +254,7 @@
   /* Ambient background glow */
   #ambientGlow {
     position: fixed; inset: 0; z-index: -1; pointer-events: none;
-    background: radial-gradient(ellipse at center, var(--glow-color, rgba(232,170,85,0.10)) 0%, transparent 65%);
+    background: radial-gradient(ellipse at center, var(--glow-color, rgba(var(--amber-rgb),0.10)) 0%, transparent 65%);
     filter: blur(60px); opacity: 0; transition: opacity 0.6s ease, background 0.8s ease;
   }
   #ambientGlow.active { opacity: 1; }
@@ -269,6 +274,7 @@
   .wall-overlay .w-artist { font-size: 12px; font-weight: 700; color: var(--text); line-height: 1.25; }
   .wall-overlay .w-title { font-size: 11px; color: var(--dim); line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .wall-item .wall-fav { position: absolute; top: 6px; right: 6px; color: var(--amber); font-size: 13px; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+  .wall-item .wall-pulled { position: absolute; top: 6px; left: 6px; font-size: 12px; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
 
   /* DNA dashboard */
   .dna-bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; margin: 4px 0 10px; background: rgba(var(--overlay-rgb),0.05); }
@@ -287,7 +293,7 @@
   .alpha-nav { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 10px; margin-bottom: 6px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .alpha-nav::-webkit-scrollbar { display: none; }
   .alpha-nav button { background: rgba(var(--overlay-rgb),0.03); border: 1px solid var(--line); color: var(--dim); font-size: 11px; font-weight: 700; width: 26px; height: 26px; flex-shrink: 0; cursor: pointer; border-radius: 50%; padding: 0; }
-  .alpha-nav button:hover, .alpha-nav button:active { background: var(--amber-dim); color: var(--amber); border-color: rgba(232,170,85,0.4); }
+  .alpha-nav button:hover, .alpha-nav button:active { background: var(--amber-dim); color: var(--amber); border-color: rgba(var(--amber-rgb),0.4); }
 
   /* Collapsible letter groups (Table view) */
   .letter-group-header { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(var(--overlay-rgb),0.03); cursor: pointer; user-select: none; border-top: 1px solid var(--line); }
@@ -301,7 +307,7 @@
   .wall-sort-row { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
   .wall-sort-row button { width: auto; }
   .rolodex-letter:hover { color: var(--text); background: rgba(var(--overlay-rgb),0.06); }
-  .rolodex-letter.active { color: var(--amber); background: rgba(232,170,85,0.12); border-color: rgba(232,170,85,0.4); }
+  .rolodex-letter.active { color: var(--amber); background: rgba(var(--amber-rgb),0.12); border-color: rgba(var(--amber-rgb),0.4); }
   .crate3d-well { position: absolute; bottom: 0; width: 220px; height: 30px; left: 50%; transform: translateX(-50%) rotateX(75deg); background: radial-gradient(ellipse, rgba(0,0,0,0.6), transparent 70%); }
   .crate3d-card {
     position: absolute; width: 210px; height: 210px; border-radius: 4px; transform-style: preserve-3d;
@@ -323,6 +329,11 @@
     opacity: 0; transition: opacity 0.2s;
   }
   .crate3d-card.front .c3d-label { opacity: 1; }
+  .crate3d-card .c3d-pulled {
+    position: absolute; top: 6px; left: 6px; font-size: 13px; text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .crate3d-card.front .c3d-pulled { opacity: 1; }
   .crate3d-divider {
     background: linear-gradient(160deg, #8a6a3a, #6b4f28) !important; display: flex; align-items: center; justify-content: center;
     font-family: 'Oswald', sans-serif; font-size: 34px; font-weight: 700; color: rgba(var(--overlay-rgb),0.85);
@@ -334,7 +345,7 @@
 
   /* Icon button notification badge (e.g. pending borrow requests) */
   .icon-btn { position: relative; }
-  .icon-badge { position: absolute; top: -2px; right: -2px; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 8px; background: var(--amber); color: #111; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg); }
+  .icon-badge { position: absolute; top: -2px; right: -2px; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 8px; background: var(--amber); color: var(--on-amber); font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg); }
   .icon-btn.has-alert { border-color: var(--amber); color: var(--amber); }
 
   /* Small popout menus anchored under a trigger icon/chip (crate management, share, borrow) */
@@ -342,11 +353,8 @@
   .popout-panel h4 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--dim); font-weight: 600; }
   .popout-panel small.hint { display: block; color: var(--dim); margin-bottom: 12px; font-size: 12px; }
   .popout-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-  .popout-x { background: rgba(var(--overlay-rgb),0.05); border: 1px solid var(--line); color: var(--dim); width: 26px; height: 26px; border-radius: 50%; font-size: 13px; line-height: 1; cursor: pointer; flex-shrink: 0; padding: 0; }
+  .popout-x { background: rgba(var(--overlay-rgb),0.05); border: 1px solid var(--line); color: var(--dim); width: 36px; height: 36px; border-radius: 50%; font-size: 14px; line-height: 1; cursor: pointer; flex-shrink: 0; padding: 0; }
   .popout-x:hover { color: var(--text); border-color: var(--dim); }
-  .popout-subrow { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--dim); cursor: pointer; padding: 8px 0 2px; user-select: none; }
-  .popout-caret { transition: transform 0.2s; }
-  .popout-caret.open { transform: rotate(180deg); }
   .bulk-toolbar-overlay {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 150;
     display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
@@ -411,9 +419,9 @@
   .browse-table tbody tr.selected { background: var(--amber-dim); outline: 1px solid var(--amber); outline-offset: -1px; }
   .browse-sentinel { height: 1px; }
   .fix-btn { background: rgba(var(--overlay-rgb),0.05); border: 1px solid var(--line); color: var(--amber); border-radius: 12px; padding: 6px 12px; font-size: 11px; font-weight: 600; cursor: pointer; transition: 0.2s; font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
-  .fix-btn:hover { background: var(--amber); color: #111; border-color: var(--amber); }
-  .add-btn { background: rgba(232, 170, 85, 0.1); border: 1px solid var(--amber); color: var(--amber); border-radius: 12px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; }
-  .browse-table tbody tr:hover .add-btn { background: var(--amber); color: #111; }
+  .fix-btn:hover { background: var(--amber); color: var(--on-amber); border-color: var(--amber); }
+  .add-btn { background: rgba(var(--amber-rgb),0.1); border: 1px solid var(--amber); color: var(--amber); border-radius: 12px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; }
+  .browse-table tbody tr:hover .add-btn { background: var(--amber); color: var(--on-amber); }
   .grade-badge { display: inline-block; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; font-family: 'Oswald', sans-serif; letter-spacing: 0.03em; white-space: nowrap; }
   .grade-badge.tier-mint { background: var(--c-mint); color: #fff; }
   .grade-badge.tier-nm { background: var(--c-nm); color: #111; }
@@ -434,12 +442,12 @@
   .modal.show { display: flex; opacity: 1; }
   .modalbox { background: rgba(var(--surface-rgb), 0.95); border: 1px solid rgba(var(--overlay-rgb),0.1); border-radius: var(--radius); padding: 24px; max-width: 400px; width: 100%; box-shadow: 0 24px 48px rgba(30, 16, 4, 0.7); transform: translateY(20px); transition: transform 0.3s; max-height: 88vh; overflow-y: auto; }
   .modal.show .modalbox { transform: translateY(0); }
-  .closebtn { float: right; background: none; border: none; color: var(--dim); font-size: 24px; cursor: pointer; line-height: 1; margin-bottom: 10px; padding: 0;}
+  .closebtn { float: right; background: none; border: none; color: var(--dim); font-size: 22px; cursor: pointer; line-height: 1; margin-bottom: 10px; padding: 0; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; margin-top: -10px; margin-right: -10px; }
   .closebtn:hover { color: var(--text); }
   .collrow { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
   .collrow input[type=color] { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--line); background: none; padding: 0; cursor: pointer; flex: 0 0 auto; }
   .collrow input[type=text] { flex: 1; padding: 10px 12px; }
-  .collrow .delbtn { background: none; border: none; color: var(--dim); font-size: 16px; cursor: pointer; padding: 6px 10px; flex: 0 0 auto; }
+  .collrow .delbtn { background: none; border: none; color: var(--dim); font-size: 16px; cursor: pointer; padding: 12px 14px; flex: 0 0 auto; min-width: 40px; min-height: 40px; }
   .collrow .delbtn:hover { color: var(--red); }
   .addcollrow { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
   .addcollrow input[type=text] { flex: 1; padding: 10px 12px; }
@@ -465,8 +473,8 @@
   #dashboardView > .panel, #editorView .panel, #loginGateView .panel { animation: panel-rise 0.35s cubic-bezier(0.16,1,0.3,1) both; }
 
   button.primary, button.secondary, .chip, .icon-btn, .pill { -webkit-tap-highlight-color: transparent; }
-  button.primary { box-shadow: 0 1px 0 rgba(255,255,255,0.15) inset, 0 10px 24px -10px rgba(232,170,85,0.45); }
-  button.primary:hover { box-shadow: 0 1px 0 rgba(255,255,255,0.2) inset, 0 14px 28px -10px rgba(232,170,85,0.55); }
+  button.primary { box-shadow: 0 1px 0 rgba(255,255,255,0.15) inset, 0 10px 24px -10px rgba(var(--amber-rgb),0.45); }
+  button.primary:hover { box-shadow: 0 1px 0 rgba(255,255,255,0.2) inset, 0 14px 28px -10px rgba(var(--amber-rgb),0.55); }
 
   /* ---- Header: compact unified search bar ---- */
   .search-shell { display: flex; align-items: center; gap: 6px; background: var(--input-bg); border: 1px solid rgba(var(--overlay-rgb),0.08); border-radius: 999px; padding: 4px 4px 4px 16px; transition: border-color 0.2s, box-shadow 0.2s; }
@@ -477,7 +485,7 @@
   .search-mode-btn { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid transparent; color: var(--dim); border-radius: 999px; padding: 8px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s; font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.03em; }
   .search-mode-btn:hover { color: var(--text); }
   .search-mode-btn.has-value { color: var(--amber); background: var(--amber-dim); }
-  .search-clear-btn { flex: 0 0 auto; background: none; border: none; color: var(--dim); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  .search-clear-btn { flex: 0 0 auto; background: none; border: none; color: var(--dim); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; }
   .search-clear-btn:hover { color: var(--text); background: rgba(var(--overlay-rgb),0.08); }
   header .header-top { margin-bottom: 12px; }
   header h1 { letter-spacing: 0.01em; }
@@ -517,7 +525,10 @@
   .editor-back-btn:hover { border-color: var(--amber); color: var(--amber); transform: translateY(-1px); }
   .editor-close-fab { position: fixed; top: 16px; right: 16px; z-index: 210; }
   .editor-close-fab .icon-btn { box-shadow: 0 4px 16px rgba(0,0,0,0.35); }
-  .editor-back-bottom { width: 100%; margin-top: 20px; }
+  /* Overrides button.secondary's near-transparent background (rgba(overlay,0.03)) —
+     at the bottom of a long form that read as barely-there, not clearly a button. */
+  .editor-back-bottom { width: 100%; margin-top: 20px; background: var(--surface2); border-color: var(--line); }
+  .editor-back-bottom:hover { background: rgba(var(--overlay-rgb),0.1); border-color: var(--amber); color: var(--amber); }
 
   #crateOnboardModal .modalbox { text-align: left; }
 
@@ -541,8 +552,8 @@
   <div class="header-top">
     <h1><span class="disc" id="logoDisc"></span>Crate <span class="highlight" id="logoText">Log</span></h1>
     <div class="header-actions">
-      <button class="icon-btn" id="tableBtn" title="On the Table" onclick="toggleTablePopout()">🎧<span id="tableBadge" class="icon-badge" style="display:none;"></span></button>
-      <button class="icon-btn" id="borrowBtn" title="Borrow Requests" onclick="toggleBorrowPopout()">📬<span id="borrowBadge" class="icon-badge" style="display:none;"></span></button>
+      <button class="icon-btn" id="tableBtn" title="On the Table" style="display:none;" onclick="toggleTablePopout()">🎧<span id="tableBadge" class="icon-badge" style="display:none;"></span></button>
+      <button class="icon-btn" id="borrowBtn" title="Borrow Requests" style="display:none;" onclick="toggleBorrowPopout()">📬<span id="borrowBadge" class="icon-badge" style="display:none;"></span></button>
       <button class="icon-btn" id="settingsBtn" title="Settings">⚙</button>
     </div>
   </div>
@@ -557,34 +568,22 @@
     <h4>📬 Borrow Requests</h4>
     <div id="borrowRequestsList"></div>
   </div>
-  <div class="search-shell">
+  <div class="search-shell" id="searchPanel">
     <svg class="search-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     <input type="text" id="unifiedSearchInput" placeholder="Artist, title, barcode, label…">
     <button class="search-clear-btn" id="clearSearchBtn" style="display:none;" title="Clear search" onclick="clearUnifiedSearch();">✕</button>
+    <button class="search-clear-btn" id="scanBarcodeBtn" title="Scan a barcode" onclick="event.stopPropagation(); openBarcodeScanner();">📷</button>
     <button class="search-mode-btn" id="searchModeToggleBtn" title="Search options" onclick="event.stopPropagation(); toggleSearchModeRow();">🔍 Collection</button>
   </div>
   <div id="searchModeToggle" class="popout-panel" style="margin-top:10px; display:none;">
     <div class="popout-header">
       <h4 style="margin:0;">Search Options</h4>
-      <button type="button" class="popout-x" onclick="toggleSearchModeRow()">✕</button>
+      <button type="button" class="popout-x" title="Close" aria-label="Close search options" onclick="toggleSearchModeRow()">✕</button>
     </div>
     <div class="chiprow" style="margin:0 0 10px;">
       <button class="chip active" data-mode="collection">Collection</button>
       <button class="chip" data-mode="discogs">Discogs</button>
       <button class="chip" data-mode="both">Both</button>
-    </div>
-    <div class="popout-subrow" onclick="toggleFlagThresholds()">
-      <span>🚩 Flag thresholds</span><span class="popout-caret" id="flagThresholdsCaret">▾</span>
-    </div>
-    <div id="flagThresholdsBody" style="display:none; margin-top:8px;">
-      <div class="row2">
-        <div class="field" style="margin:0;"><label style="font-size:11px;">Expensive over</label>
-          <input type="text" id="expensiveThresholdQuick" inputmode="decimal" placeholder="50">
-        </div>
-        <div class="field" style="margin:0;"><label style="font-size:11px;">Rare under</label>
-          <input type="text" id="rareThresholdQuick" inputmode="numeric" placeholder="100">
-        </div>
-      </div>
     </div>
   </div>
 </header>
@@ -606,11 +605,11 @@
   <div class="modalbox" style="max-width:400px;">
     <h3 style="margin-top:0;" id="borrowModalTitle">Request to Borrow</h3>
     <div class="field">
-      <label>Your name</label>
+      <label for="borrowRequesterName">Your name</label>
       <input type="text" id="borrowRequesterName" placeholder="So they know who's asking">
     </div>
     <div class="field">
-      <label>Note (optional)</label>
+      <label for="borrowRequesterNote">Note (optional)</label>
       <input type="text" id="borrowRequesterNote" placeholder="e.g. Could I grab this Friday?">
     </div>
     <button class="primary" style="width:100%;" id="submitBorrowBtn">Send Request</button>
@@ -630,15 +629,15 @@
     </div>
     <div id="signupForm">
       <div class="field">
-        <label>Your name</label>
+        <label for="signupName">Your name</label>
         <input type="text" id="signupName" placeholder="e.g. Bob Dylan">
       </div>
       <div class="field">
-        <label>Username</label>
+        <label for="signupUsername">Username</label>
         <input type="text" id="signupUsername" placeholder="e.g. BobbyD68" autocapitalize="off" autocorrect="off">
       </div>
       <div class="field">
-        <label>Password</label>
+        <label for="signupPassword">Password</label>
         <input type="password" id="signupPassword" placeholder="At least 6 characters" onkeydown="if(event.key==='Enter') doSignup();">
       </div>
       <button class="primary" style="width:100%;" id="signupBtn" onclick="doSignup()">Create My Collection</button>
@@ -646,18 +645,18 @@
     </div>
     <div id="loginForm" style="display:none;">
       <div class="field">
-        <label>Username</label>
+        <label for="loginUsername">Username</label>
         <input type="text" id="loginUsername" placeholder="Your username" autocapitalize="off" autocorrect="off">
       </div>
       <div class="field">
-        <label>Password</label>
+        <label for="loginPassword">Password</label>
         <input type="password" id="loginPassword" placeholder="Your password" onkeydown="if(event.key==='Enter') doLogin();">
       </div>
       <button class="primary" style="width:100%;" id="loginBtn" onclick="doLogin()">Log In</button>
       <small style="display:block;color:var(--dim);margin-top:10px;text-align:center;">Don't have a username yet? <span style="color:var(--amber); cursor:pointer;" onclick="toggleKeyLogin()">Use an access key instead</span></small>
       <div id="keyLoginForm" style="display:none; margin-top:14px; border-top:1px solid var(--line); padding-top:14px;">
         <div class="field">
-          <label>Access Key</label>
+          <label for="loginKey">Access Key</label>
           <input type="text" id="loginKey" placeholder="Paste the key you were given" onkeydown="if(event.key==='Enter') doLoginWithKey();">
         </div>
         <button class="secondary" style="width:100%;" id="loginKeyBtn" onclick="doLoginWithKey()">Log In With Key</button>
@@ -682,10 +681,14 @@
       <h3 style="margin: 0; font-size: 20px; color: var(--text); font-weight: 600;">Collection</h3>
     </div>
     <div class="chiprow" id="collectionFilterChips" style="margin-bottom: 12px;"></div>
+    <div class="filter-row" id="filterRow">
+      <select id="genreFilterSelect" class="pill-select"><option value="">All Genres</option></select>
+      <select id="formatFilterSelect" class="pill-select"><option value="">All Formats</option></select>
+    </div>
     <div class="popout-panel" id="manageCratesPopout" style="display:none;">
       <div class="popout-header">
         <h4 style="margin:0;">✎ Manage Crates</h4>
-        <button type="button" class="popout-x" onclick="toggleManageCratesPopout()">✕</button>
+        <button type="button" class="popout-x" title="Close" aria-label="Close manage crates" onclick="toggleManageCratesPopout()">✕</button>
       </div>
       <small class="hint">Your own way of grouping records — could be people, genres, shelves, whatever makes sense to you.</small>
       <div id="collEditList"></div>
@@ -699,15 +702,15 @@
     <div class="popout-panel" id="sharePopout" style="display:none;">
       <div class="popout-header">
         <h4 style="margin:0;">🔗 Share &amp; Export</h4>
-        <button type="button" class="popout-x" onclick="toggleSharePopout()">✕</button>
+        <button type="button" class="popout-x" title="Close" aria-label="Close share and export" onclick="toggleSharePopout()">✕</button>
       </div>
       <small class="hint">Gives someone a read-only link — they can look, but can't add or edit anything. They can request to borrow a specific record instead.</small>
       <div class="field">
-        <label>Which crate</label>
+        <label for="shareCrateSelect">Which crate</label>
         <select id="shareCrateSelect"><option value="">Everything</option></select>
       </div>
       <div class="field">
-        <label>Label (optional, helps you remember why you shared it)</label>
+        <label for="shareLabelInput">Label (optional, helps you remember why you shared it)</label>
         <input type="text" id="shareLabelInput" placeholder="e.g. For Jordan">
       </div>
       <button class="secondary" style="width:100%;" id="createShareBtn">Create Share Link</button>
@@ -724,11 +727,6 @@
       <button class="chip active" data-view="table" onclick="setBrowseViewMode('table')">▤ Table</button>
       <button class="chip" data-view="crate" onclick="setBrowseViewMode('crate')">🗃 Crate</button>
       <button class="chip" data-view="wall" onclick="setBrowseViewMode('wall')">🖼 Wall</button>
-      <button class="chip" id="filterToggleBtn" title="Filter by genre/format" style="margin-left:auto;" onclick="toggleFilterRow()">⚙ Filter</button>
-    </div>
-    <div class="filter-row" id="filterRow" style="display:none;">
-      <select id="genreFilterSelect" class="pill-select"><option value="">All Genres</option></select>
-      <select id="formatFilterSelect" class="pill-select"><option value="">All Formats</option></select>
     </div>
     <div class="browse-summary" id="browseSummary"></div>
     <div id="collectionResultsList"></div>
@@ -773,18 +771,18 @@
           <div class="cover-hint">Tap to zoom</div>
         </div>
         <div class="action-links" id="externalLinks" style="display:none;"></div>
-        <div class="field"><label>🗂️ Cover Present</label>
-          <div class="pillrow" id="coverPills">
+        <div class="field"><label id="coverPresentLabel">🗂️ Cover Present</label>
+          <div class="pillrow" id="coverPills" role="group" aria-labelledby="coverPresentLabel">
             <button class="pill" data-v="Yes" data-tier="original"><b>Original</b></button>
             <button class="pill" data-v="Repro"><b>Replacement</b></button>
             <button class="pill" data-v="No" data-tier="poor"><b>Missing</b></button>
           </div>
         </div>
-        <div class="field"><label>🗂️ Cover Condition</label>
-          <div class="pillrow" id="sleeveCondPills"></div>
+        <div class="field"><label id="sleeveCondLabel">🗂️ Cover Condition</label>
+          <div class="pillrow" id="sleeveCondPills" role="group" aria-labelledby="sleeveCondLabel"></div>
         </div>
-        <div class="field"><label>Outer Plastic Sleeve</label>
-          <div class="pillrow" id="outerSleevePills">
+        <div class="field"><label id="outerSleeveLabel">Outer Plastic Sleeve</label>
+          <div class="pillrow" id="outerSleevePills" role="group" aria-labelledby="outerSleeveLabel">
             <button class="pill" data-v="Yes"><b>Yes</b></button>
             <button class="pill" data-v="No"><b>No</b></button>
           </div>
@@ -799,7 +797,10 @@
           <b>P (Poor):</b> Warped/cracked, skips badly.<br><br>
           <b>Cover — check spine first</b>, then corners, seams, and surface (ring wear, writing, stickers).
         </div>
-        <button class="fav-btn" type="button" id="favBtn">☆ Listen Later / Favourite</button>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <button class="fav-btn" type="button" id="favBtn" style="flex:1; margin-top:0;">☆ Favourite</button>
+          <button class="fav-btn" type="button" id="pullBtn" style="flex:1; margin-top:0;" title="Pull this record out to plan a listening session, independent of its crate">🎧 Pull to Table</button>
+        </div>
       </div>
       <div class="editor-main">
         <div class="editor-tabs" role="tablist">
@@ -810,18 +811,18 @@
 
         <div class="tab-pane active" data-tab-content="details">
         <div class="grid-2">
-          <div class="field"><label>Artist</label><input type="text" id="fArtist"></div>
-          <div class="field"><label>Title</label><input type="text" id="fTitle"></div>
+          <div class="field"><label for="fArtist">Artist</label><input type="text" id="fArtist"></div>
+          <div class="field"><label for="fTitle">Title</label><input type="text" id="fTitle"></div>
         </div>
         <div class="grid-4">
-          <div class="field"><label>Year</label><input type="text" id="fYear"></div>
-          <div class="field"><label>Format</label><input type="text" id="fFormat" list="formatDatalist"></div>
-          <div class="field"><label>Label</label><input type="text" id="fLabel"></div>
-          <div class="field"><label>Catalog #</label><input type="text" id="fCatno"></div>
+          <div class="field"><label for="fYear">Year</label><input type="text" id="fYear"></div>
+          <div class="field"><label for="fFormat">Format</label><input type="text" id="fFormat" list="formatDatalist"></div>
+          <div class="field"><label for="fLabel">Label</label><input type="text" id="fLabel"></div>
+          <div class="field"><label for="fCatno">Catalog #</label><input type="text" id="fCatno"></div>
         </div>
         <div class="grid-2">
-          <div class="field"><label>Barcode</label><input type="text" id="fBarcode" inputmode="numeric"></div>
-          <div class="field"><label>Estimated Value</label>
+          <div class="field"><label for="fBarcode">Barcode</label><input type="text" id="fBarcode" inputmode="numeric"></div>
+          <div class="field"><label for="fValue">Estimated Value</label>
             <div class="input-with-prefix">
               <span>$</span>
               <input type="text" id="fValue" placeholder="0.00" inputmode="decimal">
@@ -829,12 +830,12 @@
             <div class="scanhint" id="valueHint" style="display:none;"></div>
           </div>
         </div>
-        <div class="field"><label>Genre / Style</label><input type="text" id="fGenre" list="genreDatalist"></div>
+        <div class="field"><label for="fGenre">Genre / Style</label><input type="text" id="fGenre" list="genreDatalist"></div>
         </div>
 
         <div class="tab-pane" data-tab-content="condition">
-        <div class="field" id="discStepperWrap" style="display:none; margin-bottom: 20px;">
-          <label>Discs in this Set</label>
+        <div class="field" id="discStepperWrap" style="display:none; margin-bottom: 20px;" role="group" aria-labelledby="discsInSetLabel">
+          <label id="discsInSetLabel">Discs in this Set</label>
           <div class="grid-2" style="background: var(--well-1); padding: 16px; border-radius: 8px;">
             <div>
               <div class="stepper" style="margin: 0;">
@@ -858,10 +859,10 @@
         </div>
         <span class="infolink" id="multiDiscToggle" style="display:none;">＋ This is actually a multi-disc set</span>
         <div id="discConditionRows" style="margin-top: 16px;"></div>
-        <div class="field" style="margin-top: 24px;"><label>Tracklist <span style="color:var(--dim); text-transform:none; letter-spacing:0;">(auto-filled from Discogs, editable)</span></label>
+        <div class="field" style="margin-top: 24px;"><label for="fTracklist">Tracklist <span style="color:var(--dim); text-transform:none; letter-spacing:0;">(auto-filled from Discogs, editable)</span></label>
           <textarea id="fTracklist" placeholder="Fills in automatically once a release is selected" style="min-height: 120px; font-family: monospace; font-size: 13px;"></textarea>
         </div>
-        <div class="field"><label>Notes</label><textarea id="fNotes" placeholder="Story, quirks, deadwax matrix numbers, etc"></textarea></div>
+        <div class="field"><label for="fNotes">Notes</label><textarea id="fNotes" placeholder="Story, quirks, deadwax matrix numbers, etc"></textarea></div>
         </div>
 
         <div class="tab-pane" data-tab-content="info">
@@ -870,7 +871,6 @@
           <div class="scanhint" style="margin:4px 0 8px;">Pulled from Discogs, not stored unless you add it below.</div>
           <div id="discogsInfoList" style="display:none; margin-top:6px;">
             <div id="discogsAccordion"></div>
-            <button class="secondary" id="saveAccordionDefaultBtn" style="width:auto; padding:6px 12px; font-size:11px; margin-top:10px;">💾 Save this open/closed layout as default</button>
           </div>
         </div>
         <div class="moreby" id="pressingsWrap" style="display:none; margin-top:20px;">
@@ -885,11 +885,8 @@
         </div>
 
         <hr style="border:0; border-bottom:1px solid rgba(var(--overlay-rgb), 0.05); margin: 30px 0;">
-        <div class="alert alert-dup" id="dupWarningBottom"><span class="alert-icon">📀</span><span></span></div>
-        <div class="alert alert-artist" id="artistWarningBottom"><span class="alert-icon">🎤</span><span></span></div>
-        <div class="alert alert-rare" id="rareWarningBottom"><span class="alert-icon">⭐</span><span></span></div>
-        <div class="field"><label>Save To Crate</label>
-          <div class="pillrow collpicker" id="saveCollPills"></div>
+        <div class="field"><label id="saveCollLabel">Save To Crate</label>
+          <div class="pillrow collpicker" id="saveCollPills" role="group" aria-labelledby="saveCollLabel"></div>
         </div>
         <div class="field-warn" id="saveWarn"></div>
         <button id="backToDashboardBtnBottom" class="secondary editor-back-bottom">← Back</button>
@@ -917,7 +914,7 @@
 </div>
 <div class="modal" id="settingsModal">
   <div class="modalbox">
-    <button class="closebtn" id="closeSettings">✕</button>
+    <button class="closebtn" id="closeSettings" title="Close" aria-label="Close settings">✕</button>
     <h3 style="margin-bottom:18px;">Settings</h3>
 
     <div class="settings-section open">
@@ -933,10 +930,10 @@
           <button class="chip active" data-theme="system" onclick="setTheme('system')">🖥 Match Device</button>
         </div>
         <div class="row2">
-          <div class="field"><label>Flag as expensive if over</label>
+          <div class="field"><label for="expensiveThreshold">Flag as expensive if over</label>
             <input type="text" id="expensiveThreshold" inputmode="decimal" placeholder="50">
           </div>
-          <div class="field"><label>Flag as rare if fewer than</label>
+          <div class="field"><label for="rareThreshold">Flag as rare if fewer than</label>
             <input type="text" id="rareThreshold" inputmode="numeric" placeholder="100">
           </div>
         </div>
@@ -954,11 +951,11 @@
         <div id="credentialsSetup">
           <small style="display:block;color:var(--dim);margin-bottom:12px;">Set a username &amp; password so you can log in normally on other devices instead of needing your access key.</small>
           <div class="field">
-            <label>Username</label>
+            <label for="newUsername">Username</label>
             <input type="text" id="newUsername" placeholder="e.g. jordan" autocapitalize="off" autocorrect="off">
           </div>
           <div class="field">
-            <label>Password</label>
+            <label for="newPassword">Password</label>
             <input type="password" id="newPassword" placeholder="At least 6 characters">
           </div>
           <button class="secondary" style="width:100%;" id="setCredentialsBtn">Set Username &amp; Password</button>
@@ -974,7 +971,7 @@
       </div>
       <div class="settings-section-body">
         <div class="field">
-          <label>Backend URL</label>
+          <label for="appsScriptUrl">Backend URL</label>
           <input type="text" id="appsScriptUrl" placeholder="https://crate-log-proxy....workers.dev/">
           <small style="display:block;color:var(--dim);margin-top:6px;">The Cloudflare Worker URL — same for everyone using this app.</small>
         </div>
@@ -992,11 +989,11 @@
       <div class="settings-section-body">
         <div id="adminSection">
           <div class="field">
-            <label>Admin Key</label>
+            <label for="adminKeyInput">Admin Key</label>
             <input type="text" id="adminKeyInput" placeholder="Only you know this">
           </div>
           <div class="field">
-            <label>New user's name</label>
+            <label for="newUserName">New user's name</label>
             <input type="text" id="newUserName" placeholder="e.g. Jordan">
           </div>
           <button class="secondary" style="width:100%;" id="createUserBtn">Generate Access Key</button>
@@ -1026,8 +1023,25 @@
 </div>
 <div class="modal" id="zoomModal">
   <div class="modalbox" style="max-width:min(96vw,860px); padding:10px;">
-    <button class="closebtn" id="closeZoom">✕</button>
+    <button class="closebtn" id="closeZoom" title="Close" aria-label="Close image">✕</button>
     <img id="zoomImg" src="" style="width:100%; border-radius:10px; display:block; background:#000;">
+  </div>
+</div>
+<div class="modal" id="barcodeModal">
+  <div class="modalbox" style="max-width:420px;">
+    <button class="closebtn" id="closeBarcodeScanner" title="Close" aria-label="Close barcode scanner">✕</button>
+    <h3 style="margin:0 0 4px;">📷 Scan Barcode</h3>
+    <div class="scanhint" style="margin-bottom:14px;">Point the camera at the barcode on the record's cover or label.</div>
+    <div id="barcodeReader" style="width:100%; border-radius:10px; overflow:hidden; background:#000; min-height:200px;"></div>
+    <div id="barcodeStatus" class="scanhint" style="margin-top:10px; text-align:center;">Starting camera…</div>
+    <hr style="border:0; border-bottom:1px solid rgba(var(--overlay-rgb), 0.08); margin:16px 0;">
+    <div class="field" style="margin:0;">
+      <label for="barcodeManualInput">No camera? Type the barcode instead</label>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="barcodeManualInput" inputmode="numeric" placeholder="e.g. 0602537351098" style="flex:1;">
+        <button class="secondary" id="barcodeManualBtn" style="width:auto; padding:10px 16px; margin:0;">Search</button>
+      </div>
+    </div>
   </div>
 </div>
 <datalist id="genreDatalist"></datalist>
@@ -1040,6 +1054,11 @@ let discsPresent = 1;
 let currentFavourite = false;
 let toastTimer = null;
 let currentRowIndex = null;
+// Bumped every time the editor starts loading data for a (possibly different) record —
+// checked after each async release fetch resolves so a slow, stale response from a
+// record you've since navigated away from can't silently overwrite what's on screen.
+let editorLoadToken = 0;
+let currentPulledAt = null; // mirrors record.pulledAt — deliberately NOT part of the normal save/update payload, see schema.sql/worker.js comments
 let searchDebounce = null;
 let browseFavOnly = false;
 let browseSortMode = 'artist';
@@ -1104,7 +1123,6 @@ function clearAllBrowseFilters(){
   browseFormatFilter = '';
   $('genreFilterSelect').value = '';
   $('formatFilterSelect').value = '';
-  updateFilterIcon();
   renderBrowseFilters();
   clearUnifiedSearch();
 }
@@ -1293,12 +1311,12 @@ function renderCollEditList(){
     const upStyle = baseBtnStyle + (idx===0 ? 'opacity:0.25;cursor:default;' : '');
     const downStyle = baseBtnStyle + (idx===collections.length-1 ? 'opacity:0.25;cursor:default;' : '');
     row.innerHTML = `<span class="reorder-btns" style="display:flex; flex-direction:column; gap:2px; flex:0 0 auto;">
-                        <button type="button" class="moveupbtn" data-id="${c.id}" ${idx===0 ? 'disabled' : ''} style="${upStyle}">▲</button>
-                        <button type="button" class="movedownbtn" data-id="${c.id}" ${idx===collections.length-1 ? 'disabled' : ''} style="${downStyle}">▼</button>
+                        <button type="button" class="moveupbtn" data-id="${c.id}" title="Move up" aria-label="Move ${escHtml(c.name)} up" ${idx===0 ? 'disabled' : ''} style="${upStyle}">▲</button>
+                        <button type="button" class="movedownbtn" data-id="${c.id}" title="Move down" aria-label="Move ${escHtml(c.name)} down" ${idx===collections.length-1 ? 'disabled' : ''} style="${downStyle}">▼</button>
                       </span>
-                      <input type="color" value="${c.color}" data-id="${c.id}" class="colorEdit">
-                      <input type="text" value="${c.name}" data-id="${c.id}" class="nameEdit">
-                      <button class="delbtn" data-id="${c.id}">✕</button>`;
+                      <input type="color" value="${c.color}" data-id="${c.id}" class="colorEdit" aria-label="Crate color">
+                      <input type="text" value="${escHtml(c.name)}" data-id="${c.id}" class="nameEdit" aria-label="Crate name">
+                      <button class="delbtn" data-id="${c.id}" title="Delete crate" aria-label="Delete crate ${escHtml(c.name)}">✕</button>`;
     wrap.appendChild(row);
   });
   wrap.querySelectorAll('.moveupbtn').forEach(btn=>{
@@ -1415,9 +1433,18 @@ async function saveSettings(){
   }catch(e){ toast('Could not save settings', true); }
 }
 
+// Shared by callScript() and every other direct backend call (login, signup, viewShared,
+// requestBorrow, createUser, getCrates) — one place to guarantee a hung connection can't
+// leave any of them waiting forever, rather than duplicating the timeout logic six times.
+function postToBackend(payload, timeoutMs = 20000){
+  const controller = new AbortController();
+  const timer = setTimeout(()=> controller.abort(), timeoutMs);
+  return fetch(appsScriptUrl, {method:'POST', body: JSON.stringify(payload), signal: controller.signal})
+    .finally(()=> clearTimeout(timer));
+}
 function callScript(payload){
   const body = accessKey ? {...payload, accessKey} : payload;
-  return fetch(appsScriptUrl, {method:'POST', body: JSON.stringify(body)}).then(res => res.json());
+  return postToBackend(body).then(res => res.json());
 }
 
 $('settingsBtn').onclick = ()=> { $('settingsModal').classList.add('show'); };
@@ -1432,6 +1459,25 @@ $('cardCover').onclick = ()=> openZoomModal($('cardCover').src);
 $('closeZoom').onclick = ()=> $('zoomModal').classList.remove('show');
 document.querySelectorAll('.modal').forEach(m=>{
   m.addEventListener('click', (e)=>{ if(e.target === m) m.classList.remove('show'); });
+});
+// Escape closes whichever modal is currently open — a standard, expected keyboard
+// convention that was entirely missing (only backdrop-click and the explicit ✕
+// buttons worked before). Barcode gets its own path since closing it needs to stop
+// the camera stream too, not just hide the overlay. stopImmediatePropagation() only
+// fires when a modal was actually open, so the separate Escape handler further down
+// (browse-table row navigation) still works normally the rest of the time.
+document.addEventListener('keydown', (e)=>{
+  if(e.key !== 'Escape') return;
+  if($('barcodeModal').classList.contains('show')){
+    closeBarcodeScanner();
+    e.stopImmediatePropagation();
+    return;
+  }
+  const openModals = document.querySelectorAll('.modal.show');
+  if(openModals.length){
+    openModals.forEach(m => m.classList.remove('show'));
+    e.stopImmediatePropagation();
+  }
 });
 $('zoomModal').onclick = (e)=>{ if(e.target.id === 'zoomModal') $('zoomModal').classList.remove('show'); };
 $('saveSettingsBtn').onclick = saveSettings;
@@ -1482,7 +1528,7 @@ $('createUserBtn').onclick = async ()=>{
   if(!displayName){ toast('Enter a name for the new user', true); return; }
   $('createUserBtn').disabled = true;
   try{
-    const res = await fetch(appsScriptUrl, {method:'POST', body: JSON.stringify({action:'createUser', adminKey, displayName})});
+    const res = await postToBackend({action:'createUser', adminKey, displayName});
     const j = await res.json();
     if(j.status === 'ok'){
       $('newUserResult').style.display = 'block';
@@ -1578,32 +1624,8 @@ function toggleSearchModeRow(){
   const row = $('searchModeToggle');
   const opening = row.style.display === 'none';
   row.style.display = opening ? 'block' : 'none';
-  if(opening){
-    $('expensiveThresholdQuick').value = expensiveThreshold;
-    $('rareThresholdQuick').value = rareThreshold;
-    $('flagThresholdsBody').style.display = 'none';
-    $('flagThresholdsCaret').classList.remove('open');
-  }
   setTimeout(syncHeaderHeight, 10);
 }
-function toggleFlagThresholds(){
-  const body = $('flagThresholdsBody');
-  const opening = body.style.display === 'none';
-  body.style.display = opening ? 'block' : 'none';
-  $('flagThresholdsCaret').classList.toggle('open', opening);
-  setTimeout(syncHeaderHeight, 10);
-}
-function saveQuickThresholds(){
-  expensiveThreshold = parseFloat($('expensiveThresholdQuick').value) || 50;
-  rareThreshold = parseInt($('rareThresholdQuick').value, 10) || 100;
-  $('expensiveThreshold').value = expensiveThreshold;
-  $('rareThreshold').value = rareThreshold;
-  try{
-    localStorage.setItem('crate-log-settings', JSON.stringify({appsScriptUrl, expensiveThreshold, rareThreshold, accessKey}));
-  }catch(e){}
-}
-$('expensiveThresholdQuick').addEventListener('change', saveQuickThresholds);
-$('rareThresholdQuick').addEventListener('change', saveQuickThresholds);
 
 function setSearchMode(mode){
   searchMode = mode;
@@ -1656,46 +1678,189 @@ $('unifiedSearchInput').addEventListener('keydown', e=>{
   }
 });
 
-const discogsSearchCache = new Map(); // avoids re-hitting Discogs for a query you've already searched this session
+// Shared across EVERY Discogs-touching action (search, release, versions) — not just
+// the search box. Opening a record, swapping a pressing, and loading "Other pressings" /
+// "More by artist" all hit Discogs too. Without one shared cache + pacing gate across
+// all of them, browsing through several records back-to-back could rack up enough
+// uncached, unpaced requests to trip Discogs' rate limit even though the search box
+// itself was behaving fine on its own — this was almost certainly what was actually
+// happening during "too many searches" 429s, since a lot of Discogs traffic in this
+// app comes from just opening records, not from typing into the search bar.
+const discogsCache = new Map(); // keyed by action+params — avoids re-hitting Discogs for anything already fetched this session
 let lastDiscogsRequestAt = 0;
 const DISCOGS_MIN_GAP_MS = 1200;
+let discogsQueue = Promise.resolve(); // serializes every Discogs call through the same pacing gate, so concurrent callers (e.g. opening a record while a search is still in flight) can't both slip through at once
+
+async function discogsCall(action, params){
+  const cacheKey = action + ':' + JSON.stringify(params);
+  if(discogsCache.has(cacheKey)) return discogsCache.get(cacheKey);
+
+  const run = discogsQueue.then(async ()=>{
+    const sinceLast = Date.now() - lastDiscogsRequestAt;
+    if(sinceLast < DISCOGS_MIN_GAP_MS) await new Promise(res => setTimeout(res, DISCOGS_MIN_GAP_MS - sinceLast));
+    lastDiscogsRequestAt = Date.now();
+    const data = await callScript({action, ...params});
+    if(data && data.status !== 'error') discogsCache.set(cacheKey, data); // don't cache errors — a rate-limited call should be retried, not remembered as "the answer"
+    return data;
+  });
+  discogsQueue = run.catch(()=>{}); // keep the chain alive even after an error, so later calls still get paced correctly
+  return run;
+}
+function isDiscogsRateLimited(data){
+  return !!(data && data.status === 'error' && /429|rate.?limit/i.test(data.message || ''));
+}
 
 async function runSearch(payload){
   if(!appsScriptUrl){ toast('Set up your Apps Script URL in Settings first', true); $('settingsModal').classList.add('show'); return; }
   if(!payload.query){ toast('Type something to search', true); return; }
 
-  const cacheKey = JSON.stringify(payload);
-  if(discogsSearchCache.has(cacheKey)){
-    renderDiscogsResultsFromCache(discogsSearchCache.get(cacheKey), payload);
-    return;
-  }
-
-  const sinceLast = Date.now() - lastDiscogsRequestAt;
-  if(sinceLast < DISCOGS_MIN_GAP_MS){
-    clearTimeout(discogsThrottleTimer);
-    discogsThrottleTimer = setTimeout(()=> runSearch(payload), DISCOGS_MIN_GAP_MS - sinceLast);
-    return;
-  }
-  lastDiscogsRequestAt = Date.now();
-
   $('discogsResultsWrap').style.display='none';
   $('loadingPanel').style.display='block';
   try{
-    const data = await callScript({action:'search', ...payload});
+    const data = await discogsCall('search', payload);
     $('loadingPanel').style.display='none';
     if(data.status === 'error'){
-      const rateLimited = /429|rate.?limit/i.test(data.message || '');
-      toast(rateLimited ? 'Discogs is rate-limiting requests — wait a few seconds and try again' : ('Discogs search failed: ' + (data.message || 'unknown error')), true);
+      toast(isDiscogsRateLimited(data) ? 'Discogs is rate-limiting requests — wait a few seconds and try again' : ('Discogs search failed: ' + (data.message || 'unknown error')), true);
       return;
     }
-    discogsSearchCache.set(cacheKey, data.results || []);
     renderDiscogsResultsFromCache(data.results || [], payload);
   }catch(e){
     $('loadingPanel').style.display='none';
     toast('Lookup failed — check your Backend URL and connection', true);
   }
 }
-let discogsThrottleTimer = null;
+
+// ---------- Barcode scanning ----------
+// Uses the Worker's dedicated 'barcode' action (a precise Discogs barcode lookup,
+// distinct from the general text 'search' action) and feeds results into the exact
+// same rendering pipeline as a normal search, so nothing downstream needs to know
+// results came from a scan rather than typing.
+const BARCODE_LIB_URL = 'https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js';
+let barcodeLibPromise = null;
+let barcodeScannerInstance = null;
+let barcodeScanHandled = false; // guards against the camera firing the success callback on multiple frames for the same code before .stop() actually takes effect
+
+function loadBarcodeLib(){
+  if(window.Html5Qrcode) return Promise.resolve();
+  if(barcodeLibPromise) return barcodeLibPromise;
+  barcodeLibPromise = new Promise((resolve, reject)=>{
+    const script = document.createElement('script');
+    script.src = BARCODE_LIB_URL;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Could not load the scanner library'));
+    document.head.appendChild(script);
+  });
+  return barcodeLibPromise;
+}
+
+async function openBarcodeScanner(){
+  $('barcodeModal').classList.add('show');
+  $('barcodeManualInput').value = '';
+  barcodeScanHandled = false;
+  await startBarcodeCamera();
+}
+
+async function startBarcodeCamera(){
+  $('barcodeStatus').textContent = 'Starting camera…';
+
+  if(!window.isSecureContext){
+    // Camera access requires HTTPS (or localhost) — fails silently otherwise, so
+    // surface this clearly rather than leaving the user staring at a black box.
+    $('barcodeStatus').textContent = 'Camera needs a secure (https) connection — use the manual entry below instead.';
+    return;
+  }
+
+  try{
+    await loadBarcodeLib();
+  }catch(e){
+    $('barcodeStatus').textContent = 'Could not load the scanner — use the manual entry below instead.';
+    return;
+  }
+
+  try{
+    barcodeScannerInstance = new Html5Qrcode('barcodeReader', {
+      formatsToSupport: [
+        Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.UPC_A, Html5QrcodeSupportedFormats.UPC_E
+      ],
+      verbose: false
+    });
+    await barcodeScannerInstance.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 250, height: 150 } },
+      (decodedText) => onBarcodeDetected(decodedText),
+      () => {} // per-frame "no code found yet" callback — expected constantly, not an error
+    );
+    $('barcodeStatus').textContent = 'Point the camera at the barcode…';
+  }catch(e){
+    // Most commonly: camera permission denied, no camera present, or already in use
+    $('barcodeStatus').textContent = 'Could not access the camera (permission denied, or none available) — use the manual entry below instead.';
+  }
+}
+
+async function stopBarcodeScanner(){
+  if(barcodeScannerInstance){
+    try{
+      await barcodeScannerInstance.stop();
+      barcodeScannerInstance.clear();
+    }catch(e){ /* already stopped, or never fully started — fine either way */ }
+    barcodeScannerInstance = null;
+  }
+}
+
+function closeBarcodeScanner(){
+  $('barcodeModal').classList.remove('show');
+  stopBarcodeScanner();
+}
+
+async function onBarcodeDetected(code){
+  if(barcodeScanHandled) return; // camera keeps firing on subsequent frames until .stop() completes
+  barcodeScanHandled = true;
+  await stopBarcodeScanner();
+  $('barcodeModal').classList.remove('show');
+  toast('Scanned: ' + code);
+  runBarcodeSearch(code);
+}
+
+$('closeBarcodeScanner').onclick = closeBarcodeScanner;
+$('barcodeModal').addEventListener('click', (e)=>{ if(e.target.id === 'barcodeModal') closeBarcodeScanner(); });
+$('barcodeManualBtn').onclick = ()=>{
+  const v = $('barcodeManualInput').value.trim();
+  if(!v){ toast('Enter a barcode number first', true); return; }
+  onBarcodeDetected(v);
+};
+$('barcodeManualInput').addEventListener('keydown', e=>{ if(e.key === 'Enter') $('barcodeManualBtn').click(); });
+
+// Stop the camera the moment the tab/app is backgrounded — otherwise it keeps running
+// (and draining battery) if someone switches apps or locks their phone mid-scan. Resume
+// automatically if they come back with the scanner still open; permission was already
+// granted, so this shouldn't re-prompt.
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden){
+    if(barcodeScannerInstance) stopBarcodeScanner();
+  } else if($('barcodeModal').classList.contains('show') && !barcodeScannerInstance){
+    startBarcodeCamera();
+  }
+});
+
+async function runBarcodeSearch(barcode){
+  if(!appsScriptUrl){ toast('Set up your Apps Script URL in Settings first', true); $('settingsModal').classList.add('show'); return; }
+  $('discogsResultsWrap').style.display = 'none';
+  $('loadingPanel').style.display = 'block';
+  try{
+    const data = await discogsCall('barcode', { barcode });
+    $('loadingPanel').style.display = 'none';
+    if(data.status === 'error'){
+      toast(isDiscogsRateLimited(data) ? 'Discogs is rate-limiting requests — wait a few seconds and try again' : ('Barcode lookup failed: ' + (data.message || 'unknown error')), true);
+      return;
+    }
+    isUpdatingExistingCard = false;
+    renderDiscogsResultsFromCache(data.results || [], { query: barcode });
+  }catch(e){
+    $('loadingPanel').style.display = 'none';
+    toast('Lookup failed — check your Backend URL and connection', true);
+  }
+}
 
 function renderDiscogsResultsFromCache(results, payload){
   $('loadingPanel').style.display='none';
@@ -1723,7 +1888,6 @@ function startUpdateFromDiscogs(e, idx) {
   const q = (r.barcode || (r.artist + ' ' + r.title)).trim();
   $('unifiedSearchInput').value = q;
   setSearchMode('both');
-  $('searchPanel').classList.remove('collapsed');
   window.scrollTo({top:0, behavior:'smooth'});
   toast('Select a Discogs pressing below to fill missing data', false);
 }
@@ -1736,6 +1900,7 @@ async function applyDiscogsUpdate(r, artist, title) {
   showEditor();
   window.scrollTo({top:0, behavior:'smooth'});
   toast('Fetching details...');
+  const myToken = ++editorLoadToken;
 
   if (!$('fYear').value.trim() && r.year) $('fYear').value = r.year;
   if (!$('fFormat').value.trim() && r.format) $('fFormat').value = (r.format||[]).join(', ');
@@ -1758,7 +1923,8 @@ async function applyDiscogsUpdate(r, artist, title) {
   try {
     $('discsCheck').textContent = 'Checking missing data...';
     $('discsCheck').style.display = 'block';
-    const data = await callScript({action:'release', id: r.id});
+    const data = await discogsCall('release', {id: r.id});
+    if(myToken !== editorLoadToken) return; // a different record has been opened since this fetch started — discard
     lastReleaseData = data;
     if(!$('fTracklist').value.trim() && data.tracklist) {
       $('fTracklist').value = formatTracklist(data.tracklist);
@@ -1771,6 +1937,7 @@ async function applyDiscogsUpdate(r, artist, title) {
     $('discsCheck').style.display = 'none';
     toast('Fields updated! Review and click Save Record.', false);
   } catch(e) {
+    if(myToken !== editorLoadToken) return;
     $('discsCheck').style.display = 'none';
     toast('Could not fetch full release details', true);
   }
@@ -1822,7 +1989,7 @@ function renderSearchResults(results){
     const catnoStr = r.catno || '';
     const isDup = counts[normKey(r)] > 1;
     html += `
-      <tr data-search-idx="${i}" style="${isDup ? 'background:rgba(232,170,85,0.05);' : ''}">
+      <tr data-search-idx="${i}" style="${isDup ? 'background:rgba(var(--amber-rgb),0.05);' : ''}">
         <td class="col-art">${thumb ? `<img class="table-thumb" loading="lazy" src="${escHtml(thumb)}" alt="" onclick="event.stopPropagation(); openZoomModal('${escHtml(thumb)}')">` : ''}</td>
         <td class="col-artist">${escHtml(artist)}</td>
         <td class="col-title">${escHtml(title)}</td>
@@ -2120,7 +2287,7 @@ function setAmbientGlowFromImage(url){
     }catch(e){
       // Canvas taints on cross-origin images without permissive CORS headers (common with Discogs-hosted
       // covers) — fall back to a neutral glow rather than erroring.
-      applyGlowColor('rgba(232,170,85,0.10)');
+      applyGlowColor('rgba(var(--amber-rgb),0.10)');
     }
   };
   img.onerror = ()=> clearAmbientGlow();
@@ -2167,6 +2334,7 @@ function renderRecordWallView(list){
     html += `<div class="wall-item" data-row-id="${r.rowIndex}" data-cover="${escHtml(thumb)}" data-letter="${letter}">
         ${thumb ? `<img loading="lazy" src="${escHtml(thumb)}" alt="">` : ''}
         ${r.favourite === 'Yes' ? '<span class="wall-fav">★</span>' : ''}
+        ${r.pulledAt ? '<span class="wall-pulled" title="On the table">🎧</span>' : ''}
         <div class="wall-overlay">
           <div class="w-artist">${escHtml(r.artist||'')}</div>
           <div class="w-title">${escHtml(r.title||'Untitled')}</div>
@@ -2291,6 +2459,13 @@ function renderCrate3DView(list){
 // Fluid touch: the front card follows the thumb in real time, then either completes
 // the flip or springs back to rest depending on how far/fast it was dragged.
 function crate3dBindStageGestures(stage){
+  // renderCrate3DView() (which calls this) runs on every browse refresh, crate switch,
+  // and search/filter while in 3D view — but #crate3dStage is a persistent element, never
+  // recreated. Without this guard, every one of those triggers stacked 5 more listeners
+  // onto the same element, making gestures fire more and more times the longer a session
+  // with any browsing-while-in-3D-view went on.
+  if(stage.dataset.gesturesBound) return;
+  stage.dataset.gesturesBound = '1';
   let dragging = false, startX = 0, startY = 0, dx = 0, dy = 0, lastX = 0, lastT = 0, velocity = 0, axis = null;
 
   function restingTransform(){
@@ -2405,7 +2580,12 @@ function renderCrate3dRolodex(){
   el.querySelectorAll('.rolodex-letter').forEach(btn=>{
     btn.onclick = ()=> jumpToLetter(btn.dataset.letter);
   });
-  // Drag-scrub across the letters, like running a thumb along a real crate divider row
+  // Drag-scrub across the letters, like running a thumb along a real crate divider row.
+  // Bound once (guarded below) — renderCrate3dRolodex() itself runs on every browse
+  // refresh/crate switch while in 3D view, but these listeners live on #crate3dRolodex
+  // and window, neither of which get recreated. Without the guard, every trigger added
+  // another set of window-level mousemove/mouseup listeners that would never go away —
+  // not even after switching out of 3D view — for the rest of the page's life.
   let lastScrubbed = null;
   const scrubAt = (clientX)=>{
     const target = document.elementFromPoint(clientX, el.getBoundingClientRect().top + el.offsetHeight/2);
@@ -2416,14 +2596,17 @@ function renderCrate3dRolodex(){
       if(navigator.vibrate) navigator.vibrate(5);
     }
   };
-  el.addEventListener('touchstart', e=>{ lastScrubbed = null; scrubAt(e.touches[0].clientX); }, {passive:true});
-  el.addEventListener('touchmove', e=>{ scrubAt(e.touches[0].clientX); }, {passive:true});
+  if(!el.dataset.scrubBound){
+    el.dataset.scrubBound = '1';
+    el.addEventListener('touchstart', e=>{ lastScrubbed = null; scrubAt(e.touches[0].clientX); }, {passive:true});
+    el.addEventListener('touchmove', e=>{ scrubAt(e.touches[0].clientX); }, {passive:true});
 
-  // Mouse equivalent — click-and-drag across the letters works the same as a touch scrub
-  let mouseDown = false;
-  el.addEventListener('mousedown', e=>{ mouseDown = true; lastScrubbed = null; scrubAt(e.clientX); });
-  window.addEventListener('mousemove', e=>{ if(mouseDown) scrubAt(e.clientX); });
-  window.addEventListener('mouseup', ()=>{ mouseDown = false; });
+    // Mouse equivalent — click-and-drag across the letters works the same as a touch scrub
+    let mouseDown = false;
+    el.addEventListener('mousedown', e=>{ mouseDown = true; lastScrubbed = null; scrubAt(e.clientX); });
+    window.addEventListener('mousemove', e=>{ if(mouseDown) scrubAt(e.clientX); });
+    window.addEventListener('mouseup', ()=>{ mouseDown = false; });
+  }
 }
 
 function crate3dCurrentLetter(){
@@ -2480,6 +2663,13 @@ function crate3dPaintStage(){
       label.className = 'c3d-label';
       label.textContent = (item.record.artist||'') + ' – ' + (item.record.title||'');
       el.appendChild(label);
+      if(item.record.pulledAt){
+        const pulledBadge = document.createElement('div');
+        pulledBadge.className = 'c3d-pulled';
+        pulledBadge.title = 'On the table';
+        pulledBadge.textContent = '🎧';
+        el.appendChild(pulledBadge);
+      }
       if(i === 0) setAmbientGlowFromImage(thumb);
     }
     const shade = document.createElement('div');
@@ -2572,12 +2762,6 @@ function populateGenreFormatFilters(){
   if([...genreSel.options].some(o=>o.value===gCurrent)) genreSel.value = gCurrent;
   if([...formatSel.options].some(o=>o.value===fCurrent)) formatSel.value = fCurrent;
 }
-function toggleFilterRow(){
-  const row = $('filterRow');
-  const open = row.style.display !== 'none';
-  row.style.display = open ? 'none' : 'flex';
-  $('filterToggleBtn').classList.toggle('active', !open);
-}
 function toggleManageCratesPopout(){
   const el = $('manageCratesPopout');
   const opening = el.style.display === 'none';
@@ -2595,12 +2779,8 @@ function toggleSharePopout(){
   $('shareCratesBtn').classList.toggle('active', opening);
   if(opening){ populateShareCrateSelect(); refreshActiveShares(); }
 }
-function updateFilterIcon(){
-  const active = !!(browseGenreFilter || browseFormatFilter);
-  $('filterToggleBtn').textContent = active ? '⚙ Filter •' : '⚙ Filter';
-}
-$('genreFilterSelect').addEventListener('change', ()=>{ browseGenreFilter = $('genreFilterSelect').value; updateFilterIcon(); applyBrowseSortAndFilter(); });
-$('formatFilterSelect').addEventListener('change', ()=>{ browseFormatFilter = $('formatFilterSelect').value; updateFilterIcon(); applyBrowseSortAndFilter(); });
+$('genreFilterSelect').addEventListener('change', ()=>{ browseGenreFilter = $('genreFilterSelect').value; applyBrowseSortAndFilter(); });
+$('formatFilterSelect').addEventListener('change', ()=>{ browseFormatFilter = $('formatFilterSelect').value; applyBrowseSortAndFilter(); });
 
 function setBrowseSort(mode){
   if(browseSortMode === mode){
@@ -2794,7 +2974,7 @@ function buildBrowseRow(r, idx){
     '<td>' + escHtml(r.collection||'') + '</td>' +
     '<td>' + gradeBadgeHtml(r.mediaCondition) + '</td>' +
     '<td class="col-price">' + priceStr + '</td>' +
-    '<td class="col-action">›</td>';
+    '<td class="col-action" aria-hidden="true">›</td>';
   tr.querySelector('.row-check').onclick = (e)=>{
     e.stopPropagation();
     const id = r.rowIndex;
@@ -2972,6 +3152,9 @@ function selectCandidate(r, artist, title){
   fetchReleaseDetails(r.id);
   checkDuplicates(artist, title, $('fBarcode').value.trim());
   setFavourite(false);
+  currentPulledAt = null;
+  setPulled(false);
+  refreshPullBtnAvailability();
   syncCollectionUI();
   clearMissingFlags();
   $('gradeBox').classList.remove('show');
@@ -2984,10 +3167,12 @@ function selectCandidate(r, artist, title){
 
 async function fetchReleaseDetails(releaseId){
   if(!releaseId || !appsScriptUrl) return;
+  const myToken = ++editorLoadToken;
   $('discsCheck').textContent = 'Checking Discogs for disc count & pricing…';
   $('discsCheck').style.display = 'block';
   try{
-    const data = await callScript({action:'release', id: releaseId});
+    const data = await discogsCall('release', {id: releaseId});
+    if(myToken !== editorLoadToken) return; // a different record has been opened since this fetch started — discard
     lastReleaseData = data;
     if(!$('fTracklist').value.trim()){
       $('fTracklist').value = formatTracklist(data.tracklist);
@@ -3022,7 +3207,7 @@ async function fetchReleaseDetails(releaseId){
     renderDiscogsInfo(data);
     scheduleDraftSave();
   }catch(e){}
-  $('discsCheck').style.display = 'none';
+  if(myToken === editorLoadToken) $('discsCheck').style.display = 'none';
 }
 
 function setAlert(id, msg, show){
@@ -3128,15 +3313,12 @@ function renderDiscogsInfo(data){
       section.classList.toggle('open', nowOpen);
       header.querySelector('.ah-icon').textContent = nowOpen ? '−' : '+';
       discogsAccordionState[id] = nowOpen;
+      // Persisted immediately rather than requiring a separate "save as default" step —
+      // whatever layout you leave a section in is just what you'll see next time.
+      try{ localStorage.setItem('crate-log-accordion-default', JSON.stringify(discogsAccordionState)); }catch(e){}
     };
   });
 }
-$('saveAccordionDefaultBtn').onclick = ()=>{
-  try{
-    localStorage.setItem('crate-log-accordion-default', JSON.stringify(discogsAccordionState));
-    toast('Saved as your default layout');
-  }catch(e){ toast('Could not save', true); }
-};
 $('discogsInfoToggle').onclick = ()=>{
   const list = $('discogsInfoList');
   const open = list.style.display === 'block';
@@ -3164,8 +3346,10 @@ async function checkDuplicates(artist, title, barcode){
 async function applyPressingSwap(v){
   if(!v || !v.id){ toast('Could not load that pressing', true); return; }
   toast('Swapping to this pressing...');
+  const myToken = ++editorLoadToken; // covers both leaving this record entirely, and picking a second pressing before the first swap resolves
   try{
-    const data = await callScript({action:'release', id: v.id});
+    const data = await discogsCall('release', {id: v.id});
+    if(myToken !== editorLoadToken) return; // superseded by a later action while this was in flight — discard
     currentRecordDiscogsId = v.id;
     // Force-overwrite — this is a correction, not a fill-in-the-blanks
     if(v.format) $('fFormat').value = v.format;
@@ -3206,7 +3390,7 @@ async function setupPressings(r){
     if(open || list.dataset.loaded) return;
     list.innerHTML = '<div class="scanhint">Loading…</div>';
     try{
-      const data = await callScript({action:'versions', master_id: r.master_id});
+      const data = await discogsCall('versions', {master_id: r.master_id});
       const versions = (data.results||[]).slice(0,10);
       list.innerHTML = (versions.length ? '<div class="scanhint" style="margin-bottom:6px;">Tap a pressing to swap it in — checks Country/Year/Catalog # for you.</div>' : '') +
         versions.map((v,i)=>{
@@ -3291,9 +3475,9 @@ function renderDiscConditionRows(n){
     const sel = el.querySelector('.pill.selected');
     if(sel) prevInner[i] = sel.dataset.v;
   });
-  const mediaPillHtml = i => `<div class="pillrow" id="mediaPills_${i}">${gradePillsHTML(VINYL_TOOLTIPS, true)}</div>`;
+  const mediaPillHtml = i => `<div class="pillrow" id="mediaPills_${i}" role="group" aria-labelledby="mediaCondLabel_${i}">${gradePillsHTML(VINYL_TOOLTIPS, true)}</div>`;
   const innerPillHtml = i => `
-    <div class="pillrow" id="innerSleevePills_${i}">
+    <div class="pillrow" id="innerSleevePills_${i}" role="group" aria-labelledby="innerSleeveLabel_${i}">
       <button class="pill" data-v="Original" data-tier="original"><b>Original</b></button>
       <button class="pill" data-v="Poly" data-tier="poly"><b>Poly</b></button>
       <button class="pill" data-v="Missing" data-tier="poor"><b>Missing</b></button>
@@ -3301,8 +3485,8 @@ function renderDiscConditionRows(n){
   let html = '';
   for(let i=1; i<=n; i++){
     const prefix = n > 1 ? ('Disc ' + i + ' — ') : '';
-    html += `<div class="field"><label>${prefix}Vinyl Condition</label>${mediaPillHtml(i)}</div>`;
-    html += `<div class="field"><label>${prefix}Inner Sleeve</label>${innerPillHtml(i)}</div>`;
+    html += `<div class="field"><label id="mediaCondLabel_${i}">${prefix}Vinyl Condition</label>${mediaPillHtml(i)}</div>`;
+    html += `<div class="field"><label id="innerSleeveLabel_${i}">${prefix}Inner Sleeve</label>${innerPillHtml(i)}</div>`;
   }
   wrap.innerHTML = html;
   wrap.querySelectorAll('.pillrow').forEach(row=> bindPillRow(row));
@@ -3435,9 +3619,36 @@ $('gradeToggle').onclick = ()=> $('gradeBox').classList.toggle('show');
 function setFavourite(v){
   currentFavourite = v;
   $('favBtn').classList.toggle('active', v);
-  $('favBtn').textContent = v ? '★ Listen Later / Favourite' : '☆ Listen Later / Favourite';
+  $('favBtn').textContent = v ? '★ Favourite' : '☆ Favourite';
 }
 $('favBtn').onclick = ()=> setFavourite(!currentFavourite);
+
+// "On the Table" is deliberately not part of the record's normal saved fields (see
+// schema.sql/worker.js) — it's a live, separate flag on an already-saved record, so
+// this button acts immediately via the same bulk endpoints the toolbar uses (with a
+// one-item id array), rather than waiting for the editor's Save button.
+function setPulled(v){
+  currentPulledAt = v ? (currentPulledAt || new Date().toISOString()) : null;
+  $('pullBtn').classList.toggle('active', !!v);
+  $('pullBtn').textContent = v ? '🎧 On the Table' : '🎧 Pull to Table';
+}
+function refreshPullBtnAvailability(){
+  const canPull = !!currentRowIndex; // a not-yet-saved record has no row to flag
+  $('pullBtn').disabled = !canPull;
+  $('pullBtn').title = canPull
+    ? 'Pull this record out to plan a listening session, independent of its crate'
+    : 'Save this record first, then you can pull it to the table';
+}
+async function togglePulled(){
+  if(!currentRowIndex) return; // button is disabled in this state, but guard anyway
+  const wantPulled = !currentPulledAt;
+  $('pullBtn').disabled = true;
+  if(wantPulled) await pullSelectedToTable([currentRowIndex]);
+  else await putBackIds([currentRowIndex]);
+  setPulled(wantPulled);
+  $('pullBtn').disabled = false;
+}
+$('pullBtn').onclick = togglePulled;
 
 async function setupMoreByArtist(artist){
   const wrap = $('morebyWrap');
@@ -3455,7 +3666,7 @@ async function setupMoreByArtist(artist){
     if(open || list.dataset.loaded) return;
     list.innerHTML = '<div class="scanhint">Loading…</div>';
     try{
-      const data = await callScript({action:'search', query: artist});
+      const data = await discogsCall('search', {query: artist});
       const results = (data.results||[]).filter(r => (r.title||'').toLowerCase().includes(artist.toLowerCase())).slice(0,6);
       let already = [];
       try{ const lr = localStorage.getItem('crate-log-recent'); if(lr) already = JSON.parse(lr); }catch(e){}
@@ -3524,6 +3735,17 @@ function checkRequiredOrWarn(){
 $('saveBtn').onclick = async ()=>{
   if(!appsScriptUrl){ toast('Set up your Apps Script URL in Settings first', true); return; }
   if(!checkRequiredOrWarn()) return;
+  const rawValue = $('fValue').value.trim();
+  if(rawValue){
+    const parsedValue = parseFloat(rawValue);
+    if(isNaN(parsedValue) || parsedValue < 0){
+      const field = $('fValue').closest('.field');
+      if(field) field.classList.add('missing');
+      $('fValue').scrollIntoView({behavior:'smooth', block:'center'});
+      toast('Estimated Value needs to be a number, 0 or higher', true);
+      return;
+    }
+  }
   const isUpdate = !!currentRowIndex;
   const record = buildRecordPayload();
   record.action = isUpdate ? 'update' : 'save';
@@ -3664,8 +3886,8 @@ function renderLog(log){
     <div class="logitem" data-i="${i}">
       <span class="log-dot" style="color:${r.collectionColor||'var(--dim)'}">●</span>
       <div class="li-t">
-        <b>${r.favourite ? '<span style="color:var(--amber)">★</span> ' : ''}${r.artist||'Unknown Artist'}</b>
-        <span>${r.title||'Untitled'} ${r.year ? `(${r.year})` : ''}</span>
+        <b>${r.favourite ? '<span style="color:var(--amber)">★</span> ' : ''}${escHtml(r.artist||'Unknown Artist')}</b>
+        <span>${escHtml(r.title||'Untitled')} ${r.year ? `(${escHtml(String(r.year))})` : ''}</span>
       </div>
     </div>`).join('') || '<div style="padding:16px;" class="scanhint">Nothing logged yet this session.</div>';
   $('logList').querySelectorAll('.logitem').forEach(el=>{
@@ -3678,6 +3900,7 @@ function renderLog(log){
 
 function loadFromLogRecord(record){
   if(!record) return;
+  const myToken = ++editorLoadToken;
   currentSelection = null;
   currentRecordDiscogsId = record.discogsId || '';
   currentRowIndex = record.rowIndex || null;
@@ -3721,6 +3944,9 @@ function loadFromLogRecord(record){
     selectPillValue('innerSleevePills_'+i, record.innerSleeve);
   }
   setFavourite(record.favourite === 'Yes');
+  currentPulledAt = record.pulledAt || null;
+  setPulled(!!record.pulledAt);
+  refreshPullBtnAvailability();
   const coll = collections.find(c => c.name === record.collection);
   if(coll) activeCollectionId = coll.id;
   syncCollectionUI();
@@ -3731,8 +3957,8 @@ function loadFromLogRecord(record){
   showEditor();
   toast('Loaded from library — click Save to update sheet');
   if(currentRecordDiscogsId){
-    callScript({action:'release', id: currentRecordDiscogsId}).then(data=>{
-      if(currentRecordDiscogsId && data && !data.status){ // still viewing this record, and got real data back
+    discogsCall('release', {id: currentRecordDiscogsId}).then(data=>{
+      if(myToken === editorLoadToken && data && !data.status){ // still viewing this exact record (not just "some" record), and got real data back
         lastReleaseData = data;
         renderDiscogsInfo(data);
       }
@@ -3762,6 +3988,7 @@ function snapshotCurrentCard(){
     discsTotal: discsTotal, discsPresent: discsPresent, discs: discs,
     favourite: currentFavourite,
     currentRowIndex: currentRowIndex,
+    currentPulledAt: currentPulledAt,
     savedAt: Date.now()
   };
 }
@@ -3824,6 +4051,9 @@ function restoreDraft(draft){
     selectPillValue('innerSleevePills_'+(i+1), d.inner);
   });
   setFavourite(!!draft.favourite);
+  currentPulledAt = draft.currentPulledAt || null;
+  setPulled(!!currentPulledAt);
+  refreshPullBtnAvailability();
   if(draft.activeCollectionId && collections.find(c=>c.id===draft.activeCollectionId)){
     activeCollectionId = draft.activeCollectionId;
   }
@@ -3880,7 +4110,7 @@ async function refreshActiveShares(){
   try{
     const j = await callScript({action:'listShares'});
     const shares = j.shares || [];
-    if(!shares.length){ wrap.innerHTML = ''; return; }
+    if(!shares.length){ wrap.innerHTML = '<div class="scanhint">No active share links yet.</div>'; return; }
     wrap.innerHTML = '<div style="font-size:12px; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;">Active Shares</div>' +
       shares.map(s => {
         const url = location.origin + location.pathname + '?share=' + s.id;
@@ -3889,19 +4119,20 @@ async function refreshActiveShares(){
             '<div style="color:var(--text); font-weight:600;">' + escHtml(s.label || (s.crateName || 'Everything')) + '</div>' +
             '<div style="color:var(--dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + escHtml(url) + '</div>' +
           '</div>' +
-          '<button class="secondary" style="width:auto; padding:4px 10px; font-size:11px; margin:0; flex:0 0 auto;" onclick="revokeShareById(\'' + s.id + '\')">Revoke</button>' +
+          '<button class="secondary" style="width:auto; padding:4px 10px; font-size:11px; margin:0; flex:0 0 auto;" onclick="revokeShareById(this,\'' + s.id + '\')">Revoke</button>' +
         '</div>';
       }).join('');
   }catch(e){}
 }
 
-async function revokeShareById(shareId){
+async function revokeShareById(btn, shareId){
   if(!confirm('Revoke this share link? Anyone with the link will lose access immediately.')) return;
+  btn.disabled = true;
   try{
     const j = await callScript({action:'revokeShare', shareId});
     if(j.status === 'ok'){ toast('Share revoked'); refreshActiveShares(); }
-    else toast(j.message || 'Could not revoke', true);
-  }catch(e){ toast('Request failed', true); }
+    else { toast(j.message || 'Could not revoke', true); btn.disabled = false; }
+  }catch(e){ toast('Request failed', true); btn.disabled = false; }
 }
 
 // ---------- Borrow requests (owner side) ----------
@@ -3924,7 +4155,13 @@ async function refreshBorrowRequests(){
       if(pending.length){ badge.style.display='flex'; badge.textContent = pending.length; }
       else { badge.style.display = 'none'; }
     }
-    if($('borrowBtn')) $('borrowBtn').classList.toggle('has-alert', pending.length > 0);
+    if($('borrowBtn')){
+      $('borrowBtn').classList.toggle('has-alert', pending.length > 0);
+      // Hidden only when there's truly zero history (never shared, or shared but no
+      // one's asked) — kept visible without the pending-count badge if there's any
+      // past request, so approved/declined/returned history stays reachable.
+      $('borrowBtn').style.display = list.length ? '' : 'none';
+    }
     const wrap = $('borrowRequestsList');
     if(!wrap) return;
     if(!list.length){ wrap.innerHTML = '<div class="scanhint">No borrow requests yet.</div>'; return; }
@@ -3935,24 +4172,27 @@ async function refreshBorrowRequests(){
         '<div style="font-size:11px; color:var(--dim); text-transform:uppercase; letter-spacing:0.04em;">Status: ' + escHtml(r.status) + '</div>' +
         (r.status === 'pending' ?
           '<div style="display:flex; gap:8px; margin-top:8px;">' +
-            '<button class="secondary" style="width:auto; padding:5px 12px; font-size:12px; margin:0;" onclick="setBorrowStatus(\'' + r.id + '\',\'approved\')">Approve</button>' +
-            '<button class="secondary" style="width:auto; padding:5px 12px; font-size:12px; margin:0;" onclick="setBorrowStatus(\'' + r.id + '\',\'declined\')">Decline</button>' +
+            '<button class="secondary" style="width:auto; padding:5px 12px; font-size:12px; margin:0;" onclick="setBorrowStatus(this,\'' + r.id + '\',\'approved\')">Approve</button>' +
+            '<button class="secondary" style="width:auto; padding:5px 12px; font-size:12px; margin:0;" onclick="setBorrowStatus(this,\'' + r.id + '\',\'declined\')">Decline</button>' +
           '</div>' : '') +
         (r.status === 'approved' ?
           '<div style="margin-top:8px;">' +
-            '<button class="secondary" style="width:auto; padding:5px 12px; font-size:12px; margin:0;" onclick="setBorrowStatus(\'' + r.id + '\',\'returned\')">Mark Returned</button>' +
+            '<button class="secondary" style="width:auto; padding:5px 12px; font-size:12px; margin:0;" onclick="setBorrowStatus(this,\'' + r.id + '\',\'returned\')">Mark Returned</button>' +
           '</div>' : '') +
       '</div>'
     ).join('');
   }catch(e){}
 }
 
-async function setBorrowStatus(id, status){
+async function setBorrowStatus(btn, id, status){
+  const row = btn.closest('div');
+  const buttons = row ? row.querySelectorAll('button') : [btn];
+  buttons.forEach(b => b.disabled = true);
   try{
     const j = await callScript({action:'updateBorrowRequest', requestId: id, status});
     if(j.status === 'ok'){ toast('Updated'); refreshBorrowRequests(); }
-    else toast(j.message || 'Could not update', true);
-  }catch(e){ toast('Request failed', true); }
+    else { toast(j.message || 'Could not update', true); buttons.forEach(b => b.disabled = false); }
+  }catch(e){ toast('Request failed', true); buttons.forEach(b => b.disabled = false); }
 }
 
 // ---------- On the Table ----------
@@ -3982,7 +4222,15 @@ function refreshOnTableBadge(){
     if(list.length){ badge.style.display='flex'; badge.textContent = list.length; }
     else { badge.style.display = 'none'; }
   }
-  if($('tableBtn')) $('tableBtn').classList.toggle('has-alert', list.length > 0);
+  if($('tableBtn')){
+    $('tableBtn').classList.toggle('has-alert', list.length > 0);
+    // Hidden entirely when empty rather than just showing a zero badge — this button
+    // only ever *views* what's pulled (pulling itself happens via bulk-select or the
+    // editor's own Pull button), so there's nothing lost by hiding it when there's
+    // nothing to view. Keeps the header from permanently showing a feature most
+    // visits won't touch.
+    $('tableBtn').style.display = list.length ? '' : 'none';
+  }
   if($('tablePopout') && $('tablePopout').style.display !== 'none') renderOnTableList();
 }
 
@@ -4072,7 +4320,7 @@ async function initSharedView(){
   if($('settingsBtn')) $('settingsBtn').style.display = 'none';
   $('sharedView').style.display = 'block';
   try{
-    const res = await fetch(appsScriptUrl, {method:'POST', body: JSON.stringify({action:'viewShared', shareId: shareIdParam})});
+    const res = await postToBackend({action:'viewShared', shareId: shareIdParam});
     const data = await res.json();
     if(data.status !== 'ok'){
       $('sharedSubheading').textContent = data.message || 'This link is no longer valid.';
@@ -4092,7 +4340,7 @@ function renderSharedResults(list){
   if(!list.length){ wrap.innerHTML = browseEmptyStateHtml(); return; }
   wrap.innerHTML = list.map(r =>
     '<div style="display:flex; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid var(--line);">' +
-      '<img src="' + (r.coverImage || '') + '" onerror="this.style.display=\'none\'" style="width:44px;height:44px;object-fit:cover;border-radius:6px;background:#111;flex:0 0 auto;">' +
+      '<img src="' + escHtml(r.coverImage || '') + '" onerror="this.style.display=\'none\'" style="width:44px;height:44px;object-fit:cover;border-radius:6px;background:#111;flex:0 0 auto;">' +
       '<div style="flex:1; min-width:0;">' +
         '<div style="font-weight:600; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + escHtml(r.artist||'') + ' — ' + escHtml(r.title||'') + '</div>' +
         '<div style="font-size:12px; color:var(--dim);">' + escHtml(r.year||'') + (r.format ? ' · ' + escHtml(r.format) : '') + (r.genre ? ' · ' + escHtml(r.genre) : '') + '</div>' +
@@ -4117,10 +4365,10 @@ $('submitBorrowBtn').onclick = async ()=>{
   if(!requesterName){ toast('Enter your name', true); return; }
   $('submitBorrowBtn').disabled = true;
   try{
-    const res = await fetch(appsScriptUrl, {method:'POST', body: JSON.stringify({
+    const res = await postToBackend({
       action:'requestBorrow', shareId: shareIdParam, recordId: borrowTargetRecordId,
       requesterName, requesterNote: $('borrowRequesterNote').value.trim()
-    })});
+    });
     const j = await res.json();
     if(j.status === 'ok'){
       $('borrowRequestModal').classList.remove('show');
@@ -4207,7 +4455,7 @@ async function doSignup(){
   if(!appsScriptUrl){ showAuthError('This app isn\u2019t configured with a backend yet — ask whoever set it up.'); return; }
   $('signupBtn').disabled = true;
   try{
-    const res = await fetch(appsScriptUrl, {method:'POST', body: JSON.stringify({action:'signup', displayName: name, username, password})});
+    const res = await postToBackend({action:'signup', displayName: name, username, password});
     const j = await res.json();
     if(j.status === 'ok'){
       accessKey = j.accessKey;
@@ -4226,7 +4474,7 @@ async function doLogin(){
   if(!appsScriptUrl){ showAuthError('This app isn\u2019t configured with a backend yet — ask whoever set it up.'); return; }
   $('loginBtn').disabled = true;
   try{
-    const res = await fetch(appsScriptUrl, {method:'POST', body: JSON.stringify({action:'login', username, password})});
+    const res = await postToBackend({action:'login', username, password});
     const j = await res.json();
     if(j.status === 'ok'){
       accessKey = j.accessKey;
@@ -4244,7 +4492,7 @@ async function doLoginWithKey(){
   if(!appsScriptUrl){ showAuthError('This app isn\u2019t configured with a backend yet — ask whoever set it up.'); return; }
   $('loginKeyBtn').disabled = true;
   try{
-    const res = await fetch(appsScriptUrl, {method:'POST', body: JSON.stringify({action:'getCrates', accessKey: key})});
+    const res = await postToBackend({action:'getCrates', accessKey: key});
     const j = await res.json();
     if(j.status === 'ok'){
       accessKey = key;
