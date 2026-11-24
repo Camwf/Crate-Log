@@ -990,6 +990,7 @@ function saveSettings(){
   rareThreshold = parseInt($('rareThreshold').value, 10) || 100;
   try{
     localStorage.setItem('crate-log-settings', JSON.stringify({appsScriptUrl, expensiveThreshold, rareThreshold}));
+    localStorage.removeItem('crate-log-library-cache');
     toast('Settings saved');
     $('settingsModal').classList.remove('show');
     collectionCache = null;
@@ -1358,20 +1359,40 @@ function renderSearchResults(results){
   list.style.display='block';
 }
 
+// Instant browser cache + silent background sync from Google Sheet
 async function runBrowse(query){
   if(collectionCache === null){
-    $('collectionResultsList').innerHTML = '<div class="scanhint">Loading library from Google Sheet...</div>';
     try{
-      const data = await callScript({action:'browse', query:''});
-      collectionCache = data.results || [];
+      const cached = localStorage.getItem('crate-log-library-cache');
+      if(cached){
+        collectionCache = JSON.parse(cached);
+        refreshStatsIfOpen();
+        populateGenreFormatFilters();
+        populateDatalists();
+      }
+    }catch(e){}
+
+    if(collectionCache === null){
+      $('collectionResultsList').innerHTML = '<div class="scanhint">Loading library from Google Sheet...</div>';
+    }
+
+    callScript({action:'browse', query:''}).then(data=>{
+      const fresh = data.results || [];
+      collectionCache = fresh;
+      try{ localStorage.setItem('crate-log-library-cache', JSON.stringify(fresh)); }catch(e){}
       refreshStatsIfOpen();
       populateGenreFormatFilters();
       populateDatalists();
-    }catch(e){
-      $('collectionResultsList').innerHTML = '<div class="scanhint">Failed to load library. Check your connection.</div>';
-      return;
-    }
+      runBrowse($('unifiedSearchInput').value.trim());
+    }).catch(()=>{
+      if(collectionCache === null){
+        $('collectionResultsList').innerHTML = '<div class="scanhint">Failed to load library. Check your connection.</div>';
+      }
+    });
+
+    if(collectionCache === null) return;
   }
+
   let list = collectionCache;
   const q = (query||'').trim().toLowerCase();
   if(q){
@@ -2104,7 +2125,7 @@ loadCollections();
 loadLog();
 checkForDraft();
 syncHeaderHeight();
-setTimeout(() => runBrowse(''), 300);
+runBrowse('');
 </script>
 </body>
 </html>
